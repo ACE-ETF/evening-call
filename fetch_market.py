@@ -662,19 +662,19 @@ def build_rule_briefing(p: dict) -> dict:
 
         sec = {key: [] for key, _ in BRIEF_SECTIONS}
         sec["market"] = [
-            f"코스피 {k['price']:,.2f}pt({k[pk]:+.2f}%), 코스닥 {q['price']:,.2f}pt({q[pk]:+.2f}%)",
-            f"원/달러 {fx['price']:,.1f}원({fx[pk]:+.2f}%)"
+            f"지수: 코스피 {k['price']:,.2f}pt({k[pk]:+.2f}%), 코스닥 {q['price']:,.2f}pt({q[pk]:+.2f}%)",
+            f"환율: 원/달러 {fx['price']:,.1f}원({fx[pk]:+.2f}%)"
             + (f", 전일 미 반도체 {'약세' if sox[pk] < 0 else '강세'} 영향 반영" if abs(sox[pk]) >= 1 else ""),
         ]
         if period == "daily" and b.get("up") is not None and not b.get("stale"):
-            sec["market"].append(f"코스피 상승 {b['up']} / 하락 {b['down']} / 보합 {b['flat']} 종목")
+            sec["market"].append(f"시장 폭: 코스피 상승 {b['up']} / 하락 {b['down']} / 보합 {b['flat']} 종목")
         if not fk.get("stale"):
             sec["flow"].append("코스피: " + ", ".join(f"{INVESTOR_LABEL[x]} {fmt_eok(fk[f'{period}_{x}'])}" for x, _ in INVESTORS))
         if not fq.get("stale"):
             sec["flow"].append("코스닥: " + ", ".join(f"{INVESTOR_LABEL[x]} {fmt_eok(fq[f'{period}_{x}'])}" for x, _ in INVESTORS))
         if sf:
-            sec["flow"].append("외국인+기관 순매수 업종: " + ", ".join(f"{r['sector']} {fmt_eok(r['smart'])}" for r in sf[:3]))
-            sec["flow"].append("외국인+기관 순매도 업종: " + ", ".join(f"{r['sector']} {fmt_eok(r['smart'])}" for r in sf[-3:][::-1]))
+            sec["flow"].append("외+기 매수 업종: " + ", ".join(f"{r['sector']} {fmt_eok(r['smart'])}" for r in sf[:3]))
+            sec["flow"].append("외+기 매도 업종: " + ", ".join(f"{r['sector']} {fmt_eok(r['smart'])}" for r in sf[-3:][::-1]))
         if si:
             sec["sector"].append("강세: " + ", ".join(f"{r['name']} {r['pct']:+.2f}%" for r in si[:3]))
             sec["sector"].append("약세: " + ", ".join(f"{r['name']} {r['pct']:+.2f}%" for r in si[-3:][::-1]))
@@ -684,10 +684,10 @@ def build_rule_briefing(p: dict) -> dict:
         if fb.get("sell"):
             sec["stock"].append("외국인 순매도: " + ", ".join(f"{x['name']} {fmt_eok(x['value'])}" for x in fb["sell"][:3]))
         news = (p.get("news") or {}).get("items") or []
-        sec["issue"] = [f"{n['title']} [{n['id']}]" for n in news[:3]]
+        sec["issue"] = [f"기사 {n['id']}: {n['title']} [{n['id']}]" for n in news[:3]]
         ace = (p.get("ace") or {}).get(period) or {}
         if ace.get("top"):
-            sec["ace"].append(f"ACE ETF {p['ace'].get('count', 0)}종 중 상승 {ace['up']} / 하락 {ace['down']}, 중간값 {ace['median']:+.2f}%")
+            sec["ace"].append(f"등락 분포: ACE ETF {p['ace'].get('count', 0)}종 중 상승 {ace['up']} / 하락 {ace['down']}, 중간값 {ace['median']:+.2f}%")
             sec["ace"].append("상승 상위: " + ", ".join(f"{x['name']} {x['pct']:+.2f}%" for x in ace["top"][:3]))
             sec["ace"].append("거래대금 상위: " + ", ".join(f"{x['name']} {x['value']:,}억" for x in ace["value_top"][:3]))
 
@@ -697,10 +697,19 @@ def build_rule_briefing(p: dict) -> dict:
         if si:
             strategy.append(f"상대 강세 업종({si[0]['name']}) 중심 순환매 지속 여부 확인")
         strategy.append("다음 거래일 외국인 수급 방향과 반도체 업종 반등 여부 점검")
+        gists = {
+            "market": f"양대 지수 {mood}" + (f", 하락 종목 우세" if b.get("down", 0) > b.get("up", 0) else ""),
+            "flow": (f"{INVESTOR_LABEL[lead]}이 방향 결정" if lead else "수급 데이터 확인 중"),
+            "sector": (f"{si[0]['name']} 강세, {si[-1]['name']} 약세" if si else ""),
+            "stock": "외국인 매매 상위 종목",
+            "issue": "주요 마감 기사",
+            "ace": "ACE 라인업 마감 흐름",
+        }
         out[period] = {
             "headline": headline,
             "summary": summary,
-            "sections": [{"key": key, "title": t, "points": sec[key]} for key, t in BRIEF_SECTIONS if sec[key]],
+            "sections": [{"key": key, "title": t, "gist": gists.get(key, ""), "items": [to_kv(x) for x in sec[key]]}
+                         for key, t in BRIEF_SECTIONS if sec[key]],
             "strategy": strategy,
         }
     out["source"] = "rule"
@@ -744,6 +753,32 @@ def briefing_input(p: dict) -> dict:
     }
 
 
+def to_kv(text: str) -> dict:
+    t = str(text).strip()
+    m = re.match(r"^([^:：]{1,16})[:：]\s*(.+)$", t)
+    return {"k": m.group(1).strip(), "v": m.group(2).strip()} if m else {"k": "", "v": t}
+
+
+def normalize_section(raw) -> dict:
+    """Gemini 응답의 파트를 {gist, items:[{k,v}]}로 통일 (예전 문자열 목록 형식도 허용)."""
+    gist, items = "", []
+    if isinstance(raw, dict):
+        gist = str(raw.get("gist", "")).strip()
+        raw_items = raw.get("items") or []
+    elif isinstance(raw, list):
+        raw_items = raw
+    else:
+        raw_items = []
+    for it in raw_items[:5]:
+        if isinstance(it, dict):
+            k, v = str(it.get("k", "")).strip(), str(it.get("v", "")).strip()
+            if v:
+                items.append({"k": k, "v": v})
+        elif str(it).strip():
+            items.append(to_kv(it))
+    return {"gist": gist, "items": items}
+
+
 def clean_list(v, n):
     if not isinstance(v, list):
         return []
@@ -763,7 +798,11 @@ def generate_briefing(p: dict) -> dict:
         "작성 원칙 (읽는 사람이 30초 안에 오늘 시장을 이해하도록):\n"
         "1) headline: 오늘 시장의 결론 한 문장(40자 내외). '무엇 때문에 어떻게 됐다'가 드러나게.\n"
         "2) summary(총평): 핵심 메시지 3개. 각 1문장. ①시장 방향과 원인 ②돈의 흐름(누가 사고 팔았나) ③다음에 볼 것. 수치는 꼭 필요한 것만.\n"
-        "3) sections: 파트별 근거. 각 파트 2~4개 항목, 구체적 수치 필수, 앞 파트와 중복 금지.\n"
+        "3) sections: 파트별 근거. 각 파트는 {\"gist\": 요지, \"items\": [{\"k\": 항목명, \"v\": 내용}]} 형태.\n"
+        "   - gist: 그 파트의 결론 한 줄(25자 내외, 숫자 없이 의미 위주). 예) '외국인 매도 vs 기관·개인 매수', '방어 업종만 선방', '반도체 대형주에 매도 집중'\n"
+        "   - items 2~4개. k는 2~8자 명사(예: 코스피, 외국인, 전기전자, 삼성전자, 시장 폭), v는 수치 포함 핵심 내용 35자 내외.\n"
+        "     v에 k를 반복하지 말 것. 예) {\"k\":\"외국인\",\"v\":\"코스피 -1조 4,507억 원 순매도\"}\n"
+        "   - 앞 파트와 중복 금지.\n"
         "   - market(지수·매크로): 지수·환율·시장 폭. 국내 장에서 실제로 벌어진 일 중심.\n"
         "   - flow(수급): 외국인·기관·개인 순매수, 업종별 수급 쏠림\n"
         "   - sector(업종): 강세·약세 업종과 그 의미(순환매/방어 등)\n"
@@ -785,7 +824,7 @@ def generate_briefing(p: dict) -> dict:
         "- 숫자 표기: 수급 단위는 억 원. 1만억 이상은 조 단위로 환산(예: -13300 → -1조 3,300억 원), 그 미만은 천 단위 콤마(예: -4,635억 원). 지수는 5,100.50pt 형식.\n"
         "반드시 아래 JSON 형식으로만 응답:\n"
         '{"daily":{"headline":"...","summary":["...","...","..."],'
-        '"sections":{"market":["..."],"flow":["..."],"sector":["..."],"stock":["..."],"issue":["..."],"ace":["..."]},'
+        '"sections":{"market":{"gist":"...","items":[{"k":"...","v":"..."}]},"flow":{...},"sector":{...},"stock":{...},"issue":{...},"ace":{...}},'
         '"strategy":["..."]},"weekly":{...같은 구조...}}\n\n'
         f"[데이터]\n{json.dumps(briefing_input(p), ensure_ascii=False)}\n\n"
         "[기사 헤드라인]\n" + ("\n".join(news) if news else "(없음)")
@@ -821,9 +860,9 @@ def generate_briefing(p: dict) -> dict:
                     raw = blk.get("sections") or {}
                     sections = []
                     for key, title in BRIEF_SECTIONS:
-                        pts = clean_list(raw.get(key) if isinstance(raw, dict) else None, 5)
-                        if pts:
-                            sections.append({"key": key, "title": title, "points": pts})
+                        sec = normalize_section(raw.get(key) if isinstance(raw, dict) else None)
+                        if sec["items"]:
+                            sections.append({"key": key, "title": title, **sec})
                     strategy = clean_list(blk.get("strategy"), 4)
                     if not headline or len(summary) < 2 or len(sections) < 3:
                         raise ValueError(f"{per} 형식 불충분")

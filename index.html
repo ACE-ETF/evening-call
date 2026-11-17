@@ -169,6 +169,16 @@
   details.blk[open] > summary::after { transform: rotate(180deg); }
   details.blk[open] > summary { margin-bottom: 4px; }
   details.blk .cnt { color: var(--muted); font-size: 11.5px; font-weight: 600; margin-left: 6px; }
+  .gist { font-size: 14.5px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1.4; }
+  .bsec .blk h4 { font-size: 11.5px; color: var(--accent); letter-spacing: .04em; }
+  .kv { margin-top: 8px; border-top: 1px solid var(--line); }
+  .kv-row { display: grid; grid-template-columns: 74px 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 13.5px; line-height: 1.5; align-items: baseline; }
+  .kv-row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .kv-row .kk { color: var(--text-2); font-weight: 700; font-size: 12.5px; word-break: keep-all; }
+  .kv-row .kk.dot::before { content: "·"; color: var(--muted); }
+  .kv-row .vv { color: var(--text); }
+  details.blk > summary { align-items: flex-start; }
+  details.blk > summary::after { margin-top: 2px; }
   .more { display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px dashed var(--line); background: transparent; color: var(--text-2); font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer; }
   .gap-row { text-align: center; color: var(--muted); font-size: 12px; line-height: 14px; }
   @media (max-width: 640px) {
@@ -336,10 +346,18 @@
       '기준 거래일 <b>' + esc(DATA.trade_date || "-") + '</b> · 업데이트 ' + esc(DATA.updated_at || "-") + badge;
   }
 
+  // 부호 있는 수치 강조: +는 빨강, -는 파랑
+  var NUM_RE = /([+\-−▲▼])\s?(\d[\d,]*(?:\.\d+)?)(\s?조(?:\s?[\d,]+억)?|\s?억|%p|%|pt)?(\s?원)?/g;
+  function hlNum(t) {
+    return t.replace(NUM_RE, function (m, sign) {
+      var c = (sign === "+" || sign === "▲") ? "up" : "down";
+      return '<b class="' + c + '">' + m + '</b>';
+    }).replace(/(순매수|매수 우위)/g, '<span class="up">$1</span>').replace(/(순매도|매도 우위)/g, '<span class="down">$1</span>');
+  }
   // 브리핑: [n] 인용을 기사 링크로, "주제:" 앞부분 강조
-  function richText(s) {
-    var t = esc(s);
-    var m = t.match(/^([^:：]{1,14})[:：]\s*/);
+  function richText(s, noTopic) {
+    var t = hlNum(esc(s));
+    var m = noTopic ? null : t.match(/^([^:：<]{1,14})[:：]\s*/);
     if (m) t = '<b class="topic">' + m[1] + ':</b> ' + t.slice(m[0].length);
     // [1], [3, 5], [3,5] 형태 모두 처리
     return t.replace(/\[(\d{1,2}(?:\s*,\s*\d{1,2})*)\]/g, function (_, grp) {
@@ -365,7 +383,13 @@
       body = '<div class="headline">' + richText(b.headline) + '</div>' +
         ((b.summary && b.summary.length) ? '<div class="summary"><div class="lbl">총평</div><ol>' + b.summary.map(function (p) { return '<li>' + richText(p) + '</li>'; }).join("") + '</ol></div>' : "") +
         '<div class="bsec">' + b.sections.map(function (sc) {
-          return '<details class="blk"' + (isM() ? "" : " open") + '><summary><h4>' + esc(sc.title) + '<span class="cnt">' + (sc.points || []).length + '</span></h4></summary>' + lis(sc.points) + '</details>';
+          var items = sc.items || (sc.points || []).map(function (x) { return { k: "", v: x }; });
+          var rows = items.map(function (it) {
+            return '<div class="kv-row">' + (it.k ? '<span class="kk">' + esc(it.k) + '</span>' : '<span class="kk dot"></span>') +
+              '<span class="vv">' + richText(it.v, true) + '</span></div>';
+          }).join("");
+          return '<details class="blk"' + (isM() ? "" : " open") + '><summary><div><h4>' + esc(sc.title) + '</h4>' +
+            (sc.gist ? '<div class="gist">' + richText(sc.gist, true) + '</div>' : "") + '</div></summary><div class="kv">' + rows + '</div></details>';
         }).join("") +
         ((b.strategy && b.strategy.length) ? '<div class="blk strat"><h4>대응 포인트</h4>' + lis(b.strategy) + '</div>' : "") + '</div>';
     } else if (b && b.headline) {
