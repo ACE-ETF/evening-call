@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-17 14:23 KST",
+  "updated_at": "2026-11-17 14:36 KST",
   "trade_date": "2026-11-16",
   "indices": {
     "kospi": {
@@ -181,9 +181,9 @@
       ]
     },
     "usdkrw": {
-      "price": 1336.03,
-      "daily_pct": 0.21,
-      "weekly_pct": -0.58,
+      "price": 1336.76,
+      "daily_pct": 0.26,
+      "weekly_pct": -0.53,
       "date": "2026-11-17",
       "stale": false,
       "series": [
@@ -265,7 +265,7 @@
         },
         {
           "d": "11-17",
-          "c": 1336.03
+          "c": 1336.76
         }
       ]
     },
@@ -2264,56 +2264,56 @@
       {
         "title": "코스피, 외국인 매도에 5,000선 위태…AI 투자 불안에 1%대 하락",
         "source": "산경투데이",
-        "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE9TVTNITUlNRUdVY0dXWnZjWjhiWTRJZmtpakUwb1ZhX2FnV3h0ektCMkVNaWwwcjlYejRza1E2WXJCOTNyWVZfb2k0Q0tkY1pqc3AtZFlFZ05QMnpVckpjYXpXSGxES2t2UzJtU3NYaHbSAXRBVV95cUxQUU1xQ0sxNDF3MTVxelBnY21jOXRFd1hmTnItbkpsanNhTTBvWjFESEExTUZfOHhlb1BkRFJHOVhGU1dhRVVnRGJjcjlLTlM4VFc4X0ZOUnZwTHNPaXVvMHE3aFpIYURkaW03MUVfTXlfSnhrSA?oc=5",
+        "link": "https://www.sankyungtoday.com/news/articleView.html?idxno=64294",
         "published": "11-17 11:59",
         "id": 1
       },
       {
         "title": "베트남 주식 FPT, 외국인 순매도 163억 동 급출회",
         "source": "씬짜오베트남",
-        "link": "https://news.google.com/rss/articles/CBMiSEFVX3lxTFBIM0ZTZEJ1TGVOYzh0S0NLdEllUEw2cm41T2xYMWNsanZKYnI0SHg2SUVNMGlmWEpqS1JxWmFLd1I0eDBQcWExbg?oc=5",
+        "link": "https://news.google.com/articles/CBMiSEFVX3lxTFBIM0ZTZEJ1TGVOYzh0S0NLdEllUEw2cm41T2xYMWNsanZKYnI0SHg2SUVNMGlmWEpqS1JxWmFLd1I0eDBQcWExbg?oc=5",
         "published": "11-17 11:01",
         "id": 2
       },
       {
         "title": "[오늘의 증시] 11월 17일 코스피 5053선 하락…코스닥도 약세, 외국인 동반 순매도",
         "source": "잡포스트",
-        "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBTYi1CRm1waEFzSF8tRmdFVG1DR3N3VlAxLTFWa3l6NXJDZjBaM3hJcVRLNXB5d0NKWXBXZktPRkc5emVFVjFxUmwxQTRrQkdrVjA0Sk44b0VzeDU3dW5mMVRreGJNdE92RTdNRkh30gFyQVVfeXFMTV94TFh2V0w5SDN3QW9ZMUpleGRoUTVwUl9fTWR1eTNneGFmT19yY3hveHItblY1emxvMF82b2FfYkhvWWduZDVxak1MMUpSVEtuZzMxWmlWc0lTakJERkFyVkdnTHZpamxUWFROZ0h2NFFR?oc=5",
+        "link": "https://www.job-post.co.kr/news/articleView.html?idxno=238829",
         "published": "11-17 10:43",
         "id": 3
       },
       {
         "title": "외국인 하루 새 1조3800억 매도 공세…엔비디아·앤트로픽이 코스피 반등 가른다",
         "source": "와이드경제",
-        "link": "https://news.google.com/rss/articles/CBMibEFVX3lxTE11cXRpMXhHMHdFUXpxYW9aQ1ZCMUVaN3hmOTFkMGNVQ1A1MW5ZeFo1Ump3R09kMU9yN0I5MjZZblktU0E3RmdBVmNwYktFZTJUc3ZrX3E1eVFCMHVVSzAtbWJjdE5sRDNOMlJ3Vw?oc=5",
+        "link": "https://www.widedaily.com/news/articleView.html?idxno=303846",
         "published": "11-17 10:26",
         "id": 4
       },
       {
         "title": "[개장시황] 외국인 팔자 코스피 장중 5000선 붕괴",
         "source": "자본시장뉴스",
-        "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE12a1g2RFpmZFZ0eUc5NXIxTlJMdEpsTlpwdDNBcnBEMDBXOG9QOWxEQWVXZUhaeVN5SjJRSXhEODQ2WDdBV3U5X2xsajFOYk1fb2dQVmlJdGFfOWMyNWdvYXd1dzRzQlU?oc=5",
+        "link": "https://news.google.com/articles/CBMiZ0FVX3lxTE12a1g2RFpmZFZ0eUc5NXIxTlJMdEpsTlpwdDNBcnBEMDBXOG9QOWxEQWVXZUhaeVN5SjJRSXhEODQ2WDdBV3U5X2xsajFOYk1fb2dQVmlJdGFfOWMyNWdvYXd1dzRzQlU?oc=5",
         "published": "11-17 10:03",
         "id": 5
       },
       {
         "title": "젠슨 황 스캔들 여진에 ‘오천피’ 위태…외국인 매도에 증시 출렁 [투자360]",
         "source": "헤럴드경제",
-        "link": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFBtN3BfN3lRNG1TcFJDODljZGF0anBXYmxLa2tQcHRRank1dTBYNWhKY1pMLXd3aHN5WnJBTmxBV2hoZlBkc2lfZC1DZUI5UkpnZ2VBWmpB?oc=5",
+        "link": "https://biz.heraldcorp.com/article/10939406",
         "published": "11-17 10:01",
         "id": 6
       },
       {
         "title": "코스피, 장중 5,000선 붕괴 후 반등…외국인 매도에 약세 지속",
         "source": "산경투데이",
-        "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTFB6a3ljYnB0UHNfTU0tcFpXb0VJZVVmOFhNS21OZGFMRERvQmVvai01eG9hbEtLbndmc2JCSl9jb3l5SXUzTWhsaWZsNlJXRXdocmVBTjVFMkM3azVRSnRhWU9MX2Q3Y293bnhRRWt2SlLSAXRBVV95cUxOSm5HRjQxaEdXV1NCOVQ0UmZaMnNWUHJWZk41RDNHMVgwUFFyZFpIc2FDbUhyaVFoWHZycW5TOGRLVXFTVy0waFdyRHZJYlNJV1pFV1A2STNfcUJORzZrV3M4T0h6cEhVb0NaX3N1ZjNnajRMTQ?oc=5",
+        "link": "https://www.sankyungtoday.com/news/articleView.html?idxno=64288",
         "published": "11-17 09:40",
         "id": 7
       },
       {
         "title": "엔비디아 우려에 코스피 장중 5,000 하회…외국인 순매도(상보)",
         "source": "연합인포맥스",
-        "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5Ed1BMOFlJTWtVSFVZWVVsZUFpZ3V6UXVTMDdwNXQtMzItQ1Q3RU1Id29JZkF3VXVadWtxa1djSW53RUZzX1lNQlI5N1JVSHlNUUxmWmJBVjg4Qm5VVnN1YUh2VnhqSjRsTGEycVZsbkk?oc=5",
+        "link": "https://news.google.com/articles/CBMicEFVX3lxTE5Ed1BMOFlJTWtVSFVZWVVsZUFpZ3V6UXVTMDdwNXQtMzItQ1Q3RU1Id29JZkF3VXVadWtxa1djSW53RUZzX1lNQlI5N1JVSHlNUUxmWmJBVjg4Qm5VVnN1YUh2VnhqSjRsTGEycVZsbkk?oc=5",
         "published": "11-17 09:23",
         "id": 8
       }
@@ -2326,36 +2326,36 @@
   },
   "ai_briefing": {
     "daily": {
-      "headline": "외국인 대규모 매도와 AI 투자 불안 여파로 코스피 5,000선 부근 급락",
+      "headline": "코스피, 외국인 대규모 매도와 AI 투자 불안 여파로 5,100.50pt(-3.59%) 급락 [1]",
       "points": [
-        "지수 및 환율: 코스피 -3.59% 하락한 5100.5pt, 코스닥 -4.86% 하락한 665.65pt, 원·달러 환율은 0.21% 상승한 1336.03원 기록 [3]",
-        "투자자 수급: 코스피 시장에서 외국인과 기관이 각각 -1,3300억 원, -4,635억 원 순매도한 반면, 개인은 12,990억 원 순매수 기록 [4]",
-        "업종 강약: 음식료·담배(2.73%), 보험(1.78%) 등은 상승한 반면, 전기전자(-5.65%), 기계·장비(-4.02%) 등은 하락 마감",
-        "업종별 수급 쏠림: 전기·전자 업종에 외국인(-11,316억 원)과 기관(-7,293억 원)의 매도가 집중된 반면 개인은 14,402억 원 순매수 기록",
-        "주요 순매수 및 순매도 종목: 외국인은 SK스퀘어(274억 원) 등을 순매수하고 삼성전자(-6,210억 원), SK하이닉스(-2,042억 원) 등을 순매도",
-        "시장 폭: 코스피 상승 종목 263개, 하락 종목 615개로 하락 우위 기록",
-        "해외 증시: 필라델피아 반도체 지수(SOX) -5.28% 하락 마감 [1]"
+        "지수 및 환율: 코스피 5,100.50pt(-3.59%), 코스닥 665.65pt(-4.86%) 급락 마감하였으며, 원·달러 환율은 1,336.76원(+0.26%)으로 상승함",
+        "투자자 수급: 코스피 시장에서 외국인(-1조 3,300억 원)과 기관(-4,635억 원)이 동반 매도 우위를 보였고, 개인(+12,990억 원)은 홀로 순매수함 [3]",
+        "업종 강약: 코스피 업종 중 음식료·담배(+2.73%), 보험(+1.87%), 운송·창고(+1.67%) 등이 상승한 반면, 전기전자(-5.65%), 기계·장비(-4.02%) 등은 크게 하락함",
+        "업종별 수급 쏠림: 코스피 전기·전자 업종에서 외국인(-11,316억 원)과 기관(-7,293억 원)의 매도가 집중된 반면, 개인(+14,402억 원)은 대거 매수함",
+        "주요 순매수 및 순매도 종목: 기관은 삼성전자(+1,729억 원)를 순매수한 반면, 외국인과 기관은 SK하이닉스(-2,042억 원, -7,851억 원)를 대거 순매도함",
+        "시장 폭: 코스피 상승 종목 263개, 하락 종목 615개로 하락 우위였으며, 코스닥 역시 상승 282개, 하락 1,399개로 매도세가 압도적이었음",
+        "해외 반도체: 미국 반도체 지수(SOX)가 9,610.65pt(-5.28%)로 급락하며 국내 증시의 전기전자 및 반도체 업종 투자 심리를 악화시킴"
       ],
       "strategy": [
-        "추격 매수 자제: AI 투자 심리 불안과 외국인 대규모 매도가 이어지는 국면에서 무리한 저가 매수 및 추격 매수 지양",
-        "순환매 확인: 전기전자 업종의 변동성이 확대된 만큼 방어주 및 저PBR 업종 중심의 순환매 흐름 모니터링",
-        "분할 접근: 지수의 변동성이 큰 구간이므로 우량주 중심의 분할 관점 접근 유지"
+        "AI 투자 불안 및 외국인 매도세가 진정될 때까지 추격 매수를 자제하고 리스크 관리 우선",
+        "변동성 확대 국면에서 분할 접근을 통한 저점 매수 전략 유지",
+        "방어주(음식료, 보험 등)와 순환매 유입 업종 중심의 선별적 대응 검토"
       ]
     },
     "weekly": {
-      "headline": "글로벌 반도체 불안 속 주간 기준 완만한 지수 상승세와 업종별 차별화",
+      "headline": "코스피 최근 5거래일 누적 1.63% 상승 마감했으나 주초반 급락세 경계",
       "points": [
-        "지수 및 환율: 코스피 1.63%, 코스닥 4.18% 상승 누적, 원·달러 환율은 -0.58% 하락, 필라델피아 반도체 지수(SOX) -4.22% 하락",
-        "투자자 수급: 코스피 시장에서 외국인(-3,429억 원)과 기관(-11,613억 원), 개인(-10,742억 원) 모두 누적 순매도 기록",
-        "업종 강약: 의료·정밀기기(16.03%), 운송·창고(7.8%) 등이 주간 상승세를 주도한 반면, 전기·가스(-7.54%) 등은 하락",
-        "업종별 수급 쏠림: 운송·창고 업종에 외국인(1,783억 원) 매수세가 유입된 반면, 전기·전자 업종은 외국인(-7,318억 원)과 기관(-6,112억 원) 동반 매도 기록",
-        "주요 순매수 및 순매도 종목: 외국인은 삼성전자(6,993억 원) 등을 순매수하고 SK하이닉스(-12,610억 원) 등을 순매도",
-        "해외 반도체 영향: 주간 기준 필라델피아 반도체 지수 하락 및 엔비디아 관련 우려가 국내 반도체 수급에 부담으로 작용 [8]"
+        "지수 및 환율: 최근 5거래일간 코스피는 +1.63% 상승한 5,100.50pt, 코스닥은 +4.18% 상승한 665.65pt를 기록했으며, 원·달러 환율은 -0.53% 하락함",
+        "주간 투자자 수급: 코스피 시장에서 외국인(-3,429억 원)과 기관(-1조 1,613억 원), 개인(-10,742억 원) 모두 누적 순매도 기록",
+        "주간 업종 강약: 코스피 주간 기준 의료·정밀기기(+16.03%), 운송·창고(+7.80%), 일반서비스(+6.23%) 등이 강세를 보였고, 전기·가스(-7.54%) 등은 약세를 보임",
+        "주간 수급 쏠림: 운송·창고 업종에 외국인 순매수(+1,783억 원)가 유입된 반면, 전기·전자 업종은 외국인(-7,318억 원)과 기관(-6,112억 원)의 매물이 출회됨",
+        "주간 주요 종목 동향: 외국인은 삼성전자(+6,993억 원)를 순매수하고 SK하이닉스(-1조 2,610억 원)를 순매도했으며, 기관은 이수페타시스(+818억 원)를 순매수함",
+        "시장 폭 및 주간 변동: 주간 단위로는 상승 흐름을 유지했으나 최근일 급락으로 인해 변동성이 크게 확대된 국면임"
       ],
       "strategy": [
-        "변동성 대응: 주간 변동성이 확대된 대형 기술주 중심의 리스크 관리 철저",
-        "업종별 선별 접근: 주간 강세를 보인 운송·창고 및 방어적 성격의 업종 위주로 포트폴리오 재편 검토",
-        "글로벌 지표 점검: 미 증시 반도체 섹터의 방향성 확인 후 대응 전략 수립"
+        "단기 급락 이후 반발 매수세와 외국인 수급 방향성을 주중 점검",
+        "연속성 있는 주도 업종(운송·창고, 의료·정밀기기 등) 중심의 순환매 대응 강화",
+        "실적 및 수급 모멘텀이 양호한 종목 위주로 포트폴리오 압축 분할 접근"
       ]
     },
     "source": "gemini",
