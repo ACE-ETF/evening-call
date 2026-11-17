@@ -169,6 +169,8 @@
   details.blk[open] > summary::after { transform: rotate(180deg); }
   details.blk[open] > summary { margin-bottom: 4px; }
   details.blk .cnt { color: var(--muted); font-size: 11.5px; font-weight: 600; margin-left: 6px; }
+  .nu { color: #f3a3a3; }   /* 옅은 빨강: 상승·순매수 수치 */
+  .nd { color: #9cc2ff; }   /* 옅은 파랑: 하락·순매도 수치 */
   .gist { font-size: 14.5px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1.4; }
   .bsec .blk h4 { font-size: 11.5px; color: var(--accent); letter-spacing: .04em; }
   .kv { margin-top: 8px; border-top: 1px solid var(--line); }
@@ -242,7 +244,7 @@
   <div id="app"><div class="state">데이터 불러오는 중…</div></div>
 
   <footer>
-    매 평일 16:10~16:30(KST) 1차 갱신 · 17시대 마감 기사 보강 · 데이터: KRX(pykrx), FinanceDataReader, Google News · 투자 판단의 참고 자료이며 투자 권유가 아닙니다.
+    매 평일 16:10~16:30(KST) 1차 갱신 · 17시대 마감 기사 보강 · 18:10 수급 확정 · 데이터: KRX(pykrx), FinanceDataReader, Google News · 투자 판단의 참고 자료이며 투자 권유가 아닙니다.
   </footer>
 </div>
 <div class="tip" id="tip"></div>
@@ -340,6 +342,7 @@
     var stale = (q.stale_items || []).length;
     var badge = "";
     if (q.is_today === false) badge += '<span class="badge warn">직전 거래일 기준</span>';
+    if (q.final === false && q.is_today) badge += '<span class="badge warn" title="수급은 시간외 거래 반영 후 18:10에 확정됩니다">수급 잠정</span>';
     if (stale > 0) badge += '<span class="badge warn" title="' + esc((q.stale_items || []).join(", ")) + '">이전값 ' + stale + '개</span>';
     if (!badge) badge = '<span class="badge ok">정상 수집</span>';
     document.getElementById("meta").innerHTML =
@@ -350,9 +353,9 @@
   var NUM_RE = /([+\-−▲▼])\s?(\d[\d,]*(?:\.\d+)?)(\s?조(?:\s?[\d,]+억)?|\s?억|%p|%|pt)?(\s?원)?/g;
   function hlNum(t) {
     return t.replace(NUM_RE, function (m, sign) {
-      var c = (sign === "+" || sign === "▲") ? "up" : "down";
-      return '<b class="' + c + '">' + m + '</b>';
-    }).replace(/(순매수|매수 우위)/g, '<span class="up">$1</span>').replace(/(순매도|매도 우위)/g, '<span class="down">$1</span>');
+      var c = (sign === "+" || sign === "▲") ? "nu" : "nd";
+      return '<span class="' + c + '">' + m + '</span>';
+    });
   }
   // 브리핑: [n] 인용을 기사 링크로, "주제:" 앞부분 강조
   function richText(s, noTopic) {
@@ -465,7 +468,9 @@
         return '<td class="' + cls(v) + '"><b>' + (v == null ? "-" : eok(v)) + '</b></td>';
       }).join("") + '</tr>';
     }).join("");
-    return '<div class="card"><div class="card-h"><h2>투자자별 순매수<span class="sub">' + modeLabel() + ' · 억 원</span></h2></div>' +
+    var q = DATA.data_quality || {};
+    var prov = (q.final === false && q.is_today) ? '<span class="badge warn" title="시간외 거래(~18:00)가 포함되어 18:10에 확정치로 갱신됩니다">잠정 · 18시 확정</span>' : "";
+    return '<div class="card"><div class="card-h"><h2>투자자별 순매수<span class="sub">' + modeLabel() + ' · 억 원</span>' + prov + '</h2></div>' +
       '<table><thead><tr><th>시장</th><th>외국인</th><th>기관</th><th>개인</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 

@@ -1,7 +1,7 @@
 # Korea Market Radar
 
 일간·주간 한국 증시 & 섹터 레이더 대시보드.
-평일 KST 16:05(1차) + 17:00·17:40(마감 기사 보강) GitHub Actions가 `fetch_market.py`를 실행해 `data.json`을 갱신하고, GitHub Pages가 `index.html`을 배포합니다.
+평일 KST 16:05(1차) + 17:00·17:40(마감 기사 보강) + 18:10(수급 확정) GitHub Actions가 `fetch_market.py`를 실행해 `data.json`을 갱신하고, GitHub Pages가 `index.html`을 배포합니다.
 
 - 대시보드: https://ace-etf.github.io/korea-market-radar/
 - 수동 실행: Actions → Auto Update Korea Market Radar → Run workflow

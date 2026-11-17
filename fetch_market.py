@@ -78,6 +78,7 @@ NEWS_QUERIES = ["코스피 마감시황", "코스닥 마감 외국인"]
 NEWS_MAX = 8
 NEWS_POST_CLOSE_MIN = 4   # 장 마감(15:30) 이후 기사가 이 개수 미만이면 17시대에 기사·브리핑 보강
 NEWS_REFRESH_UNTIL = 19   # 이 시각(KST) 이후에는 기사 부족해도 보강 중단
+FINAL_HOUR, FINAL_MIN = 18, 5  # 시간외 거래(~18:00) 반영된 수급 확정 시각
 
 GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"]
 
@@ -905,7 +906,12 @@ def main() -> int:
         and now_kst().strftime("%Y-%m-%d") == trade_date
         and now_kst().hour < NEWS_REFRESH_UNTIL
     )
-    if prev_trade_date == trade_date and not prev_stale and not news_refresh and not FORCE_UPDATE:
+    now = now_kst()
+    is_final_time = (now.strftime("%Y-%m-%d") > trade_date) or (now.hour, now.minute) >= (FINAL_HOUR, FINAL_MIN)
+    final_refresh = prev_trade_date == trade_date and not (prev.get("data_quality") or {}).get("final", True) and is_final_time
+    if final_refresh:
+        log("18시 이후 → 시간외 거래 반영된 확정 수급으로 갱신")
+    if prev_trade_date == trade_date and not prev_stale and not news_refresh and not final_refresh and not FORCE_UPDATE:
         log(f"최신 거래일({trade_date}) 데이터가 이미 완전함 → 휴장일/중복 실행으로 판단, 갱신 생략.")
         return 0
     if news_refresh:
@@ -977,6 +983,7 @@ def main() -> int:
         "stale_items": stale,
         "is_today": trade_date == now_kst().strftime("%Y-%m-%d"),
         "news_post_close": int(post_close),
+        "final": bool(is_final_time),
     }
 
     payload["ai_briefing"] = guarded("브리핑", lambda: generate_briefing(payload), lambda: build_rule_briefing(payload))
