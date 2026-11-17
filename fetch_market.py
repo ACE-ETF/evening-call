@@ -486,41 +486,113 @@ def etf_names():
         return {}
 
 
-def fetch_ace(dates: list, prev: dict, kodex200_daily: float = None):
-    names = etf_names()
-    ace_codes = {c: n for c, n in names.items() if str(n).startswith(ACE_PREFIX)}
-    if not ace_codes:
+# 테마 분류: 위에서부터 먼저 맞는 테마 하나에만 배정 (ETF 이름 기준)
+THEMES = [
+    ("채권혼합", r"채권혼합|채혼합|국채혼합|TDF|TRF|자산배분"),
+    ("채권·금리·파킹", r"국채|채권|회사채|크레딧|금리|CD|KOFR|SOFR|머니마켓|단기|통안|하이일드|국공채|미국채|T-?Bill|채\b"),
+    ("리츠·부동산", r"리츠|부동산|REIT"),
+    ("반도체", r"반도체|하이닉스|삼성전자|SK하이닉스|HBM|ASML|TSMC"),
+    ("전력·원전·인프라", r"전력|원자력|원전|SMR|전선|그리드|인프라|데이터센터|송전"),
+    ("AI·소프트웨어", r"AI|인공지능|소프트웨어|클라우드|로봇|휴머노이드|양자|플랫폼|인터넷"),
+    ("2차전지", r"2차전지|이차전지|배터리|리튬|전기차|EV|양극재"),
+    ("바이오·헬스케어", r"바이오|헬스케어|제약|빅파마|일라이릴리|비만|의료|헬스"),
+    ("조선·방산·우주", r"조선|방산|방위|우주|항공|K-?방산|기계|중공업"),
+    ("금융·밸류업", r"은행|금융|증권|보험|밸류업|지주|PBR"),
+    ("배당·인컴", r"배당|커버드콜|인컴|월지급|프리미엄"),
+    ("미국 빅테크·성장", r"빅테크|테크|FANG|엔비디아|테슬라|애플|마이크로소프트|구글|알파벳|아마존|메타|브로드컴|팔란티어|M7|매그니피센트"),
+    ("미국 대표지수", r"S&P500|S&P 500|나스닥|NASDAQ|다우존스|러셀|미국\s?MSCI|미국대표|미국 대표|미국S&P"),
+    ("인도·신흥국", r"인도|베트남|인도네시아|멕시코|브라질|신흥|아세안|중남미|사우디"),
+    ("중국·일본·유럽", r"중국|차이나|China|항셍|홍콩|일본|TOPIX|니케이|Nikkei|유로|유럽|독일|글로벌"),
+    ("금·원자재", r"금현물|골드|금선물|금액티브|은선물|원유|WTI|구리|원자재|금속|천연가스|농산물"),
+    ("K컬처·소비", r"KPOP|K-POP|미디어|엔터|게임|화장품|뷰티|소비|음식료|여행|K컬처|컨텐츠|콘텐츠"),
+    ("국내 대표지수", r" 200(TR)?$| 200 |코스피|KOSPI|코스닥|KOSDAQ|KRX300|KRX 300|MSCI Korea|MSCI코리아|TOP10$|대형주|중소형"),
+]
+THEME_RE = [(n, re.compile(rx, re.I)) for n, rx in THEMES]
+LEV_INV = re.compile(r"레버리지|인버스|2X|곱버스|선물인버스|-1X|2배|3배", re.I)
+OTHER_BRANDS = re.compile(r"\b(KODEX|TIGER|SOL|RISE|KBSTAR|HANARO|PLUS|KIWOOM|KOSEF|ARIRANG|1Q|TIME|TIMEFOLIO|BNK|WON|마이티|파워|UNICORN|FOCUS|에셋플러스|히어로즈|VITA|DAISHIN343|TRUSTON|마이다스|HK|KCGI|BNK|하나)\b")
+
+
+def theme_of(name: str):
+    if LEV_INV.search(name):
         return None
+    for n, rx in THEME_RE:
+        if rx.search(name):
+            return n
+    return None
+
+
+def etf_rows(df, names: dict):
+    df = df.copy()
+    df.index = df.index.astype(str)
+    for c in ("등락률", "거래대금", "종가"):
+        df[c] = pd.to_numeric(df.get(c), errors="coerce")
+    df = df.dropna(subset=["등락률"])
+    return [{"code": c, "name": str(names.get(c, c)), "pct": round(float(r["등락률"]), 2),
+             "price": int(r["종가"] or 0), "value": eok(r["거래대금"] or 0)}
+            for c, r in df.iterrows() if c in names]
+
+
+def build_themes(rows: list) -> list:
+    groups = {}
+    for r in rows:
+        t = theme_of(r["name"])
+        if t:
+            groups.setdefault(t, []).append(r)
+    out = []
+    for t, _ in THEMES:
+        g = groups.get(t) or []
+        if len(g) < 2:
+            continue
+        ace = [x for x in g if x["name"].startswith(ACE_PREFIX)]
+        others = [x for x in g if not x["name"].startswith(ACE_PREFIX)]
+        out.append({
+            "theme": t,
+            "median": round(float(pd.Series([x["pct"] for x in g]).median()), 2),
+            "count": len(g),
+            "ace_count": len(ace),
+            "ace_median": round(float(pd.Series([x["pct"] for x in ace]).median()), 2) if ace else None,
+            # ACE: 거래대금 큰 순으로 최대 6개 / 타사 비교: 거래대금 상위 3개
+            "ace": sorted(ace, key=lambda x: x["value"], reverse=True)[:6],
+            "others": sorted(others, key=lambda x: x["value"], reverse=True)[:3],
+        })
+    return sorted(out, key=lambda x: x["median"], reverse=True)
+
+
+def fetch_etf_block(dates: list):
+    """ETF 전종목 등락률 1회 조회(기간별) → ACE 라인업 요약 + 테마별 묶음."""
+    names = etf_names()
+    if not names:
+        return None, None
+    ace_codes = {c: n for c, n in names.items() if str(n).startswith(ACE_PREFIX)}
     trade = dates[-1]
-    out = {"count": len(ace_codes)}
+    ace = {"count": len(ace_codes)}
+    themes = {}
     # KRX 기간등락률은 시작일의 전일 종가 기준 → 일간 (당일~당일), 5일 (5거래일 전~당일)
     for period, start in (("daily", trade), ("weekly", dates[-5] if len(dates) >= 5 else dates[0])):
         df = krx_call(f"ETF 등락률({period})", stock.get_etf_price_change_by_ticker if stock else None, ymd(start), ymd(trade))
         if df is None or "등락률" not in df.columns:
-            return None
-        df.index = df.index.astype(str)
-        if period == "daily" and "069500" in df.index:
-            log(f"ETF 등락률 검증: KODEX 200 {float(df.loc['069500', '등락률']):.2f}% (FDR {kodex200_daily})")
-        df = df[df.index.isin(ace_codes.keys())].copy()
-        df["등락률"] = pd.to_numeric(df["등락률"], errors="coerce")
-        df["거래대금"] = pd.to_numeric(df["거래대금"], errors="coerce").fillna(0)
-        df["종가"] = pd.to_numeric(df["종가"], errors="coerce").fillna(0)
-        df = df.dropna(subset=["등락률"])
-        rows = [{"code": c, "name": ace_codes[c], "pct": round(float(r["등락률"]), 2),
-                 "price": int(r["종가"]), "value": eok(r["거래대금"])} for c, r in df.iterrows()]
-        if not rows:
-            return None
-        by_pct = sorted(rows, key=lambda x: x["pct"], reverse=True)
-        r = pd.Series([x["pct"] for x in rows])
-        out[period] = {
+            return None, None
+        rows = etf_rows(df, names)
+        if period == "daily":
+            k200 = next((x for x in rows if x["code"] == "069500"), None)
+            if k200:
+                log(f"ETF 등락률 검증: KODEX 200 {k200['pct']:.2f}%")
+        themes[period] = build_themes(rows)
+        arows = [x for x in rows if x["code"] in ace_codes]
+        if not arows:
+            return None, None
+        by_pct = sorted(arows, key=lambda x: x["pct"], reverse=True)
+        r = pd.Series([x["pct"] for x in arows])
+        ace[period] = {
             "up": int((r > 0).sum()), "down": int((r < 0).sum()), "flat": int((r == 0).sum()),
             "median": round(float(r.median()), 2),
             "top": by_pct[:8],
             "bottom": by_pct[-8:][::-1],
-            "value_top": sorted(rows, key=lambda x: x["value"], reverse=True)[:8],
+            "value_top": sorted(arows, key=lambda x: x["value"], reverse=True)[:8],
         }
-    out["stale"] = False
-    return out
+    ace["stale"] = False
+    themes["stale"] = False
+    return ace, themes
 
 
 # ---------------------------------------------------------------------------
@@ -748,7 +820,11 @@ def briefing_input(p: dict) -> dict:
         "sector_flow_kospi_eok": slim_sf("kospi"),
         "sector_flow_kosdaq_eok": slim_sf("kosdaq"),
         "top_stocks_eok": slim_ts,
-        "sector_etf": [{k: s.get(k) for k in ("name", "sector", "daily_pct", "weekly_pct")} for s in p["sectors"]],
+        "theme_etf": None if (p.get("themes") or {}).get("stale") else {
+            per: [{"theme": t["theme"], "median": t["median"], "ace_median": t.get("ace_median"),
+                   "ace": [(x["name"], x["pct"]) for x in t.get("ace", [])[:2]]}
+                  for t in (p.get("themes") or {}).get(per, [])]
+            for per in ("daily", "weekly")},
         "ace_etf": {per: {kk: ((p.get("ace") or {}).get(per) or {}).get(kk) for kk in ("up", "down", "median", "top", "bottom", "value_top")}
                     for per in ("daily", "weekly")} if not (p.get("ace") or {}).get("stale") else None,
     }
@@ -809,8 +885,10 @@ def generate_briefing(p: dict) -> dict:
         "   - sector(업종): 강세·약세 업종과 그 의미(순환매/방어 등)\n"
         "   - stock(종목): 투자자별 주요 순매수·순매도 종목\n"
         "   - issue(이슈·뉴스): 기사 헤드라인에서 확인되는 원인·이벤트, 항목 끝에 [번호] 인용\n"
-        "   - ace(ACE ETF): 한국투자신탁운용 ACE ETF 라인업 마감 흐름. 오늘 시장 흐름과 연결해 어떤 ACE 상품군(예: 반도체·미국주식·배당·채권혼합·머니마켓·금 등)이\n"
-        "     선방/부진했는지, 상승·하락 상위와 거래대금 상위 상품을 2~4개 항목으로. 데이터의 상품명 그대로 사용, 투자 권유 표현 금지.\n"
+        "   - ace(ACE ETF): 한국투자신탁운용 ACE ETF 라인업 마감 흐름. ace_etf·theme_etf 데이터만 사용.\n"
+        "     어떤 테마의 ACE 상품이 선방/부진했는지(theme_etf의 테마 중간값과 비교), 상승·하락 상위, 거래대금 상위를 2~4개 항목으로.\n"
+        "     반드시 'ACE '로 시작하는 상품만 언급. KODEX·TIGER·SOL·RISE 등 타사 상품은 절대 언급 금지. ace_etf가 null이면 ace 파트는 빈 items로.\n"
+        "     상품명은 데이터 그대로, 투자 권유 표현(추천·매수 기회·입증 등) 금지.\n"
         "4) strategy(대응 포인트): 2~3개, 다음 거래일 점검 포인트와 대응.\n"
         "- 문체(전 항목 공통, 증권사 시황 리포트 스타일): 명사로 끝맺음. 예) '코스피 -3.59% 급락', '외국인 1조 3,300억 원 순매도', '방어주 강세', '반도체 수급 이탈 지속'.\n"
         "  '~함', '~했음', '~기록함', '~보임', '~됨', '~다' 로 끝내지 말 것. 군더더기 없이 짧게(한 항목 60자 내외).\n"
@@ -860,8 +938,14 @@ def generate_briefing(p: dict) -> dict:
                     summary = clean_list(blk.get("summary"), 4)
                     raw = blk.get("sections") or {}
                     sections = []
+                    ace_ok = not (p.get("ace") or {}).get("stale")
                     for key, title in BRIEF_SECTIONS:
                         sec = normalize_section(raw.get(key) if isinstance(raw, dict) else None)
+                        if key == "ace":
+                            # 타사 브랜드가 들어간 항목 제거, ACE 데이터 없으면 파트 생략
+                            sec["items"] = [it for it in sec["items"] if not OTHER_BRANDS.search(it["k"] + " " + it["v"])] if ace_ok else []
+                            if OTHER_BRANDS.search(sec["gist"]):
+                                sec["gist"] = ""
                         if sec["items"]:
                             sections.append({"key": key, "title": title, **sec})
                     strategy = clean_list(blk.get("strategy"), 4)
@@ -907,7 +991,11 @@ def main() -> int:
         and now_kst().hour < NEWS_REFRESH_UNTIL
     )
     now = now_kst()
-    is_final_time = (now.strftime("%Y-%m-%d") > trade_date) or (now.hour, now.minute) >= (FINAL_HOUR, FINAL_MIN)
+    today = now.strftime("%Y-%m-%d")
+    is_final_time = (today > trade_date) or (now.hour, now.minute) >= (FINAL_HOUR, FINAL_MIN)
+    # KRX 데이터는 심야(21시~07시)에 비거나 오류가 잦음 → 같은 거래일 재수집은 이 시간대에만
+    in_window = (today == trade_date and (15, 40) <= (now.hour, now.minute) < (21, 0)) or \
+                (today > trade_date and 7 <= now.hour < 9)
     prev_final = (prev.get("data_quality") or {}).get("final")
     if prev_final is None:  # 확정 플래그가 없던 예전 데이터 → 갱신 시각으로 판단
         try:
@@ -915,7 +1003,10 @@ def main() -> int:
             prev_final = upd.strftime("%Y-%m-%d") > trade_date or (upd.hour, upd.minute) >= (FINAL_HOUR, FINAL_MIN)
         except Exception:
             prev_final = True
-    final_refresh = prev_trade_date == trade_date and not prev_final and is_final_time
+    final_refresh = prev_trade_date == trade_date and not prev_final and is_final_time and in_window
+    if prev_trade_date == trade_date and not in_window and not FORCE_UPDATE:
+        log(f"같은 거래일({trade_date}) 재수집은 15:40~21:00 / 다음날 07~09시에만 → 생략 (현재 {now:%H:%M})")
+        return 0
     if final_refresh:
         log("18시 이후 → 시간외 거래 반영된 확정 수급으로 갱신")
     if prev_trade_date == trade_date and not prev_stale and not news_refresh and not final_refresh and not FORCE_UPDATE:
@@ -934,8 +1025,7 @@ def main() -> int:
             log(f"{label} 블록 오류 → 이전값 유지: {type(e).__name__}: {e}")
             return fallback()
 
-    sectors = guarded("섹터 ETF", lambda: fetch_sectors(start_date, prev, trade_date),
-                      lambda: [dict(s, stale=True) for s in (prev.get("sectors") or [])])
+    sectors = []  # 섹터 대표 ETF는 테마별 ETF(themes)로 대체
     flow = guarded("투자자 수급", lambda: fetch_flow(prev, trade_date),
                    lambda: {k: keep_previous(None, (prev.get("flow") or {}).get(k), EMPTY_FLOW) for k, _ in MARKETS})
 
@@ -947,9 +1037,9 @@ def main() -> int:
         return si, sf, ts, br
 
     sector_indices, sector_flow, top_stocks, breadth = guarded("업종", lambda: fetch_sector_block(dates, prev), sector_fallback)
-    kodex200 = next((x.get("daily_pct") for x in sectors if x.get("ticker") == "069500"), None)
-    ace = guarded("ACE ETF", lambda: fetch_ace(dates, prev, kodex200), lambda: None)
+    ace, themes = guarded("ETF", lambda: fetch_etf_block(dates), lambda: (None, None))
     ace = keep_previous(ace, prev.get("ace"), {"count": 0})
+    themes = keep_previous(themes, prev.get("themes"), {"daily": [], "weekly": []})
     news = guarded("뉴스", lambda: fetch_news(prev, trade_date),
                    lambda: {"items": (prev.get("news") or {}).get("items", []) if isinstance(prev.get("news"), dict) else [], "stale": True})
 
@@ -964,6 +1054,7 @@ def main() -> int:
         "top_stocks": top_stocks,
         "sectors": sectors,
         "ace": ace,
+        "themes": themes,
         "news": news,
     }
 
@@ -976,6 +1067,8 @@ def main() -> int:
     stale += [s["name"] for s in sectors if s.get("stale")]
     if ace.get("stale"):
         stale.append("ace")
+    if themes.get("stale"):
+        stale.append("themes")
     # 뉴스는 외부 요인이 커서 재수집 트리거에서 제외
     close_dt = datetime.strptime(trade_date, "%Y-%m-%d").replace(hour=15, minute=30, tzinfo=KST)
     post_close = 0
@@ -992,6 +1085,10 @@ def main() -> int:
         "news_post_close": int(post_close),
         "final": bool(is_final_time),
     }
+
+    if prev_trade_date == trade_date and len(stale) > len(prev_stale) and not FORCE_UPDATE:
+        log(f"이번 수집 결과가 기존보다 나쁨(이전값 {len(prev_stale)}→{len(stale)}개) → 기존 data.json 유지")
+        return 0
 
     payload["ai_briefing"] = guarded("브리핑", lambda: generate_briefing(payload), lambda: build_rule_briefing(payload))
 

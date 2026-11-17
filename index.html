@@ -181,6 +181,27 @@
   .kv-row .vv { color: var(--text); }
   details.blk > summary { align-items: flex-start; }
   details.blk > summary::after { margin-top: 2px; }
+  .themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: start; }
+  @media (max-width: 1100px) { .themes { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) { .themes { grid-template-columns: 1fr; gap: 8px; } }
+  details.theme { background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+  details.theme > summary { list-style: none; cursor: pointer; }
+  details.theme > summary::-webkit-details-marker { display: none; }
+  .theme .th { display: flex; justify-content: space-between; align-items: baseline; }
+  .theme .tname { font-weight: 800; font-size: 14px; }
+  .theme .tmed { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .theme .tsub { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-top: 6px; }
+  .achip { font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(245,185,66,.12); border: 1px solid rgba(245,185,66,.3); padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+  .achip.none { color: var(--muted); background: transparent; border-color: var(--line); }
+  .tlist { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 4px; }
+  .trow { display: grid; grid-template-columns: 34px 1fr auto; gap: 6px; align-items: center; padding: 5px 0; font-size: 13px; border-bottom: 1px dashed var(--grid); }
+  .trow:last-child { border-bottom: 0; }
+  .trow .tn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .trow .tp { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .trow.ace .tn { font-weight: 700; color: var(--text); }
+  .trow:not(.ace) .tn { color: var(--muted); }
+  .atag { font-size: 10px; font-weight: 800; color: #1a1406; background: var(--accent); border-radius: 4px; text-align: center; padding: 1px 0; }
+  .otag { font-size: 10px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; text-align: center; padding: 0; }
   .more { display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px dashed var(--line); background: transparent; color: var(--text-2); font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer; }
   .gap-row { text-align: center; color: var(--muted); font-size: 12px; line-height: 14px; }
   @media (max-width: 640px) {
@@ -235,7 +256,7 @@
         <button data-v="weekly">주간<span class="hide-m"> 5D</span></button>
       </div>
       <nav class="chips">
-        <a href="#p1">요약</a><a href="#p2">수급</a><a href="#p3">업종</a><a href="#p4">종목</a><a href="#p5">ACE</a>
+        <a href="#p1">요약</a><a href="#p2">수급</a><a href="#p3">업종</a><a href="#p4">종목</a><a href="#p5">테마·ACE</a>
       </nav>
       <button class="btn" id="btnCopy" title="브리핑 요약 복사">📋<span class="hide-m"> 요약 복사</span></button>
     </div>
@@ -313,10 +334,11 @@
     h += part("03", "업종", "어디가 오르고, 돈은 어디로 갔나");
     h += sectorIndexCard();
     h += '<div class="section">' + sectorFlowCard() + '</div>';
-    h += part("04", "종목·ETF", "주체별 매매 상위 종목과 섹터 ETF");
-    h += '<div class="grid g-2">' + topStocksCard() + etfCard() + '</div>';
-    h += part("05", "ACE ETF 흐름", "ACE 라인업 마감 성과와 거래 집중 상품");
-    h += aceCard();
+    h += part("04", "종목", "주체별 순매수·순매도 상위 종목");
+    h += topStocksCard();
+    h += part("05", "테마·ACE ETF", "테마별 ETF 흐름 (ACE 우선) · ACE 라인업 성과");
+    h += themeCard();
+    h += '<div class="section">' + aceCard() + '</div>';
     document.getElementById("app").innerHTML = h;
     bindSegs();
     bindMore();
@@ -594,6 +616,36 @@
       '<div><h4 style="font-size:12.5px;margin:0 0 6px;color:var(--text-2)">거래대금 상위</h4>' + vt + '</div></div></div>';
   }
 
+  // ---------- 테마별 ETF (ACE 우선) ----------
+  function themeCard() {
+    var T = DATA.themes || {};
+    var list = T[S.mode] || [];
+    if (!list.length) return '<div class="card"><div class="empty">테마별 ETF 데이터가 아직 없습니다. 다음 자동 실행부터 표시됩니다.</div></div>';
+    var mx = Math.max.apply(null, list.map(function (t) { return Math.abs(num(t.median)); }).concat([0.5]));
+    var lim = limitRows("themes", list, 8);
+    function etfRow(x, isAce) {
+      var nm = isAce ? x.name.replace(/^ACE\s+/, "") : x.name;
+      var tip = "<b>" + esc(x.name) + "</b> (" + esc(x.code) + ")<br>" + modeLabel() + " " + pct(x.pct) + "<br>거래대금 " + Math.round(num(x.value)).toLocaleString("ko-KR") + "억";
+      return '<div class="trow' + (isAce ? " ace" : "") + '" data-tip="' + esc(tip) + '">' +
+        (isAce ? '<span class="atag">ACE</span>' : '<span class="otag">비교</span>') +
+        '<span class="tn">' + esc(nm) + '</span><span class="tp ' + cls(x.pct) + '">' + pct(x.pct) + '</span></div>';
+    }
+    var body = lim.rows.map(function (t) {
+      var w = Math.abs(num(t.median)) / mx * 50;
+      var bar = '<div class="track"><span class="axis"></span><i class="' + (num(t.median) >= 0 ? "pos" : "neg") + '" style="width:' + w + '%"></i></div>';
+      var aceInfo = t.ace_count ? '<span class="achip">ACE ' + t.ace_count + '종' + (t.ace_median != null ? ' · ' + pct(t.ace_median) : "") + '</span>' : '<span class="achip none">ACE 없음</span>';
+      var rows = (t.ace || []).map(function (x) { return etfRow(x, true); }).join("") +
+        (t.others || []).map(function (x) { return etfRow(x, false); }).join("");
+      return '<details class="theme"' + (isM() ? "" : " open") + '><summary>' +
+        '<div class="th"><span class="tname">' + esc(t.theme) + '</span><span class="tmed ' + cls(t.median) + '">' + pct(t.median) + '</span></div>' +
+        '<div class="tsub">' + bar + aceInfo + '</div></summary>' +
+        '<div class="tlist">' + rows + '</div></details>';
+    }).join("");
+    return '<div class="card"><div class="card-h"><h2>테마별 ETF 수익률<span class="sub">' + modeLabel() + ' · 테마 중간값 높은 순 · 레버리지/인버스 제외</span>' + staleBadge(T) + '</h2></div>' +
+      '<div class="themes">' + body + '</div>' + lim.btn +
+      '<div class="src">테마 수익률은 해당 테마 국내 상장 ETF 전체의 중간값 · ACE는 거래대금 순 · 비교는 타사 거래대금 상위</div></div>';
+  }
+
   // ---------- 상호작용 ----------
   function bindSegs() {
     Array.prototype.forEach.call(document.querySelectorAll("[data-seg]"), function (el) {
@@ -662,6 +714,8 @@
       var o = F[m[0]] || {};
       L.push("[" + m[1] + " 수급, 억] 외국인 " + eok(o[p + "_foreign"]) + " / 기관 " + eok(o[p + "_inst"]) + " / 개인 " + eok(o[p + "_retail"]));
     });
+    var TT = ((DATA.themes || {})[p] || []).slice(0, 3);
+    if (TT.length) L.push("[테마 강세] " + TT.map(function (t) { return t.theme + " " + pct(t.median) + (t.ace_median != null ? "(ACE " + pct(t.ace_median) + ")" : ""); }).join(", "));
     var A = (DATA.ace || {})[p];
     if (A && A.top) {
       L.push("[ACE ETF] 상승 " + A.up + " / 하락 " + A.down + " · 중간값 " + pct(A.median));
