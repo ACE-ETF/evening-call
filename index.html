@@ -228,7 +228,7 @@
     html += '<div class="card briefing">' +
       '<h2>🧠 AI 시황 브리핑 · ' + modeLabel() + '</h2>' +
       '<p>' + esc(comment || "브리핑 데이터가 없습니다.") + '</p>' +
-      '<div class="src">' + (br.source === "gemini" ? "Gemini 2.5 Flash 생성" : "규칙 기반 자동 요약") +
+      '<div class="src">' + (br.source === "gemini" ? (br.model || "Gemini") + " 생성" : "규칙 기반 자동 요약") +
       ' · 수치 기반 자동 생성 문장으로 투자 권유가 아닙니다.</div></div>';
 
     // KPI

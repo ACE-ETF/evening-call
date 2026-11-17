@@ -55,6 +55,8 @@ ETF_LIST = [
     {"ticker": "459580", "name": "KODEX CD금리액티브(합성)", "sector": "파킹·현금성", "group": "cash"},
 ]
 
+GEMINI_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"]
+
 EMPTY_FLOW = {"daily_foreign": 0, "daily_inst": 0, "weekly_foreign": 0, "weekly_inst": 0}
 
 
@@ -367,27 +369,40 @@ def generate_ai_briefing(payload: dict) -> dict:
         "반드시 JSON 형식 {\"daily_comment\": \"...\", \"weekly_comment\": \"...\"} 으로만 응답하세요.\n"
         f"데이터: {json.dumps(compact, ensure_ascii=False)}"
     )
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"responseMimeType": "application/json", "temperature": 0.4},
     }
-    for attempt in range(1, 3):
-        try:
-            res = requests.post(url, params={"key": api_key}, json=body, timeout=30)
-            res.raise_for_status()
-            text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
-            clean = text.replace("```json", "").replace("```", "").strip()
-            parsed = json.loads(clean)
-            daily = str(parsed.get("daily_comment", "")).strip()
-            weekly = str(parsed.get("weekly_comment", "")).strip()
-            if daily and weekly:
-                return {"daily_comment": daily, "weekly_comment": weekly, "source": "gemini"}
-            log("Gemini 응답에 필드 누락 → 재시도")
-        except Exception as e:
-            # 오류 메시지에 API 키가 섞이지 않도록 타입만 출력
-            log(f"Gemini 호출 실패 (시도 {attempt}/2): {type(e).__name__}")
-        time.sleep(2)
+    headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
+    for model in GEMINI_MODELS:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+        for attempt in range(1, 3):
+            try:
+                res = requests.post(url, headers=headers, json=body, timeout=40)
+                if res.status_code != 200:
+                    try:
+                        err = res.json().get("error", {})
+                        detail = f"{err.get('status', '')} {err.get('message', '')}"[:300]
+                    except Exception:
+                        detail = res.text[:200]
+                    log(f"Gemini {model} 실패 (시도 {attempt}/2): HTTP {res.status_code} {detail}")
+                    if res.status_code in (400, 401, 403, 404):
+                        break  # 키/모델 문제 → 재시도 무의미, 다음 모델로
+                    time.sleep(3)
+                    continue
+                text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
+                clean = text.replace("```json", "").replace("```", "").strip()
+                parsed = json.loads(clean)
+                daily = str(parsed.get("daily_comment", "")).strip()
+                weekly = str(parsed.get("weekly_comment", "")).strip()
+                if daily and weekly:
+                    log(f"Gemini 브리핑 생성 완료 ({model})")
+                    return {"daily_comment": daily, "weekly_comment": weekly, "source": "gemini", "model": model}
+                log(f"Gemini {model} 응답에 필드 누락")
+            except Exception as e:
+                # 키가 섞이지 않도록 예외 타입만 출력
+                log(f"Gemini {model} 오류 (시도 {attempt}/2): {type(e).__name__}")
+            time.sleep(2)
     return fallback
 
 
