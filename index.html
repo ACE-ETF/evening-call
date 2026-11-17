@@ -252,10 +252,11 @@
     return t.replace(/\[(\d{1,2}(?:\s*,\s*\d{1,2})*)\]/g, function (_, grp) {
       return grp.split(/\s*,\s*/).map(function (n) {
         var it = newsById(+n);
-        return it ? '<a class="cite" href="' + esc(it.link) + '" target="_blank" rel="noopener" data-cite="' + n + '" title="' + esc(it.title) + '">' + n + '</a>' : "";
+        return it ? '<a class="cite" href="' + esc(newsLink(it.link)) + '" target="_blank" rel="noopener" data-cite="' + n + '" title="' + esc(it.title) + '">' + n + '</a>' : "";
       }).join("");
     });
   }
+  function newsLink(u) { return String(u || "").replace("news.google.com/rss/articles/", "news.google.com/articles/"); }
   function newsById(n) {
     var items = (DATA.news && DATA.news.items) || [];
     for (var i = 0; i < items.length; i++) if (items[i].id === n) return items[i];
@@ -283,7 +284,7 @@
     var n = DATA.news || {};
     var items = n.items || [];
     var list = items.length ? '<ol>' + items.map(function (it) {
-      return '<li id="news-' + it.id + '"><span class="n">' + it.id + '</span><div><a href="' + esc(it.link) + '" target="_blank" rel="noopener">' + esc(it.title) + '</a>' +
+      return '<li id="news-' + it.id + '"><span class="n">' + it.id + '</span><div><a href="' + esc(newsLink(it.link)) + '" target="_blank" rel="noopener">' + esc(it.title) + '</a>' +
         '<div class="m">' + esc(it.source) + (it.published ? " · " + esc(it.published) : "") + '</div></div></li>';
     }).join("") + '</ol>' : '<div class="empty">관련 기사를 불러오지 못했습니다.</div>';
     return '<div class="card news"><div class="card-h"><h2>관련 기사' + staleBadge(n) + '</h2></div>' + list + '</div>';

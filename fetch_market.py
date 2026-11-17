@@ -486,10 +486,35 @@ def fetch_news(prev: dict):
         old = prev.get("news")
         return {"items": (old or {}).get("items", []) if isinstance(old, dict) else [], "stale": True}
     items = sorted(items, key=lambda x: x["_ts"], reverse=True)[:NEWS_MAX]
+    resolve_news_links(items)
     for i, it in enumerate(items, 1):
         it["id"] = i
         it.pop("_ts", None)
     return {"items": items, "stale": False}
+
+
+def resolve_news_links(items):
+    """구글 뉴스 중간 주소 → 언론사 원문 주소로 변환.
+    실패 시 브라우저에서 열리는 /articles/ 형식으로라도 바꿔 둠."""
+    for it in items:
+        it["link"] = it["link"].replace("news.google.com/rss/articles/", "news.google.com/articles/")
+    try:
+        from googlenewsdecoder import gnewsdecoder
+    except Exception:
+        log("googlenewsdecoder 미설치 → 구글 뉴스 주소 유지")
+        return
+    urls = [it["link"] for it in items]
+    try:
+        results = gnewsdecoder(urls, interval=1, timeout=15)  # 기사당 1초 간격, 변환 요청은 1회
+    except Exception as e:
+        log(f"기사 원문 주소 변환 실패(구글 주소 유지): {type(e).__name__}")
+        return
+    ok = 0
+    for it, r in zip(items, results or []):
+        if isinstance(r, dict) and r.get("success") and str(r.get("decoded_url", "")).startswith("http"):
+            it["link"] = r["decoded_url"]
+            ok += 1
+    log(f"기사 원문 주소 변환 {ok}/{len(items)}건")
 
 
 # ---------------------------------------------------------------------------
