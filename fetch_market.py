@@ -2,19 +2,35 @@
 Korea Market Radar - 데이터 수집 스크립트
 경로: 레포 루트 /fetch_market.py
 
+수집 항목
+- 지수: KOSPI, KOSDAQ, USD/KRW, SOX (+20거래일 추이)
+- 투자자 수급: 코스피·코스닥 외국인/기관/개인 (일간·5일 누적)
+- 업종지수 등락률: 코스피·코스닥 업종지수 (일간·5일)
+- 업종별 수급: 외국인/기관/개인 순매수를 업종별로 집계 (일간·5일)
+- 순매수 상·하위 종목: 투자자별 (일간·5일)
+- 시장 폭: 상승/하락/보합 종목 수
+- 섹터 ETF: 대표 ETF 등락률
+- 관련 기사: 구글 뉴스 RSS 헤드라인
+- 시황 브리핑: Gemini (두괄식·개조식, 기사 번호 인용) / 실패 시 규칙 기반
+
 방어 원칙
 1) 기존 data.json을 먼저 읽어 두고, 항목별 수집 실패 시 이전 값을 유지(stale 표시)
 2) 핵심 지표(KOSPI) 수집 실패 시 파일을 아예 덮어쓰지 않음
-3) 최신 거래일이 기존 data.json과 같으면(휴장일·주말·중복 실행) 덮어쓰지 않음
+3) 같은 거래일 데이터가 이미 완전하면(휴장일·주말·중복 실행) 덮어쓰지 않음
+   - 이전 실행에 빈 항목이 있었다면 같은 거래일이라도 재수집
    - 수동 강제 갱신: 환경변수 FORCE_UPDATE=1
 4) 임시 파일에 쓴 뒤 원자적 교체(os.replace) → 쓰기 도중 오류로 깨진 JSON 방지
+5) 장중 실행 시 모든 국내 데이터를 KOSPI 기준 거래일(전일 종가)에 맞춤
 """
 import os
+import re
 import sys
 import json
 import time
 import tempfile
+import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
+from email.utils import parsedate_to_datetime
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -40,24 +56,32 @@ INDEX_SYMBOLS = {
     "usdkrw": "USD/KRW",
     "sox": "^SOX",
 }
-# ^SOX 수집이 실패할 때 순서대로 시도할 대체 심볼
-INDEX_FALLBACK_SYMBOLS = {
-    "sox": ["SOX", "SOXX"],
-}
+INDEX_FALLBACK_SYMBOLS = {"sox": ["SOX", "SOXX"]}
+KRX_INDEX_KEYS = {"kospi", "kosdaq"}
 
 ETF_LIST = [
-    {"ticker": "069500", "name": "KODEX 200", "sector": "시장대표", "group": "core"},
-    {"ticker": "396500", "name": "TIGER 반도체TOP10", "sector": "반도체·AI", "group": "growth"},
-    {"ticker": "466920", "name": "SOL 조선TOP3플러스", "sector": "조선·방산", "group": "rotation"},
-    {"ticker": "466940", "name": "TIGER 은행고배당플러스TOP10", "sector": "금융·밸류업", "group": "rotation"},
-    {"ticker": "305720", "name": "KODEX 2차전지산업", "sector": "2차전지", "group": "growth"},
-    {"ticker": "244580", "name": "KODEX 바이오", "sector": "바이오", "group": "rotation"},
-    {"ticker": "459580", "name": "KODEX CD금리액티브(합성)", "sector": "파킹·현금성", "group": "cash"},
+    {"ticker": "069500", "name": "KODEX 200", "sector": "시장대표"},
+    {"ticker": "396500", "name": "TIGER 반도체TOP10", "sector": "반도체·AI"},
+    {"ticker": "466920", "name": "SOL 조선TOP3플러스", "sector": "조선·방산"},
+    {"ticker": "466940", "name": "TIGER 은행고배당플러스TOP10", "sector": "금융·밸류업"},
+    {"ticker": "305720", "name": "KODEX 2차전지산업", "sector": "2차전지"},
+    {"ticker": "244580", "name": "KODEX 바이오", "sector": "바이오"},
+    {"ticker": "459580", "name": "KODEX CD금리액티브(합성)", "sector": "파킹·현금성"},
 ]
+
+MARKETS = [("kospi", "KOSPI"), ("kosdaq", "KOSDAQ")]
+# pykrx 투자자 구분명 → data.json 키
+INVESTORS = [("foreign", "외국인"), ("inst", "기관합계"), ("retail", "개인")]
+INVESTOR_LABEL = {"foreign": "외국인", "inst": "기관", "retail": "개인"}
+
+NEWS_QUERIES = ["코스피 마감", "코스닥 마감", "증시 외국인 순매도 OR 순매수"]
+NEWS_MAX = 8
 
 GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"]
 
-EMPTY_FLOW = {"daily_foreign": 0, "daily_inst": 0, "weekly_foreign": 0, "weekly_inst": 0}
+EMPTY_FLOW = {f"{p}_{k}": 0 for p in ("daily", "weekly") for k, _ in INVESTORS}
+
+KRX_PAUSE = 0.6  # KRX 연속 호출 간격(초) - 과도한 호출 방지
 
 
 def log(msg: str):
@@ -66,6 +90,18 @@ def log(msg: str):
 
 def now_kst() -> datetime:
     return datetime.now(KST)
+
+
+def ymd(d: str) -> str:
+    return d.replace("-", "")
+
+
+def eok(v) -> float:
+    """원 → 억 원"""
+    try:
+        return round(float(v) / 1e8, 0)
+    except Exception:
+        return 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -89,7 +125,6 @@ def atomic_write_json(path: str, payload: dict):
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
-        # 다시 읽어 JSON 유효성 확인 후 교체
         with open(tmp_path, "r", encoding="utf-8") as f:
             json.load(f)
         os.replace(tmp_path, path)
@@ -98,8 +133,38 @@ def atomic_write_json(path: str, payload: dict):
             os.remove(tmp_path)
 
 
+def keep_previous(new_value, prev_value, default):
+    """새 값이 없으면 이전 값을 stale=True로 유지, 이전 값도 없으면 default."""
+    if new_value is not None:
+        return new_value
+    if isinstance(prev_value, dict) and prev_value:
+        kept = dict(prev_value)
+        kept["stale"] = True
+        return kept
+    d = dict(default)
+    d["stale"] = True
+    return d
+
+
+def krx_call(label: str, fn, *args, retries: int = 2):
+    """pykrx 호출 공통 래퍼: 빈 결과/오류 시 재시도 후 None."""
+    if stock is None:
+        return None
+    for attempt in range(1, retries + 1):
+        try:
+            df = fn(*args)
+            time.sleep(KRX_PAUSE)
+            if df is not None and not df.empty:
+                return df
+            log(f"{label}: 빈 데이터 (시도 {attempt}/{retries})")
+        except Exception as e:
+            log(f"{label}: 오류 (시도 {attempt}/{retries}) - {type(e).__name__}: {e}")
+        time.sleep(1.5 * attempt)
+    return None
+
+
 # ---------------------------------------------------------------------------
-# 가격 데이터
+# 가격 데이터 (FinanceDataReader)
 # ---------------------------------------------------------------------------
 def safe_read(symbol: str, start_date: str, retries: int = 2):
     if fdr is None:
@@ -119,13 +184,17 @@ def safe_read(symbol: str, start_date: str, retries: int = 2):
     return None
 
 
-def get_price_metrics(df, cutoff: str = None):
-    """cutoff(YYYY-MM-DD)가 주어지면 그 날짜까지만 사용 → 장중 실행 시 KRX 종목 기준일을 KOSPI와 맞춤."""
+def cut(df, cutoff):
     if df is not None and cutoff:
         try:
-            df = df[df.index <= pd.Timestamp(cutoff)]
+            return df[df.index <= pd.Timestamp(cutoff)]
         except Exception:
-            pass
+            return df
+    return df
+
+
+def get_price_metrics(df, cutoff: str = None, series_len: int = 0):
+    df = cut(df, cutoff)
     if df is None or len(df) < 2:
         return None
     try:
@@ -134,244 +203,402 @@ def get_price_metrics(df, cutoff: str = None):
         prev_5d = float(df["Close"].iloc[-6]) if len(df) >= 6 else float(df["Close"].iloc[0])
         if prev_1d == 0 or prev_5d == 0:
             return None
-        last_idx = df.index[-1]
-        date_str = last_idx.strftime("%Y-%m-%d") if hasattr(last_idx, "strftime") else str(last_idx)[:10]
-        return {
+        out = {
             "price": round(curr, 2),
             "daily_pct": round((curr - prev_1d) / prev_1d * 100, 2),
             "weekly_pct": round((curr - prev_5d) / prev_5d * 100, 2),
-            "date": date_str,
+            "date": df.index[-1].strftime("%Y-%m-%d"),
             "stale": False,
         }
+        if series_len:
+            tail = df["Close"].tail(series_len)
+            out["series"] = [{"d": i.strftime("%m-%d"), "c": round(float(v), 2)} for i, v in tail.items()]
+        return out
     except Exception as e:
         log(f"지표 계산 오류: {e}")
         return None
 
 
-def with_fallback(new_value, prev_value, default):
-    """새 값이 없으면 이전 값을 stale=True로 유지, 이전 값도 없으면 default."""
-    if new_value is not None:
-        return new_value
-    if isinstance(prev_value, dict) and prev_value:
-        kept = dict(prev_value)
-        kept["stale"] = True
-        return kept
-    d = dict(default)
-    d["stale"] = True
-    return d
-
-
-KRX_INDEX_KEYS = {"kospi", "kosdaq"}
-
-
-def fetch_indices(start_date: str, prev: dict) -> dict:
+def fetch_indices(start_date: str, prev: dict):
+    """지수 수집. KOSPI 원본 DataFrame도 함께 반환(거래일 목록 산출용)."""
     prev_indices = prev.get("indices", {}) or {}
     default = {"price": 0, "daily_pct": 0.0, "weekly_pct": 0.0, "date": None}
-    out = {}
-    cutoff = None
+    out, cutoff, kospi_df = {}, None, None
     for key, symbol in INDEX_SYMBOLS.items():
-        metrics = get_price_metrics(safe_read(symbol, start_date), cutoff if key in KRX_INDEX_KEYS else None)
-        if key == "kospi" and metrics is not None:
-            cutoff = metrics["date"]
+        df = safe_read(symbol, start_date)
+        metrics = get_price_metrics(df, cutoff if key in KRX_INDEX_KEYS else None, series_len=20)
         if metrics is None:
             for alt in INDEX_FALLBACK_SYMBOLS.get(key, []):
-                metrics = get_price_metrics(safe_read(alt, start_date, retries=1))
+                metrics = get_price_metrics(safe_read(alt, start_date, retries=1), series_len=20)
                 if metrics is not None:
                     metrics["symbol_used"] = alt
                     break
-        out[key] = with_fallback(metrics, prev_indices.get(key), default)
-    return out
+        if key == "kospi" and metrics is not None:
+            cutoff = metrics["date"]
+            kospi_df = cut(df, cutoff)
+        out[key] = keep_previous(metrics, prev_indices.get(key), default)
+    return out, kospi_df
 
 
-def fetch_sectors(start_date: str, prev: dict, cutoff: str = None) -> list:
+def fetch_sectors(start_date: str, prev: dict, cutoff: str) -> list:
     prev_map = {s.get("ticker"): s for s in (prev.get("sectors") or []) if isinstance(s, dict)}
     default = {"price": 0, "daily_pct": 0.0, "weekly_pct": 0.0, "date": None}
     sectors = []
     for item in ETF_LIST:
         metrics = get_price_metrics(safe_read(item["ticker"], start_date), cutoff)
         prev_item = prev_map.get(item["ticker"])
-        prev_metrics = None
-        if prev_item:
-            prev_metrics = {k: prev_item.get(k) for k in ("price", "daily_pct", "weekly_pct", "date")}
-        merged = with_fallback(metrics, prev_metrics, default)
-        sectors.append({**item, **merged})
+        prev_metrics = {k: prev_item.get(k) for k in ("price", "daily_pct", "weekly_pct", "date")} if prev_item else None
+        sectors.append({**item, **keep_previous(metrics, prev_metrics, default)})
     return sectors
 
 
 # ---------------------------------------------------------------------------
-# 투자자별 수급 (pykrx)
+# 시장 전체 투자자 수급 (pykrx, KRX 로그인 필요)
 # ---------------------------------------------------------------------------
-def get_investor_flow(market: str = "KOSPI", cutoff: str = None):
-    if stock is None:
-        return None
+def get_market_flow(market: str, cutoff: str):
     end_dt = now_kst().strftime("%Y%m%d")
     start_dt = (now_kst() - timedelta(days=14)).strftime("%Y%m%d")
-    for attempt in range(1, 3):
-        try:
-            df = stock.get_market_trading_value_by_date(start_dt, end_dt, market)
-            if df is None or df.empty:
-                log(f"{market} 수급: 빈 데이터 (시도 {attempt}/2)")
-                time.sleep(2)
-                continue
-            if cutoff:
-                df = df[df.index <= pd.Timestamp(cutoff)]  # 장중 실행 시 당일 잠정치 제외
-                if df.empty:
-                    return None
-            if "외국인합계" not in df.columns or "기관합계" not in df.columns:
-                log(f"{market} 수급: 예상 컬럼 없음 {list(df.columns)}")
-                return None
-            df_5d = df.tail(5)
-            last_idx = df.index[-1]
-            return {
-                "daily_foreign": round(float(df["외국인합계"].iloc[-1]) / 1e8, 0),
-                "daily_inst": round(float(df["기관합계"].iloc[-1]) / 1e8, 0),
-                "weekly_foreign": round(float(df_5d["외국인합계"].sum()) / 1e8, 0),
-                "weekly_inst": round(float(df_5d["기관합계"].sum()) / 1e8, 0),
-                "date": last_idx.strftime("%Y-%m-%d") if hasattr(last_idx, "strftime") else str(last_idx)[:10],
-                "stale": False,
-            }
-        except Exception as e:
-            log(f"{market} 수급 오류 (시도 {attempt}/2): {e}")
-            time.sleep(2)
-    return None
-
-
-NAVER_SOSOK = {"KOSPI": "01", "KOSDAQ": "02"}
-
-
-def get_investor_flow_naver(market: str = "KOSPI", cutoff: str = None):
-    """네이버 금융 '투자자별 매매동향(일별)' 백업 수집. 단위: 억 원."""
-    try:
-        from bs4 import BeautifulSoup
-    except Exception:
+    df = krx_call(f"{market} 수급", stock.get_market_trading_value_by_date if stock else None, start_dt, end_dt, market)
+    df = cut(df, cutoff)
+    if df is None or df.empty:
         return None
-    import re
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
-    bizdate = now_kst().strftime("%Y%m%d")
-    rows = []
-    for page in (1, 2):
-        try:
-            res = requests.get(
-                "https://finance.naver.com/sise/investorDealTrendDay.naver",
-                params={"bizdate": bizdate, "sosok": NAVER_SOSOK.get(market, "01"), "page": page},
-                headers=headers, timeout=15,
-            )
-            res.raise_for_status()
-            html = res.content.decode("euc-kr", errors="replace")
-            soup = BeautifulSoup(html, "html.parser")
-            for tr in soup.select("table tr"):
-                tds = [td.get_text(strip=True) for td in tr.find_all("td")]
-                if len(tds) < 4 or not re.match(r"^\d{2}\.\d{2}\.\d{2}$", tds[0]):
-                    continue
-                def n(x):
-                    x = x.replace(",", "").replace("+", "")
-                    return float(x) if re.match(r"^-?\d+(\.\d+)?$", x) else None
-                date = "20" + tds[0].replace(".", "-")
-                personal, foreign, inst = n(tds[1]), n(tds[2]), n(tds[3])
-                if foreign is None or inst is None:
-                    continue
-                rows.append({"date": date, "foreign": foreign, "inst": inst})
-        except Exception as e:
-            log(f"{market} 네이버 수급 오류(page {page}): {type(e).__name__}: {e}")
-            break
-    if not rows:
+    cols = {"foreign": "외국인합계", "inst": "기관합계", "retail": "개인"}
+    if any(c not in df.columns for c in cols.values()):
+        log(f"{market} 수급: 예상 컬럼 없음 {list(df.columns)}")
         return None
-    # 날짜 중복 제거 + 최신순 정렬 + 기준 거래일 이후 데이터(장중) 제외
-    uniq = {r["date"]: r for r in rows}
-    ordered = sorted(uniq.values(), key=lambda r: r["date"], reverse=True)
-    if cutoff:
-        ordered = [r for r in ordered if r["date"] <= cutoff]
-    if not ordered:
-        return None
-    last5 = ordered[:5]
-    return {
-        "daily_foreign": round(ordered[0]["foreign"], 0),
-        "daily_inst": round(ordered[0]["inst"], 0),
-        "weekly_foreign": round(sum(r["foreign"] for r in last5), 0),
-        "weekly_inst": round(sum(r["inst"] for r in last5), 0),
-        "date": ordered[0]["date"],
-        "source": "naver",
-        "stale": False,
-    }
-
-
-def fetch_flow(prev: dict, cutoff: str = None) -> dict:
-    prev_flow = prev.get("flow", {}) or {}
+    df5 = df.tail(5)
     out = {}
-    for key, market in (("kospi", "KOSPI"), ("kosdaq", "KOSDAQ")):
-        flow = get_investor_flow(market, cutoff)
-        if flow is None:
-            log(f"{market} 수급: pykrx 실패 → 네이버 금융 백업 시도")
-            flow = get_investor_flow_naver(market, cutoff)
-        out[key] = with_fallback(flow, prev_flow.get(key), EMPTY_FLOW)
+    for k, c in cols.items():
+        out[f"daily_{k}"] = eok(df[c].iloc[-1])
+        out[f"weekly_{k}"] = eok(df5[c].sum())
+    out["date"] = df.index[-1].strftime("%Y-%m-%d")
+    out["stale"] = False
     return out
 
 
+def fetch_flow(prev: dict, cutoff: str) -> dict:
+    prev_flow = prev.get("flow", {}) or {}
+    return {key: keep_previous(get_market_flow(mk, cutoff), prev_flow.get(key), EMPTY_FLOW) for key, mk in MARKETS}
+
+
 # ---------------------------------------------------------------------------
-# AI 브리핑 (Gemini) - 실패 시 규칙 기반 문장으로 대체
+# 업종 분류 / 시장 폭 / 업종지수 / 업종별 수급 / 상위 종목
 # ---------------------------------------------------------------------------
-def build_fallback_briefing(payload: dict) -> dict:
-    kospi = payload["indices"]["kospi"]
-    kosdaq = payload["indices"]["kosdaq"]
-    fx = payload["indices"]["usdkrw"]
-    sox = payload["indices"]["sox"]
-    flow = payload["flow"]["kospi"]
+def norm(name: str) -> str:
+    return re.sub(r"[\s·ㆍ,./()&-]", "", str(name))
 
-    sectors = [s for s in payload.get("sectors", []) if not s.get("stale")]
-    best_d = max(sectors, key=lambda s: s["daily_pct"], default=None)
-    worst_d = min(sectors, key=lambda s: s["daily_pct"], default=None)
-    best_w = max(sectors, key=lambda s: s["weekly_pct"], default=None)
 
-    flow_ok = not flow.get("stale")
-    daily = (
-        f"코스피는 {kospi['daily_pct']:+.2f}% 변동한 {kospi['price']:,.2f}pt, 코스닥은 {kosdaq['daily_pct']:+.2f}%로 마감했으며 "
-        f"원/달러 환율은 {fx['price']:,.1f}원({fx['daily_pct']:+.2f}%)"
-        + (f", 코스피 외국인 {flow['daily_foreign']:+,.0f}억 원·기관 {flow['daily_inst']:+,.0f}억 원입니다. " if flow_ok else "입니다. ")
+def get_classification(trade_date: str, market: str):
+    df = krx_call(f"{market} 업종분류", stock.get_market_sector_classifications if stock else None, ymd(trade_date), market)
+    if df is None:
+        return None
+    if "종목코드" in df.columns:
+        df = df.set_index("종목코드")
+    df.index = df.index.astype(str)
+    return df
+
+
+def breadth_from(cls_df):
+    if cls_df is None or "등락률" not in cls_df.columns:
+        return None
+    r = pd.to_numeric(cls_df["등락률"], errors="coerce").dropna()
+    return {"up": int((r > 0).sum()), "down": int((r < 0).sum()), "flat": int((r == 0).sum()), "stale": False}
+
+
+SECTOR_EXCLUDE = re.compile(r"(코스피|코스닥|KRX|200|150|100|50|대형|중형|소형|배당|레버리지|인버스|선물|변동성|커버드|ESG|TR|동일가중|우량|프리미어|글로벌|밸류|성장|가치)")
+
+
+def get_sector_indices(market: str, dates: list, sector_names: set):
+    """업종지수 등락률(일간·5일). dates: 오름차순 거래일 목록(YYYY-MM-DD)."""
+    if len(dates) < 2:
+        return None
+    out = {}
+    for period, start in (("daily", dates[-2]), ("weekly", dates[-6] if len(dates) >= 6 else dates[0])):
+        df = krx_call(f"{market} 업종지수({period})", stock.get_index_price_change if stock else None, ymd(start), ymd(dates[-1]), market)
+        if df is None or "등락률" not in df.columns:
+            return None
+        df["등락률"] = pd.to_numeric(df["등락률"], errors="coerce")
+        df["거래대금"] = pd.to_numeric(df.get("거래대금", 0), errors="coerce").fillna(0)
+        if period == "daily":
+            mk_name = "코스피" if market == "KOSPI" else "코스닥"
+            if mk_name in df.index:
+                log(f"{market} 업종지수 검증: {mk_name} 등락률 {df.loc[mk_name, '등락률']:.2f}%")
+        rows = []
+        for name, r in df.iterrows():
+            n = norm(name)
+            if sector_names:
+                if n not in sector_names:
+                    continue
+            elif SECTOR_EXCLUDE.search(str(name)):
+                continue
+            if pd.isna(r["등락률"]):
+                continue
+            rows.append({"name": str(name), "pct": round(float(r["등락률"]), 2), "value": eok(r["거래대금"])})
+        if not rows:
+            log(f"{market} 업종지수({period}): 업종 매칭 0건 → 전체 지수명 {list(df.index)[:60]}")
+            return None
+        out[period] = sorted(rows, key=lambda x: x["pct"], reverse=True)
+    out["stale"] = False
+    return out
+
+
+def get_net_purchases(market: str, start: str, end: str, investor: str):
+    df = krx_call(
+        f"{market} {investor} 순매수({start}~{end})",
+        stock.get_market_net_purchases_of_equities if stock else None,
+        ymd(start), ymd(end), market, investor,
     )
-    if best_d and worst_d:
-        daily += f"섹터 ETF는 {best_d['sector']}({best_d['daily_pct']:+.2f}%)가 강했고 {worst_d['sector']}({worst_d['daily_pct']:+.2f}%)가 약했습니다."
+    if df is None or "순매수거래대금" not in df.columns:
+        return None
+    df.index = df.index.astype(str)
+    df["순매수거래대금"] = pd.to_numeric(df["순매수거래대금"], errors="coerce").fillna(0)
+    return df
 
-    risk_off = (kospi["weekly_pct"] < -2 or kospi["daily_pct"] < -2
-                or (flow_ok and flow["weekly_foreign"] < 0) or fx["weekly_pct"] > 1)
-    weekly = (
-        f"최근 5거래일 코스피 {kospi['weekly_pct']:+.2f}%, 필라델피아 반도체 {sox['weekly_pct']:+.2f}%"
-        + (f", 외국인 누적 {flow['weekly_foreign']:+,.0f}억 원·기관 {flow['weekly_inst']:+,.0f}억 원입니다. " if flow_ok else "입니다. ")
-    )
-    if risk_off:
-        weekly += "외국인 이탈·환율 부담 신호가 있어 추격 매수보다 순환매·방어 업종과 현금 버퍼 비중을 높여 포트폴리오 베타를 낮출 구간입니다."
+
+def fetch_sector_block(dates: list, prev: dict):
+    """업종지수·업종별 수급·상위 종목·시장 폭을 한 번에 수집."""
+    trade = dates[-1]
+    periods = {"daily": (trade, trade), "weekly": (dates[-5] if len(dates) >= 5 else dates[0], trade)}
+
+    sector_indices, sector_flow, breadth = {}, {"daily": {}, "weekly": {}}, {}
+    stock_rows = {"daily": {k: [] for k, _ in INVESTORS}, "weekly": {k: [] for k, _ in INVESTORS}}
+    ok_flow = True
+
+    for key, market in MARKETS:
+        cls_df = get_classification(trade, market)
+        breadth[key] = breadth_from(cls_df)
+        sector_names = set(norm(x) for x in cls_df["업종명"].unique()) if cls_df is not None and "업종명" in cls_df.columns else set()
+        sector_indices[key] = get_sector_indices(market, dates, sector_names)
+
+        for period, (s, e) in periods.items():
+            agg = {}
+            for inv_key, inv_name in INVESTORS:
+                df = get_net_purchases(market, s, e, inv_name)
+                if df is None:
+                    ok_flow = False
+                    continue
+                if cls_df is not None and "업종명" in cls_df.columns:
+                    df = df.join(cls_df[["업종명"]], how="left")
+                else:
+                    df["업종명"] = "기타"
+                df["업종명"] = df["업종명"].fillna("기타")
+                for sec, v in df.groupby("업종명")["순매수거래대금"].sum().items():
+                    agg.setdefault(sec, {"sector": sec, "foreign": 0.0, "inst": 0.0, "retail": 0.0})[inv_key] = eok(v)
+                name_col = "종목명" if "종목명" in df.columns else None
+                for code, r in df.iterrows():
+                    if r["순매수거래대금"] == 0:
+                        continue
+                    stock_rows[period][inv_key].append({
+                        "code": code,
+                        "name": str(r[name_col]) if name_col else code,
+                        "sector": str(r["업종명"]),
+                        "market": market,
+                        "value": eok(r["순매수거래대금"]),
+                    })
+            rows = list(agg.values())
+            for r in rows:
+                r["smart"] = r["foreign"] + r["inst"]  # 외국인+기관
+            sector_flow[period][key] = sorted(rows, key=lambda x: x["smart"], reverse=True)
+
+    top_stocks = {}
+    for period, by_inv in stock_rows.items():
+        top_stocks[period] = {}
+        for inv_key, rows in by_inv.items():
+            rows = sorted(rows, key=lambda x: x["value"], reverse=True)
+            top_stocks[period][inv_key] = {"buy": rows[:7], "sell": list(reversed(rows[-7:])) if rows else []}
+
+    # 이전값 보존
+    prev_si = prev.get("sector_indices") or {}
+    prev_br = prev.get("breadth") or {}
+    sector_indices = {k: keep_previous(sector_indices.get(k), prev_si.get(k), {"daily": [], "weekly": []}) for k, _ in MARKETS}
+    breadth = {k: keep_previous(breadth.get(k), prev_br.get(k), {"up": 0, "down": 0, "flat": 0}) for k, _ in MARKETS}
+
+    has_flow = any(sector_flow["daily"].get(k) for k, _ in MARKETS)
+    if not has_flow or not ok_flow:
+        prev_sf, prev_ts = prev.get("sector_flow"), prev.get("top_stocks")
+        if not has_flow and prev_sf:
+            sector_flow = dict(prev_sf, stale=True)
+            top_stocks = dict(prev_ts or {}, stale=True)
+        elif not has_flow:
+            sector_flow = {"daily": {}, "weekly": {}, "stale": True}
+            top_stocks = {"stale": True}
+        else:
+            sector_flow["partial"] = True  # 일부 투자자 수집 실패
     else:
-        lead = best_w["sector"] if best_w else "주도 섹터"
-        weekly += f"{lead} 중심의 주도력이 유지되고 있어 반도체·AI 코어는 유지하되 순환매 속도를 점검하며 비중을 조절할 구간입니다."
-    return {"daily_comment": daily.strip(), "weekly_comment": weekly.strip(), "source": "rule"}
+        sector_flow["stale"] = False
+        top_stocks["stale"] = False
+
+    return sector_indices, sector_flow, top_stocks, breadth
 
 
-def generate_ai_briefing(payload: dict) -> dict:
-    fallback = build_fallback_briefing(payload)
+# ---------------------------------------------------------------------------
+# 관련 기사 (구글 뉴스 RSS)
+# ---------------------------------------------------------------------------
+def fetch_news(prev: dict):
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; KoreaMarketRadar/1.0)"}
+    items, seen = [], set()
+    since = now_kst() - timedelta(hours=30)
+    for q in NEWS_QUERIES:
+        try:
+            res = requests.get(
+                "https://news.google.com/rss/search",
+                params={"q": f"{q} when:2d", "hl": "ko", "gl": "KR", "ceid": "KR:ko"},
+                headers=headers, timeout=15,
+            )
+            res.raise_for_status()
+            root = ET.fromstring(res.content)
+            for it in root.iter("item"):
+                title = (it.findtext("title") or "").strip()
+                link = (it.findtext("link") or "").strip()
+                source = (it.findtext("source") or "").strip()
+                pub = it.findtext("pubDate")
+                try:
+                    pub_dt = parsedate_to_datetime(pub).astimezone(KST) if pub else None
+                except Exception:
+                    pub_dt = None
+                if pub_dt and pub_dt < since:
+                    continue
+                if source and title.endswith(f" - {source}"):
+                    title = title[: -len(f" - {source}")]
+                key = norm(title)[:40]
+                if not title or key in seen:
+                    continue
+                seen.add(key)
+                items.append({
+                    "title": title, "source": source, "link": link,
+                    "published": pub_dt.strftime("%m-%d %H:%M") if pub_dt else "",
+                    "_ts": pub_dt.timestamp() if pub_dt else 0,
+                })
+        except Exception as e:
+            log(f"뉴스 수집 오류({q}): {type(e).__name__}")
+    if not items:
+        old = prev.get("news")
+        return {"items": (old or {}).get("items", []) if isinstance(old, dict) else [], "stale": True}
+    items = sorted(items, key=lambda x: x["_ts"], reverse=True)[:NEWS_MAX]
+    for i, it in enumerate(items, 1):
+        it["id"] = i
+        it.pop("_ts", None)
+    return {"items": items, "stale": False}
+
+
+# ---------------------------------------------------------------------------
+# 시황 브리핑
+# ---------------------------------------------------------------------------
+def fmt_eok(v) -> str:
+    return f"{v:+,.0f}억"
+
+
+def top_n(rows, n, key="pct", reverse=True):
+    return sorted(rows or [], key=lambda x: x.get(key, 0), reverse=reverse)[:n]
+
+
+def build_rule_briefing(p: dict) -> dict:
+    I, F = p["indices"], p["flow"]
+    out = {}
+    for period, label in (("daily", "일간"), ("weekly", "5거래일")):
+        pk = f"{period}_pct"
+        k, q, fx, sox = I["kospi"], I["kosdaq"], I["usdkrw"], I["sox"]
+        fk = F["kospi"]
+        mood = "약세" if k[pk] < -0.5 else ("강세" if k[pk] > 0.5 else "보합권")
+        headline = f"코스피 {k[pk]:+.2f}%·코스닥 {q[pk]:+.2f}% {mood}"
+        if not fk.get("stale"):
+            lead = max(INVESTORS, key=lambda x: abs(fk.get(f"{period}_{x[0]}", 0)))[0]
+            headline += f", {INVESTOR_LABEL[lead]} {fmt_eok(fk[f'{period}_{lead}'])} 주도"
+        points = [
+            f"지수: 코스피 {k['price']:,.2f}pt({k[pk]:+.2f}%), 코스닥 {q['price']:,.2f}pt({q[pk]:+.2f}%)",
+            f"환율·해외: 원/달러 {fx['price']:,.1f}원({fx[pk]:+.2f}%), 필라델피아 반도체 {sox[pk]:+.2f}%",
+        ]
+        if not fk.get("stale"):
+            points.append("코스피 수급: " + ", ".join(f"{INVESTOR_LABEL[x]} {fmt_eok(fk[f'{period}_{x}'])}" for x, _ in INVESTORS))
+        si = (p.get("sector_indices") or {}).get("kospi") or {}
+        rows = si.get(period) or []
+        if rows:
+            points.append("업종 강세: " + ", ".join(f"{r['name']} {r['pct']:+.2f}%" for r in rows[:3]))
+            points.append("업종 약세: " + ", ".join(f"{r['name']} {r['pct']:+.2f}%" for r in rows[-3:][::-1]))
+        sf = ((p.get("sector_flow") or {}).get(period) or {}).get("kospi") or []
+        if sf:
+            points.append("외국인+기관 순매수 상위 업종: " + ", ".join(f"{r['sector']} {fmt_eok(r['smart'])}" for r in sf[:3]))
+        b = (p.get("breadth") or {}).get("kospi") or {}
+        if period == "daily" and b.get("up") is not None and not b.get("stale"):
+            points.append(f"시장 폭(코스피): 상승 {b['up']} / 하락 {b['down']} / 보합 {b['flat']}")
+        strategy = []
+        if k[pk] < -2 or (not fk.get("stale") and fk.get(f"{period}_foreign", 0) < 0 and fx[pk] > 0.3):
+            strategy.append("외국인 이탈·환율 부담 구간 → 추격 매수 자제, 낙폭 과대 업종은 분할 접근")
+        if rows:
+            strategy.append(f"상대 강세 업종({rows[0]['name']}) 중심 순환매 지속 여부 확인")
+        strategy.append("다음 거래일 외국인 수급 방향과 반도체 업종 반등 여부 점검")
+        out[period] = {"headline": headline, "points": points, "strategy": strategy}
+    out["source"] = "rule"
+    return out
+
+
+def briefing_input(p: dict) -> dict:
+    def slim_si(m):
+        si = (p.get("sector_indices") or {}).get(m) or {}
+        return {per: {"top": top_n(si.get(per), 5), "bottom": top_n(si.get(per), 5, reverse=False)} for per in ("daily", "weekly")}
+
+    def slim_sf(m):
+        sf = p.get("sector_flow") or {}
+        out = {}
+        for per in ("daily", "weekly"):
+            rows = (sf.get(per) or {}).get(m) or []
+            out[per] = {"buy": rows[:5], "sell": rows[-5:][::-1]}
+        return out
+
+    ts = p.get("top_stocks") or {}
+    slim_ts = {
+        per: {inv: {"buy": [(x["name"], x["value"]) for x in (ts.get(per) or {}).get(inv, {}).get("buy", [])[:4]],
+                    "sell": [(x["name"], x["value"]) for x in (ts.get(per) or {}).get(inv, {}).get("sell", [])[:4]]}
+              for inv, _ in INVESTORS}
+        for per in ("daily", "weekly")
+    }
+    idx = {k: {kk: v.get(kk) for kk in ("price", "daily_pct", "weekly_pct", "stale")} for k, v in p["indices"].items()}
+    return {
+        "trade_date": p.get("trade_date"),
+        "indices": idx,
+        "flow_eok": p["flow"],
+        "breadth": p.get("breadth"),
+        "sector_index_kospi": slim_si("kospi"),
+        "sector_index_kosdaq": slim_si("kosdaq"),
+        "sector_flow_kospi_eok": slim_sf("kospi"),
+        "sector_flow_kosdaq_eok": slim_sf("kosdaq"),
+        "top_stocks_eok": slim_ts,
+        "sector_etf": [{k: s.get(k) for k in ("name", "sector", "daily_pct", "weekly_pct")} for s in p["sectors"]],
+    }
+
+
+def clean_list(v, n):
+    if not isinstance(v, list):
+        return []
+    return [str(x).strip() for x in v if str(x).strip()][:n]
+
+
+def generate_briefing(p: dict) -> dict:
+    fallback = build_rule_briefing(p)
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not api_key:
         log("GEMINI_API_KEY 없음 → 규칙 기반 브리핑 사용")
         return fallback
 
-    compact = {
-        "indices": payload["indices"],
-        "flow": payload["flow"],
-        "sectors": [
-            {k: s.get(k) for k in ("name", "sector", "daily_pct", "weekly_pct", "stale")}
-            for s in payload["sectors"]
-        ],
-    }
+    news = [f"[{n['id']}] {n['title']} ({n['source']}, {n['published']})" for n in (p.get("news") or {}).get("items", [])]
     prompt = (
-        "당신은 한국 증시 시니어 리서치 애널리스트입니다. 아래 JSON 데이터만 근거로 "
-        "1) 일간 시황 핵심 요약(2문장), 2) 주간 흐름 및 대응 전략(2문장)을 한국어로 작성하세요. "
-        "대응 전략은 'AI·반도체 코어 + 비반도체 순환매/방어 업종(조선·방산, 고배당 금융, 바이오) + 파킹·현금성 자산' "
-        "바벨 포트폴리오의 비중 조절 관점으로 쓰고, 데이터에 없는 수치나 뉴스는 지어내지 마세요. "
-        "stale=true 항목은 이전 거래일 값이므로 언급하지 마세요. "
-        "반드시 JSON 형식 {\"daily_comment\": \"...\", \"weekly_comment\": \"...\"} 으로만 응답하세요.\n"
-        f"데이터: {json.dumps(compact, ensure_ascii=False)}"
+        "당신은 한국 증시 시니어 리서치 애널리스트입니다. 아래 장 마감 데이터와 기사 헤드라인으로 '시황 브리핑'을 작성하세요.\n"
+        "작성 원칙:\n"
+        "- 두괄식: headline에 오늘 시장의 결론을 한 문장(40자 내외)으로. 무엇이 시장을 움직였는지가 드러나게.\n"
+        "- 개조식: points는 6~8개, 각 항목은 '주제: 내용' 형태의 명사형 종결(~함, ~세, ~확대 등), 구체적 수치(%·억 원·pt) 필수.\n"
+        "  다룰 주제: 지수·환율, 투자자 수급(외국인·기관·개인), 업종 강약, 업종별 수급 쏠림, 주요 순매수/순매도 종목, 시장 폭, 해외(반도체).\n"
+        "- 기사 연계: 기사 헤드라인에서 확인되는 원인·이벤트가 있으면 해당 항목 끝에 [번호]로 인용. 헤드라인에 없는 사실·수치는 지어내지 말 것.\n"
+        "- strategy는 2~3개, 다음 거래일 점검 포인트와 대응(추격 매수 자제/분할 접근/순환매 확인 등)을 개조식으로.\n"
+        "- daily는 일간 기준, weekly는 최근 5거래일 누적 기준으로 각각 작성. stale=true 항목은 언급 금지. 수급 단위는 억 원.\n"
+        "반드시 아래 JSON 형식으로만 응답:\n"
+        '{"daily":{"headline":"...","points":["..."],"strategy":["..."]},'
+        '"weekly":{"headline":"...","points":["..."],"strategy":["..."]}}\n\n'
+        f"[데이터]\n{json.dumps(briefing_input(p), ensure_ascii=False)}\n\n"
+        "[기사 헤드라인]\n" + ("\n".join(news) if news else "(없음)")
     )
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.4},
+        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.3},
     }
     headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
     for model in GEMINI_MODELS:
@@ -387,21 +614,26 @@ def generate_ai_briefing(payload: dict) -> dict:
                         detail = res.text[:200]
                     log(f"Gemini {model} 실패 (시도 {attempt}/2): HTTP {res.status_code} {detail}")
                     if res.status_code in (400, 401, 403, 404):
-                        break  # 키/모델 문제 → 재시도 무의미, 다음 모델로
+                        break
                     time.sleep(3)
                     continue
                 text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
-                clean = text.replace("```json", "").replace("```", "").strip()
-                parsed = json.loads(clean)
-                daily = str(parsed.get("daily_comment", "")).strip()
-                weekly = str(parsed.get("weekly_comment", "")).strip()
-                if daily and weekly:
-                    log(f"Gemini 브리핑 생성 완료 ({model})")
-                    return {"daily_comment": daily, "weekly_comment": weekly, "source": "gemini", "model": model}
-                log(f"Gemini {model} 응답에 필드 누락")
+                parsed = json.loads(text.replace("```json", "").replace("```", "").strip())
+                out = {}
+                for per in ("daily", "weekly"):
+                    blk = parsed.get(per) or {}
+                    headline = str(blk.get("headline", "")).strip()
+                    points = clean_list(blk.get("points"), 9)
+                    strategy = clean_list(blk.get("strategy"), 4)
+                    if not headline or len(points) < 3:
+                        raise ValueError(f"{per} 형식 불충분")
+                    out[per] = {"headline": headline, "points": points, "strategy": strategy or fallback[per]["strategy"]}
+                out["source"] = "gemini"
+                out["model"] = model
+                log(f"Gemini 브리핑 생성 완료 ({model})")
+                return out
             except Exception as e:
-                # 키가 섞이지 않도록 예외 타입만 출력
-                log(f"Gemini {model} 오류 (시도 {attempt}/2): {type(e).__name__}")
+                log(f"Gemini {model} 오류 (시도 {attempt}/2): {type(e).__name__}: {str(e)[:120]}")
             time.sleep(2)
     return fallback
 
@@ -411,52 +643,57 @@ def generate_ai_briefing(payload: dict) -> dict:
 # ---------------------------------------------------------------------------
 def main() -> int:
     prev = load_previous()
-    start_date = (now_kst() - timedelta(days=30)).strftime("%Y-%m-%d")
+    start_date = (now_kst() - timedelta(days=45)).strftime("%Y-%m-%d")
 
-    indices = fetch_indices(start_date, prev)
+    indices, kospi_df = fetch_indices(start_date, prev)
     kospi = indices["kospi"]
-
-    # (1) 핵심 지표 실패 → 기존 파일 보존
-    if kospi.get("stale") or not kospi.get("price"):
+    if kospi.get("stale") or not kospi.get("price") or kospi_df is None:
         log("KOSPI 수집 실패 → data.json을 덮어쓰지 않고 종료합니다.")
         return 0
 
-    trade_date = kospi.get("date")
+    trade_date = kospi["date"]
     prev_trade_date = prev.get("trade_date")
-
-    # (2) 신규 거래일 없음(휴장일·주말·중복 실행) → 기존 파일 보존
-    #     단, 같은 거래일이라도 이전 실행에서 일부 항목(수급 등)이 비어 있었다면 다시 채우기 위해 재수집
     prev_stale = (prev.get("data_quality") or {}).get("stale_items") or []
-    if prev_trade_date and trade_date and trade_date < prev_trade_date and not FORCE_UPDATE:
+    if prev_trade_date and trade_date < prev_trade_date and not FORCE_UPDATE:
         log(f"최신 거래일({trade_date})이 기존 데이터({prev_trade_date})보다 이전 → 갱신 생략.")
         return 0
-    if prev_trade_date and trade_date == prev_trade_date and not prev_stale and not FORCE_UPDATE:
+    if prev_trade_date == trade_date and not prev_stale and not FORCE_UPDATE:
         log(f"최신 거래일({trade_date}) 데이터가 이미 완전함 → 휴장일/중복 실행으로 판단, 갱신 생략.")
         return 0
 
+    dates = [d.strftime("%Y-%m-%d") for d in kospi_df.index]
     sectors = fetch_sectors(start_date, prev, trade_date)
     flow = fetch_flow(prev, trade_date)
+    sector_indices, sector_flow, top_stocks, breadth = fetch_sector_block(dates, prev)
+    news = fetch_news(prev)
 
     payload = {
         "updated_at": now_kst().strftime("%Y-%m-%d %H:%M KST"),
         "trade_date": trade_date,
         "indices": indices,
         "flow": flow,
+        "breadth": breadth,
+        "sector_indices": sector_indices,
+        "sector_flow": sector_flow,
+        "top_stocks": top_stocks,
         "sectors": sectors,
+        "news": news,
     }
 
-    stale_items = [k for k, v in indices.items() if v.get("stale")]
-    stale_items += [f"flow.{k}" for k, v in flow.items() if v.get("stale")]
-    stale_items += [s["name"] for s in sectors if s.get("stale")]
-    payload["data_quality"] = {
-        "stale_items": stale_items,
-        "is_today": trade_date == now_kst().strftime("%Y-%m-%d"),
-    }
+    stale = [k for k, v in indices.items() if v.get("stale")]
+    stale += [f"flow.{k}" for k, v in flow.items() if v.get("stale")]
+    stale += [f"breadth.{k}" for k, v in breadth.items() if v.get("stale")]
+    stale += [f"sector_indices.{k}" for k, v in sector_indices.items() if v.get("stale")]
+    if sector_flow.get("stale") or sector_flow.get("partial"):
+        stale.append("sector_flow")
+    stale += [s["name"] for s in sectors if s.get("stale")]
+    # 뉴스는 외부 요인이 커서 재수집 트리거에서 제외
+    payload["data_quality"] = {"stale_items": stale, "is_today": trade_date == now_kst().strftime("%Y-%m-%d")}
 
-    payload["ai_briefing"] = generate_ai_briefing(payload)
+    payload["ai_briefing"] = generate_briefing(payload)
 
     atomic_write_json(DATA_PATH, payload)
-    log(f"data.json 갱신 완료 (거래일 {trade_date}, 이전값 유지 항목 {len(stale_items)}개)")
+    log(f"data.json 갱신 완료 (거래일 {trade_date}, 이전값 유지 항목 {len(stale)}개: {stale})")
     return 0
 
 
@@ -464,6 +701,5 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except Exception as e:
-        # 예상치 못한 오류에도 기존 data.json은 그대로 두고 워크플로를 실패 처리
         log(f"치명적 오류: {type(e).__name__}: {e}")
         sys.exit(1)
