@@ -908,7 +908,14 @@ def main() -> int:
     )
     now = now_kst()
     is_final_time = (now.strftime("%Y-%m-%d") > trade_date) or (now.hour, now.minute) >= (FINAL_HOUR, FINAL_MIN)
-    final_refresh = prev_trade_date == trade_date and not (prev.get("data_quality") or {}).get("final", True) and is_final_time
+    prev_final = (prev.get("data_quality") or {}).get("final")
+    if prev_final is None:  # 확정 플래그가 없던 예전 데이터 → 갱신 시각으로 판단
+        try:
+            upd = datetime.strptime(prev.get("updated_at", "")[:16], "%Y-%m-%d %H:%M")
+            prev_final = upd.strftime("%Y-%m-%d") > trade_date or (upd.hour, upd.minute) >= (FINAL_HOUR, FINAL_MIN)
+        except Exception:
+            prev_final = True
+    final_refresh = prev_trade_date == trade_date and not prev_final and is_final_time
     if final_refresh:
         log("18시 이후 → 시간외 거래 반영된 확정 수급으로 갱신")
     if prev_trade_date == trade_date and not prev_stale and not news_refresh and not final_refresh and not FORCE_UPDATE:
