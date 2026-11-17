@@ -233,13 +233,34 @@ def cutoff_for(key: str, trade_date: str):
     return trade_date
 
 
+KRX_INDEX_CODES = {"kospi": "1001", "kosdaq": "2001"}
+
+
+def read_krx_index(key: str, start_date: str):
+    """한국거래소 공식 지수 종가 (pykrx). FinanceDataReader는 장 마감 직후 최종값이 아닐 수 있음."""
+    if stock is None or key not in KRX_INDEX_CODES:
+        return None
+    df = krx_call(f"{key} 지수(KRX)", stock.get_index_ohlcv_by_date, ymd(start_date), now_kst().strftime("%Y%m%d"), KRX_INDEX_CODES[key], "d", False)
+    if df is None or "종가" not in df.columns:
+        return None
+    df = df.rename(columns={"종가": "Close"})
+    df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
+    df = df.dropna(subset=["Close"])
+    df = df[df["Close"] > 0]
+    return df if len(df) >= 2 else None
+
+
 def fetch_indices(start_date: str, prev: dict):
     """지수 수집. KOSPI 원본 DataFrame도 함께 반환(거래일 목록 산출용)."""
     prev_indices = prev.get("indices", {}) or {}
     default = {"price": 0, "daily_pct": 0.0, "weekly_pct": 0.0, "date": None}
     out, cutoff, kospi_df = {}, None, None
     for key, symbol in INDEX_SYMBOLS.items():
-        df = safe_read(symbol, start_date)
+        df = read_krx_index(key, start_date) if key in KRX_INDEX_CODES else None
+        if df is None:
+            df = safe_read(symbol, start_date)
+        else:
+            log(f"{key}: KRX 공식 종가 사용 ({df.index[-1].strftime('%Y-%m-%d')} {float(df['Close'].iloc[-1]):,.2f})")
         metrics = get_price_metrics(df, cutoff_for(key, cutoff), series_len=20)
         if metrics is None:
             for alt in INDEX_FALLBACK_SYMBOLS.get(key, []):
