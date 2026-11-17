@@ -434,6 +434,61 @@ def fetch_sector_block(dates: list, prev: dict):
 
 
 # ---------------------------------------------------------------------------
+# ACE ETF 라인업 흐름
+# ---------------------------------------------------------------------------
+ACE_PREFIX = "ACE "
+
+
+def etf_names():
+    """ETF 전종목 이름표 (pykrx 내부 싱글톤 - 실행당 1회만 조회)."""
+    try:
+        from pykrx.website.krx.etx.ticker import EtxTicker
+        df = EtxTicker().df
+        time.sleep(KRX_PAUSE)
+        return df[df["시장"] == "ETF"]["종목명"].to_dict()
+    except Exception as e:
+        log(f"ETF 이름표 조회 실패: {type(e).__name__}: {e}")
+        return {}
+
+
+def fetch_ace(dates: list, prev: dict, kodex200_daily: float = None):
+    names = etf_names()
+    ace_codes = {c: n for c, n in names.items() if str(n).startswith(ACE_PREFIX)}
+    if not ace_codes:
+        return None
+    trade = dates[-1]
+    out = {"count": len(ace_codes)}
+    # KRX 기간등락률은 시작일의 전일 종가 기준 → 일간 (당일~당일), 5일 (5거래일 전~당일)
+    for period, start in (("daily", trade), ("weekly", dates[-5] if len(dates) >= 5 else dates[0])):
+        df = krx_call(f"ETF 등락률({period})", stock.get_etf_price_change_by_ticker if stock else None, ymd(start), ymd(trade))
+        if df is None or "등락률" not in df.columns:
+            return None
+        df.index = df.index.astype(str)
+        if period == "daily" and "069500" in df.index:
+            log(f"ETF 등락률 검증: KODEX 200 {float(df.loc['069500', '등락률']):.2f}% (FDR {kodex200_daily})")
+        df = df[df.index.isin(ace_codes.keys())].copy()
+        df["등락률"] = pd.to_numeric(df["등락률"], errors="coerce")
+        df["거래대금"] = pd.to_numeric(df["거래대금"], errors="coerce").fillna(0)
+        df["종가"] = pd.to_numeric(df["종가"], errors="coerce").fillna(0)
+        df = df.dropna(subset=["등락률"])
+        rows = [{"code": c, "name": ace_codes[c], "pct": round(float(r["등락률"]), 2),
+                 "price": int(r["종가"]), "value": eok(r["거래대금"])} for c, r in df.iterrows()]
+        if not rows:
+            return None
+        by_pct = sorted(rows, key=lambda x: x["pct"], reverse=True)
+        r = pd.Series([x["pct"] for x in rows])
+        out[period] = {
+            "up": int((r > 0).sum()), "down": int((r < 0).sum()), "flat": int((r == 0).sum()),
+            "median": round(float(r.median()), 2),
+            "top": by_pct[:8],
+            "bottom": by_pct[-8:][::-1],
+            "value_top": sorted(rows, key=lambda x: x["value"], reverse=True)[:8],
+        }
+    out["stale"] = False
+    return out
+
+
+# ---------------------------------------------------------------------------
 # 관련 기사 (구글 뉴스 RSS)
 # ---------------------------------------------------------------------------
 NEWS_MUST = re.compile(r"(코스피|코스닥|증시|국내\s?증시|외국인|기관|마감)")
@@ -543,6 +598,7 @@ BRIEF_SECTIONS = [
     ("sector", "업종"),
     ("stock", "종목"),
     ("issue", "이슈·뉴스"),
+    ("ace", "ACE ETF"),
 ]
 
 
@@ -594,6 +650,11 @@ def build_rule_briefing(p: dict) -> dict:
             sec["stock"].append("외국인 순매도: " + ", ".join(f"{x['name']} {fmt_eok(x['value'])}" for x in fb["sell"][:3]))
         news = (p.get("news") or {}).get("items") or []
         sec["issue"] = [f"{n['title']} [{n['id']}]" for n in news[:3]]
+        ace = (p.get("ace") or {}).get(period) or {}
+        if ace.get("top"):
+            sec["ace"].append(f"ACE ETF {p['ace'].get('count', 0)}종 중 상승 {ace['up']} / 하락 {ace['down']}, 중간값 {ace['median']:+.2f}%")
+            sec["ace"].append("상승 상위: " + ", ".join(f"{x['name']} {x['pct']:+.2f}%" for x in ace["top"][:3]))
+            sec["ace"].append("거래대금 상위: " + ", ".join(f"{x['name']} {x['value']:,}억" for x in ace["value_top"][:3]))
 
         strategy = []
         if k[pk] < -2 or (not fk.get("stale") and fk.get(f"{period}_foreign", 0) < 0 and fx[pk] > 0.3):
@@ -643,6 +704,8 @@ def briefing_input(p: dict) -> dict:
         "sector_flow_kosdaq_eok": slim_sf("kosdaq"),
         "top_stocks_eok": slim_ts,
         "sector_etf": [{k: s.get(k) for k in ("name", "sector", "daily_pct", "weekly_pct")} for s in p["sectors"]],
+        "ace_etf": {per: {kk: ((p.get("ace") or {}).get(per) or {}).get(kk) for kk in ("up", "down", "median", "top", "bottom", "value_top")}
+                    for per in ("daily", "weekly")} if not (p.get("ace") or {}).get("stale") else None,
     }
 
 
@@ -671,6 +734,8 @@ def generate_briefing(p: dict) -> dict:
         "   - sector(업종): 강세·약세 업종과 그 의미(순환매/방어 등)\n"
         "   - stock(종목): 투자자별 주요 순매수·순매도 종목\n"
         "   - issue(이슈·뉴스): 기사 헤드라인에서 확인되는 원인·이벤트, 항목 끝에 [번호] 인용\n"
+        "   - ace(ACE ETF): 한국투자신탁운용 ACE ETF 라인업 마감 흐름. 오늘 시장 흐름과 연결해 어떤 ACE 상품군(예: 반도체·미국주식·배당·채권혼합·머니마켓·금 등)이\n"
+        "     선방/부진했는지, 상승·하락 상위와 거래대금 상위 상품을 2~4개 항목으로. 데이터의 상품명 그대로 사용, 투자 권유 표현 금지.\n"
         "4) strategy(대응 포인트): 2~3개, 다음 거래일 점검 포인트와 대응.\n"
         "- 문체(전 항목 공통, 증권사 시황 리포트 스타일): 명사로 끝맺음. 예) '코스피 -3.59% 급락', '외국인 1조 3,300억 원 순매도', '방어주 강세', '반도체 수급 이탈 지속'.\n"
         "  '~함', '~했음', '~기록함', '~보임', '~됨', '~다' 로 끝내지 말 것. 군더더기 없이 짧게(한 항목 60자 내외).\n"
@@ -680,7 +745,7 @@ def generate_briefing(p: dict) -> dict:
         "- 숫자 표기: 수급 단위는 억 원. 1만억 이상은 조 단위로 환산(예: -13300 → -1조 3,300억 원), 그 미만은 천 단위 콤마(예: -4,635억 원). 지수는 5,100.50pt 형식.\n"
         "반드시 아래 JSON 형식으로만 응답:\n"
         '{"daily":{"headline":"...","summary":["...","...","..."],'
-        '"sections":{"market":["..."],"flow":["..."],"sector":["..."],"stock":["..."],"issue":["..."]},'
+        '"sections":{"market":["..."],"flow":["..."],"sector":["..."],"stock":["..."],"issue":["..."],"ace":["..."]},'
         '"strategy":["..."]},"weekly":{...같은 구조...}}\n\n'
         f"[데이터]\n{json.dumps(briefing_input(p), ensure_ascii=False)}\n\n"
         "[기사 헤드라인]\n" + ("\n".join(news) if news else "(없음)")
@@ -780,6 +845,9 @@ def main() -> int:
         return si, sf, ts, br
 
     sector_indices, sector_flow, top_stocks, breadth = guarded("업종", lambda: fetch_sector_block(dates, prev), sector_fallback)
+    kodex200 = next((x.get("daily_pct") for x in sectors if x.get("ticker") == "069500"), None)
+    ace = guarded("ACE ETF", lambda: fetch_ace(dates, prev, kodex200), lambda: None)
+    ace = keep_previous(ace, prev.get("ace"), {"count": 0})
     news = guarded("뉴스", lambda: fetch_news(prev, trade_date),
                    lambda: {"items": (prev.get("news") or {}).get("items", []) if isinstance(prev.get("news"), dict) else [], "stale": True})
 
@@ -793,6 +861,7 @@ def main() -> int:
         "sector_flow": sector_flow,
         "top_stocks": top_stocks,
         "sectors": sectors,
+        "ace": ace,
         "news": news,
     }
 
@@ -803,6 +872,8 @@ def main() -> int:
     if sector_flow.get("stale") or sector_flow.get("partial"):
         stale.append("sector_flow")
     stale += [s["name"] for s in sectors if s.get("stale")]
+    if ace.get("stale"):
+        stale.append("ace")
     # 뉴스는 외부 요인이 커서 재수집 트리거에서 제외
     payload["data_quality"] = {"stale_items": stale, "is_today": trade_date == now_kst().strftime("%Y-%m-%d")}
 
