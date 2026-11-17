@@ -171,6 +171,8 @@
   details.blk .cnt { color: var(--muted); font-size: 11.5px; font-weight: 600; margin-left: 6px; }
   .nu { color: #f7d3d3; }   /* 흰색에 가까운 아주 옅은 빨강: 상승·순매수 수치 */
   .nd { color: #d3e2fb; }   /* 흰색에 가까운 아주 옅은 파랑: 하락·순매도 수치 */
+  .asof { color: var(--muted); font-size: 11.5px; margin: -6px 0 10px; line-height: 1.45; }
+  .asof-kpi { color: var(--muted); font-size: 11.5px; margin-top: 8px; line-height: 1.6; }
   .gist { font-size: 14.5px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1.4; }
   .bsec .blk h4 { font-size: 11.5px; color: var(--accent); letter-spacing: .04em; }
   .kv { margin-top: 8px; border-top: 1px solid var(--line); }
@@ -265,7 +267,7 @@
   <div id="app"><div class="state">데이터 불러오는 중…</div></div>
 
   <footer>
-    매 평일 16:10~16:30(KST) 1차 갱신 · 17시대 마감 기사 보강 · 18:10 수급 확정 · 데이터: KRX(pykrx), FinanceDataReader, Google News · 투자 판단의 참고 자료이며 투자 권유가 아닙니다.
+    매 평일 16:30(KST) 1차 반영 · 17:15 마감 기사 보강 · 18:05 수급 확정 (GitHub 예약 실행 특성상 수 분~수십 분 지연될 수 있음) · 데이터: KRX(pykrx), FinanceDataReader, Google News · 투자 판단의 참고 자료이며 투자 권유가 아닙니다.
   </footer>
 </div>
 <div class="tip" id="tip"></div>
@@ -299,6 +301,10 @@
   }
   function pk() { return S.mode === "daily" ? "daily_pct" : "weekly_pct"; }
   function modeLabel() { return S.mode === "daily" ? "일간" : "5거래일"; }
+  function asOf(key) {
+    var a = (DATA && DATA.as_of) || {};
+    return a[key] ? '<div class="asof">기준 · ' + esc(a[key]) + '</div>' : "";
+  }
   function staleBadge(o) { return o && o.stale ? '<span class="badge stale" title="이번 수집에 실패해 이전 값을 표시합니다">이전값</span>' : ""; }
   function seg(id, items, cur, small) {
     return '<div class="seg' + (small ? " small" : "") + '" data-seg="' + id + '">' + items.map(function (it) {
@@ -328,6 +334,8 @@
     var h = "";
     h += part("01", "오늘 시장 요약", "지수 → 결론 → 총평 → 파트별 근거 → 대응");
     h += '<div class="grid g-kpi">' + kpiCards() + '</div>';
+    var ao = DATA.as_of || {};
+    if (ao.index) h += '<div class="asof-kpi">기준 · 지수: ' + esc(ao.index) + ' · 환율: ' + esc(ao.fx || "-") + ' · ' + esc(ao.sox || "") + '</div>';
     h += '<div class="grid g-brief section">' + briefCard() + newsCard() + '</div>';
     h += part("02", "수급", "투자자별 매매와 시장 체감");
     h += '<div class="grid g-flow">' + flowCard() + breadthCard() + '</div>';
@@ -364,7 +372,8 @@
     var stale = (q.stale_items || []).length;
     var badge = "";
     if (q.is_today === false) badge += '<span class="badge warn">직전 거래일 기준</span>';
-    if (q.final === false && q.is_today) badge += '<span class="badge warn" title="수급은 시간외 거래 반영 후 18:10에 확정됩니다">수급 잠정</span>';
+    if (q.final === false) badge += '<span class="badge warn" title="수급은 시간외 거래 반영 후 18:05에 확정됩니다">수급 잠정</span>';
+    else if (q.final === true) badge += '<span class="badge ok">수급 확정</span>';
     if (stale > 0) badge += '<span class="badge warn" title="' + esc((q.stale_items || []).join(", ")) + '">이전값 ' + stale + '개</span>';
     if (!badge) badge = '<span class="badge ok">정상 수집</span>';
     document.getElementById("meta").innerHTML =
@@ -425,7 +434,7 @@
       var legacy = S.mode === "daily" ? br.daily_comment : br.weekly_comment;
       body = '<div class="headline" style="font-size:16px;font-weight:600">' + esc(legacy || "브리핑 데이터가 없습니다.") + '</div>';
     }
-    return '<div class="card brief"><div class="card-h"><h2>시황 브리핑<span class="sub">' + modeLabel() + ' 기준</span></h2></div>' + body +
+    return '<div class="card brief"><div class="card-h"><h2>시황 브리핑<span class="sub">' + modeLabel() + ' 기준</span></h2></div>' + asOf("briefing") + body +
       '<div class="src">' + (br.source === "gemini" ? esc(br.model || "Gemini") + " 작성" : "규칙 기반 자동 요약") +
       ' · 수치 기반 자동 생성 · 투자 권유 아님</div></div>';
   }
@@ -440,9 +449,9 @@
     }).join("") + '</ol>' + lim.btn : '<div class="empty">관련 기사를 불러오지 못했습니다.</div>';
     var q = DATA.data_quality || {};
     var pc = q.news_post_close;
-    var note = (pc != null && pc < 4 && q.is_today) ? '<span class="badge warn" title="장 마감 기사가 나오면 17:00·17:40에 기사와 브리핑을 자동 보강합니다">마감 기사 보강 예정</span>' :
+    var note = (pc != null && pc < 4 && q.is_today) ? '<span class="badge warn" title="장 마감 기사가 나오면 17:15에 기사와 브리핑을 자동 보강합니다">마감 기사 보강 예정</span>' :
       (pc != null ? '<span class="sub">마감 후 기사 ' + pc + '건</span>' : "");
-    return '<div class="card news"><div class="card-h"><h2>관련 기사' + staleBadge(n) + note + '</h2></div>' + list + '</div>';
+    return '<div class="card news"><div class="card-h"><h2>관련 기사' + staleBadge(n) + note + '</h2></div>' + asOf("news") + list + '</div>';
   }
 
   // ---------- KPI + 스파크라인 ----------
@@ -491,8 +500,8 @@
       }).join("") + '</tr>';
     }).join("");
     var q = DATA.data_quality || {};
-    var prov = (q.final === false && q.is_today) ? '<span class="badge warn" title="시간외 거래(~18:00)가 포함되어 18:10에 확정치로 갱신됩니다">잠정 · 18시 확정</span>' : "";
-    return '<div class="card"><div class="card-h"><h2>투자자별 순매수<span class="sub">' + modeLabel() + ' · 억 원</span>' + prov + '</h2></div>' +
+    var prov = q.final === false ? (q.is_today ? '<span class="badge warn" title="시간외 거래(~18:00)가 포함되어 18:05에 확정치로 갱신됩니다">잠정 · 18:05 확정</span>' : '<span class="badge warn" title="확정 갱신 전 수집된 값입니다">잠정치</span>') : (q.final === true ? '<span class="badge ok">확정</span>' : "");
+    return '<div class="card"><div class="card-h"><h2>투자자별 순매수<span class="sub">' + modeLabel() + ' · 억 원</span>' + prov + '</h2></div>' + asOf("flow") +
       '<table><thead><tr><th>시장</th><th>외국인</th><th>기관</th><th>개인</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 
@@ -506,7 +515,7 @@
       return '<div class="breadth-row" data-tip="' + esc(tip) + '"><div class="t"><span>' + m[1] + staleBadge(o) + '</span><span class="num"><span class="up">▲' + up + '</span> · <span class="down">▼' + dn + '</span> · <span class="flat">' + fl + '</span></span></div>' +
         '<div class="bbar"><div style="flex:' + up + ';background:var(--up)"></div><div style="flex:' + fl + ';background:var(--line)"></div><div style="flex:' + dn + ';background:var(--down)"></div></div></div>';
     }).join("");
-    return '<div class="card"><div class="card-h"><h2>시장 폭<span class="sub">상승·보합·하락 종목 수 (일간)</span></h2></div>' + body + '</div>';
+    return '<div class="card"><div class="card-h"><h2>시장 폭<span class="sub">상승·보합·하락 종목 수 (일간)</span></h2></div>' + asOf("breadth") + body + '</div>';
   }
 
   // ---------- 발산형 가로 막대 ----------
@@ -529,7 +538,7 @@
       return { name: r.name, v: r.pct, tip: "<b>" + esc(r.name) + "</b><br>" + modeLabel() + " " + pct(r.pct) + (r.value ? "<br>거래대금 " + Math.round(r.value).toLocaleString("ko-KR") + "억 원" : "") };
     });
     return '<div class="card"><div class="card-h"><h2>업종지수 수익률<span class="sub">' + modeLabel() + ' · 높은 순</span>' + staleBadge(si) + '</h2>' +
-      seg("siMkt", [["kospi", "코스피"], ["kosdaq", "코스닥"]], S.siMkt, true) + '</div>' + siBody(rows) + '</div>';
+      seg("siMkt", [["kospi", "코스피"], ["kosdaq", "코스닥"]], S.siMkt, true) + '</div>' + asOf("sector") + siBody(rows) + '</div>';
   }
   function siBody(rows) {
     if (!isM() || MORE.si || rows.length <= 12) return hbars(rows, { unit: "%", cols2: true });
@@ -557,7 +566,7 @@
     var note = sf.partial ? '<span class="badge warn">일부 투자자 누락</span>' : "";
     return '<div class="card flowlist"><div class="card-h"><h2>업종별 수급 상·하위<span class="sub">' + modeLabel() + ' · 억 원</span>' + staleBadge(sf) + note + '</h2>' +
       '<div style="display:flex;gap:6px;flex-wrap:wrap">' + seg("sfMkt", [["kospi", "코스피"], ["kosdaq", "코스닥"]], S.sfMkt, true) +
-      seg("sfInv", [["smart", "외+기"], ["foreign", "외국인"], ["inst", "기관"], ["retail", "개인"]], S.sfInv, true) + '</div></div>' +
+      seg("sfInv", [["smart", "외+기"], ["foreign", "외국인"], ["inst", "기관"], ["retail", "개인"]], S.sfInv, true) + '</div></div>' + asOf("stock") +
       '<div class="stacked"><div><h4 class="up">순매수 상위</h4>' + hbars(buy, { unit: "억" }) + '</div>' +
       '<div><h4 class="down">순매도 상위</h4>' + hbars(sell, { unit: "억" }) + '</div></div></div>';
   }
@@ -573,7 +582,7 @@
       }).join("") + '</tbody></table>';
     }
     return '<div class="card"><div class="card-h"><h2>순매수·순매도 상위 종목<span class="sub">' + modeLabel() + ' · 억 원</span>' + staleBadge(ts) + '</h2>' +
-      seg("tsInv", [["foreign", "외국인"], ["inst", "기관"], ["retail", "개인"]], S.tsInv, true) + '</div>' +
+      seg("tsInv", [["foreign", "외국인"], ["inst", "기관"], ["retail", "개인"]], S.tsInv, true) + '</div>' + asOf("stock") +
       '<div class="stacked"><div><h4 class="up" style="font-size:12.5px;margin:0 0 4px">순매수</h4>' + tbl(blk.buy, "buy") + '</div>' +
       '<div><h4 class="down" style="font-size:12.5px;margin:0 0 4px">순매도</h4>' + tbl(blk.sell, "sell") + '</div></div></div>';
   }
@@ -610,7 +619,7 @@
     var vt = '<table><thead><tr><th>상품</th><th>' + (S.mode === "daily" ? "1D" : "5D") + '</th><th>거래대금(억)</th></tr></thead><tbody>' + (a.value_top || []).slice(0, an).map(function (x) {
       return '<tr><td>' + esc(x.name.replace(/^ACE\s+/, "")) + '<div style="color:var(--muted);font-size:11.5px">' + esc(x.code) + '</div></td><td class="' + cls(x.pct) + '"><b>' + pct(x.pct) + '</b></td><td>' + Math.round(num(x.value)).toLocaleString("ko-KR") + '</td></tr>';
     }).join("") + '</tbody></table>';
-    return '<div class="card"><div class="card-h"><h2>ACE ETF 마감 성과<span class="sub">' + modeLabel() + '</span>' + staleBadge(A) + '</h2></div>' + stats +
+    return '<div class="card"><div class="card-h"><h2>ACE ETF 마감 성과<span class="sub">' + modeLabel() + '</span>' + staleBadge(A) + '</h2></div>' + asOf("etf") + stats +
       '<div class="ace-grid"><div><h4 class="up" style="font-size:12.5px;margin:0 0 6px">수익률 상위</h4>' + hbars(rows(a.top), { unit: "%" }) + '</div>' +
       '<div><h4 class="down" style="font-size:12.5px;margin:0 0 6px">수익률 하위</h4>' + hbars(rows(a.bottom), { unit: "%" }) + '</div>' +
       '<div><h4 style="font-size:12.5px;margin:0 0 6px;color:var(--text-2)">거래대금 상위</h4>' + vt + '</div></div></div>';
@@ -641,7 +650,7 @@
         '<div class="tsub">' + bar + aceInfo + '</div></summary>' +
         '<div class="tlist">' + rows + '</div></details>';
     }).join("");
-    return '<div class="card"><div class="card-h"><h2>테마별 ETF 수익률<span class="sub">' + modeLabel() + ' · 테마 중간값 높은 순 · 레버리지/인버스 제외</span>' + staleBadge(T) + '</h2></div>' +
+    return '<div class="card"><div class="card-h"><h2>테마별 ETF 수익률<span class="sub">' + modeLabel() + ' · 테마 중간값 높은 순 · 레버리지/인버스 제외</span>' + staleBadge(T) + '</h2></div>' + asOf("etf") +
       '<div class="themes">' + body + '</div>' + lim.btn +
       '<div class="src">테마 수익률은 해당 테마 국내 상장 ETF 전체의 중간값 · ACE는 거래대금 순 · 비교는 타사 거래대금 상위</div></div>';
   }

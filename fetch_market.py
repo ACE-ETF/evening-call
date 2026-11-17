@@ -111,6 +111,38 @@ def eok(v) -> float:
 # ---------------------------------------------------------------------------
 # 기존 데이터 로드 / 저장
 # ---------------------------------------------------------------------------
+HISTORY_DIR = "history"
+
+
+def archive(payload: dict):
+    """history/YYYY-MM-DD.json 에 그날 최종본 보관 + history/index.json 목록 갱신 (같은 날은 덮어씀)."""
+    os.makedirs(HISTORY_DIR, exist_ok=True)
+    d = payload["trade_date"]
+    atomic_write_json(os.path.join(HISTORY_DIR, f"{d}.json"), payload)
+    idx_path = os.path.join(HISTORY_DIR, "index.json")
+    try:
+        with open(idx_path, encoding="utf-8") as f:
+            idx = json.load(f)
+    except Exception:
+        idx = []
+    idx = [x for x in idx if x.get("date") != d]
+    k = payload["indices"]["kospi"]
+    q = payload["indices"]["kosdaq"]
+    fl = payload["flow"]["kospi"]
+    idx.append({
+        "date": d,
+        "kospi": k.get("price"), "kospi_pct": k.get("daily_pct"),
+        "kosdaq": q.get("price"), "kosdaq_pct": q.get("daily_pct"),
+        "foreign": fl.get("daily_foreign"), "inst": fl.get("daily_inst"), "retail": fl.get("daily_retail"),
+        "headline": ((payload.get("ai_briefing") or {}).get("daily") or {}).get("headline", ""),
+        "final": payload["data_quality"].get("final"),
+        "updated_at": payload["updated_at"],
+    })
+    idx.sort(key=lambda x: x["date"], reverse=True)
+    atomic_write_json(idx_path, idx)
+    log(f"날짜별 보관: {HISTORY_DIR}/{d}.json (누적 {len(idx)}일)")
+
+
 def load_previous() -> dict:
     if not os.path.exists(DATA_PATH):
         return {}
@@ -150,10 +182,28 @@ def keep_previous(new_value, prev_value, default):
     return d
 
 
+KRX_STATE = {"fails": 0, "down": False}
+KRX_MAX_FAILS = 3  # 연속 실패 시 KRX 호출 중단 (로그인 실패 반복으로 계정이 잠기는 것 방지)
+
+
 def krx_call(label: str, fn, *args, retries: int = 2):
-    """pykrx 호출 공통 래퍼: 빈 결과/오류 시 재시도 후 None."""
-    if stock is None:
+    """pykrx 호출 공통 래퍼: 빈 결과/오류 시 재시도 후 None. 연속 실패가 쌓이면 이후 호출을 모두 건너뜀."""
+    if stock is None or fn is None:
         return None
+    if KRX_STATE["down"]:
+        return None
+    df = _krx_call(label, fn, *args, retries=retries)
+    if df is None:
+        KRX_STATE["fails"] += 1
+        if KRX_STATE["fails"] >= KRX_MAX_FAILS:
+            KRX_STATE["down"] = True
+            log(f"KRX 연속 {KRX_MAX_FAILS}회 실패 → 이번 실행의 KRX 호출 중단 (로그인 정보 KRX_ID/KRX_PW 확인 필요)")
+    else:
+        KRX_STATE["fails"] = 0
+    return df
+
+
+def _krx_call(label: str, fn, *args, retries: int = 2):
     for attempt in range(1, retries + 1):
         try:
             df = fn(*args)
@@ -994,8 +1044,8 @@ def main() -> int:
     today = now.strftime("%Y-%m-%d")
     is_final_time = (today > trade_date) or (now.hour, now.minute) >= (FINAL_HOUR, FINAL_MIN)
     # KRX 데이터는 심야(21시~07시)에 비거나 오류가 잦음 → 같은 거래일 재수집은 이 시간대에만
-    in_window = (today == trade_date and (15, 40) <= (now.hour, now.minute) < (21, 0)) or \
-                (today > trade_date and 7 <= now.hour < 9)
+    # 운영 구간: 당일 16:20~18:40 (16:30 1차 → 17:15 기사 보강 → 18:05 확정). 그 외 시간은 같은 거래일 갱신 안 함
+    in_window = today == trade_date and (16, 20) <= (now.hour, now.minute) < (18, 40)
     prev_final = (prev.get("data_quality") or {}).get("final")
     if prev_final is None:  # 확정 플래그가 없던 예전 데이터 → 갱신 시각으로 판단
         try:
@@ -1005,7 +1055,12 @@ def main() -> int:
             prev_final = True
     final_refresh = prev_trade_date == trade_date and not prev_final and is_final_time and in_window
     if prev_trade_date == trade_date and not in_window and not FORCE_UPDATE:
-        log(f"같은 거래일({trade_date}) 재수집은 15:40~21:00 / 다음날 07~09시에만 → 생략 (현재 {now:%H:%M})")
+        log(f"같은 거래일({trade_date}) 갱신은 당일 16:20~18:40에만 → 생략 (현재 {now:%m-%d %H:%M})")
+        return 0
+    # 새 거래일 첫 수집도 KRX 데이터가 비는 심야(21시~07시)와 장중(09:00~15:40)은 피함
+    if prev_trade_date != trade_date and not FORCE_UPDATE and (
+            now.hour >= 21 or now.hour < 7 or (today == trade_date and (now.hour, now.minute) < (15, 40))):
+        log(f"새 거래일({trade_date}) 수집 불가 시간대 ({now:%H:%M}) → 생략")
         return 0
     if final_refresh:
         log("18시 이후 → 시간외 거래 반영된 확정 수급으로 갱신")
@@ -1085,14 +1140,35 @@ def main() -> int:
         "news_post_close": int(post_close),
         "final": bool(is_final_time),
     }
+    hm = now.strftime("%H:%M")
+    sox = indices.get("sox", {})
+    fx = indices.get("usdkrw", {})
+    flow_basis = "시간외 거래 반영 확정치" if is_final_time else "잠정치 (시간외 거래 18:00까지 변동, 18:05 확정)"
+    payload["as_of"] = {
+        "collected": f"{today} {hm} KST",
+        "index": f"한국거래소 {trade_date} 종가",
+        "flow": f"한국거래소 투자자별 매매 · {hm} 수집 · {flow_basis}",
+        "breadth": f"한국거래소 {trade_date} 종가 기준 종목 등락",
+        "sector": f"한국거래소 업종지수 {trade_date} 종가 · 업종 수급 {hm} 수집",
+        "stock": f"한국거래소 투자자별 순매수 · {hm} 수집 · {flow_basis}",
+        "etf": f"한국거래소 ETF {trade_date} 종가 기준 등락률",
+        "fx": f"원/달러 {fx.get('date') or '-'} 기준 (FinanceDataReader)",
+        "sox": f"필라델피아 반도체 {sox.get('date') or '-'} 미국장 종가",
+        "news": f"구글 뉴스 {trade_date} 08:00 ~ {hm}",
+    }
 
-    if prev_trade_date == trade_date and len(stale) > len(prev_stale) and not FORCE_UPDATE:
-        log(f"이번 수집 결과가 기존보다 나쁨(이전값 {len(prev_stale)}→{len(stale)}개) → 기존 data.json 유지")
+    if prev_trade_date == trade_date and len(stale) > len(prev_stale):
+        log(f"이번 수집 결과가 기존보다 나쁨(이전값 {len(prev_stale)}→{len(stale)}개) → 기존 data.json 유지 (강제 실행이어도 동일)")
         return 0
 
     payload["ai_briefing"] = guarded("브리핑", lambda: generate_briefing(payload), lambda: build_rule_briefing(payload))
 
+    payload["as_of"]["briefing"] = f"{payload['ai_briefing'].get('model') or '규칙 기반'} · {hm} 작성"
     atomic_write_json(DATA_PATH, payload)
+    try:
+        archive(payload)
+    except Exception as e:
+        log(f"날짜별 보관 실패(무시): {type(e).__name__}: {e}")
     log(f"data.json 갱신 완료 (거래일 {trade_date}, 이전값 유지 항목 {len(stale)}개: {stale})")
     return 0
 

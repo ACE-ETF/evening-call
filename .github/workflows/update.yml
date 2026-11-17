@@ -2,10 +2,10 @@ name: Auto Update Korea Market Radar
 
 on:
   schedule:
-    - cron: '5 7 * * 1-5'    # 평일 KST 16:05 1차: 숫자·브리핑 (보통 16:10~16:30 반영)
-    - cron: '0 8 * * 1-5'    # 평일 KST 17:00 보강: 빈 항목 또는 장 마감 기사 부족 시에만
-    - cron: '40 8 * * 1-5'   # 평일 KST 17:40 보강: 위와 동일 (조건 충족 시 바로 종료)
-    - cron: '10 9 * * 1-5'   # 평일 KST 18:10 확정: 시간외 거래 반영된 수급 확정치로 최종 갱신
+    - cron: '30 7 * * 1-5'   # 평일 KST 16:30 1차 반영 (지수·수급 잠정·업종·ETF·브리핑)
+    - cron: '15 8 * * 1-5'   # 평일 KST 17:15 마감 기사·브리핑 보강 (필요할 때만)
+    - cron: '5 9 * * 1-5'    # 평일 KST 18:05 확정: 시간외 거래 반영 수급으로 최종 갱신
+    - cron: '25 9 * * 1-5'   # 평일 KST 18:25 확정 예비 (18:05 실행이 늦거나 실패한 경우만)
   workflow_dispatch:
     inputs:
       force_update:
@@ -55,7 +55,7 @@ jobs:
             echo "data.json 없음 - 커밋 생략"
             exit 0
           fi
-          git add data.json
+          git add data.json history/ 2>/dev/null || git add data.json
           if git diff --staged --quiet; then
             echo "변경 사항 없음(휴장일/중복 실행) - 커밋 생략"
             exit 0
