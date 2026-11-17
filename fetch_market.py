@@ -408,8 +408,13 @@ def main() -> int:
     prev_trade_date = prev.get("trade_date")
 
     # (2) 신규 거래일 없음(휴장일·주말·중복 실행) → 기존 파일 보존
-    if prev_trade_date and trade_date and trade_date <= prev_trade_date and not FORCE_UPDATE:
-        log(f"최신 거래일({trade_date})이 기존 데이터({prev_trade_date})와 같거나 이전 → 휴장일/중복 실행으로 판단, 갱신 생략.")
+    #     단, 같은 거래일이라도 이전 실행에서 일부 항목(수급 등)이 비어 있었다면 다시 채우기 위해 재수집
+    prev_stale = (prev.get("data_quality") or {}).get("stale_items") or []
+    if prev_trade_date and trade_date and trade_date < prev_trade_date and not FORCE_UPDATE:
+        log(f"최신 거래일({trade_date})이 기존 데이터({prev_trade_date})보다 이전 → 갱신 생략.")
+        return 0
+    if prev_trade_date and trade_date == prev_trade_date and not prev_stale and not FORCE_UPDATE:
+        log(f"최신 거래일({trade_date}) 데이터가 이미 완전함 → 휴장일/중복 실행으로 판단, 갱신 생략.")
         return 0
 
     sectors = fetch_sectors(start_date, prev, trade_date)

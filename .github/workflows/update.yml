@@ -2,7 +2,8 @@ name: Auto Update Korea Market Radar
 
 on:
   schedule:
-    - cron: '30 7 * * 1-5'   # 평일 KST 16:30 (UTC 07:30)
+    - cron: '5 7 * * 1-5'    # 평일 KST 16:05 (GitHub 지연 감안, 보통 16:10~16:30 반영)
+    - cron: '0 8 * * 1-5'    # 평일 KST 17:00 보완 실행 (첫 실행에서 빈 항목이 있을 때만 재수집)
   workflow_dispatch:
     inputs:
       force_update:
