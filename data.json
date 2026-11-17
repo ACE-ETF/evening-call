@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-17 16:38 KST",
+  "updated_at": "2026-11-17 17:00 KST",
   "trade_date": "2026-11-17",
   "indices": {
     "kospi": {
@@ -181,9 +181,9 @@
       ]
     },
     "usdkrw": {
-      "price": 1337.6,
-      "daily_pct": 0.33,
-      "weekly_pct": -0.46,
+      "price": 1337.27,
+      "daily_pct": 0.3,
+      "weekly_pct": -0.49,
       "date": "2026-11-17",
       "stale": false,
       "series": [
@@ -265,7 +265,7 @@
         },
         {
           "d": "11-17",
-          "c": 1337.6
+          "c": 1337.27
         }
       ]
     },
@@ -361,22 +361,22 @@
   },
   "flow": {
     "kospi": {
-      "daily_foreign": -14507,
-      "weekly_foreign": -22375,
-      "daily_inst": 5314,
-      "weekly_inst": -10941,
-      "daily_retail": 4390,
-      "weekly_retail": 7595,
+      "daily_foreign": -14270,
+      "weekly_foreign": -22138,
+      "daily_inst": 5296,
+      "weekly_inst": -10959,
+      "daily_retail": 4169,
+      "weekly_retail": 7374,
       "date": "2026-11-17",
       "stale": false
     },
     "kosdaq": {
-      "daily_foreign": -890,
-      "weekly_foreign": -8605,
-      "daily_inst": -258,
-      "weekly_inst": 3069,
-      "daily_retail": 1165,
-      "weekly_retail": 5535,
+      "daily_foreign": -877,
+      "weekly_foreign": -8593,
+      "daily_inst": -261,
+      "weekly_inst": 3067,
+      "daily_retail": 1154,
+      "weekly_retail": 5525,
       "date": "2026-11-17",
       "stale": false
     }
@@ -853,10 +853,10 @@
         },
         {
           "sector": "기타금융",
-          "foreign": -1201,
-          "inst": 1451,
-          "retail": -270,
-          "smart": 250
+          "foreign": -1195,
+          "inst": 1438,
+          "retail": -263,
+          "smart": 243
         },
         {
           "sector": "운송·창고",
@@ -869,7 +869,7 @@
           "sector": "유통",
           "foreign": -206,
           "inst": 359,
-          "retail": -145,
+          "retail": -146,
           "smart": 153
         },
         {
@@ -897,7 +897,7 @@
           "sector": "오락·문화",
           "foreign": -41,
           "inst": 63,
-          "retail": -23,
+          "retail": -24,
           "smart": 22
         },
         {
@@ -958,24 +958,17 @@
         },
         {
           "sector": "금속",
-          "foreign": 0,
+          "foreign": -4,
           "inst": -77,
-          "retail": 73,
-          "smart": -77
+          "retail": 77,
+          "smart": -81
         },
         {
           "sector": "건설",
-          "foreign": -23,
+          "foreign": -24,
           "inst": -60,
-          "retail": 85,
-          "smart": -83
-        },
-        {
-          "sector": "전기·가스",
-          "foreign": -88,
-          "inst": -24,
-          "retail": 110,
-          "smart": -112
+          "retail": 86,
+          "smart": -84
         },
         {
           "sector": "음식료·담배",
@@ -985,62 +978,69 @@
           "smart": -113
         },
         {
+          "sector": "전기·가스",
+          "foreign": -89,
+          "inst": -24,
+          "retail": 111,
+          "smart": -113
+        },
+        {
           "sector": "화학",
-          "foreign": -85,
+          "foreign": -84,
           "inst": -84,
           "retail": 155,
-          "smart": -169
+          "smart": -168
         },
         {
           "sector": "일반서비스",
-          "foreign": -453,
+          "foreign": -454,
           "inst": 243,
-          "retail": 11,
-          "smart": -210
+          "retail": 12,
+          "smart": -211
         },
         {
           "sector": "IT 서비스",
-          "foreign": -325,
+          "foreign": -324,
           "inst": 105,
           "retail": 51,
-          "smart": -220
+          "smart": -219
         },
         {
           "sector": "기계·장비",
           "foreign": -272,
-          "inst": -29,
-          "retail": 293,
-          "smart": -301
+          "inst": -30,
+          "retail": 294,
+          "smart": -302
         },
         {
           "sector": "운송장비·부품",
-          "foreign": -570,
+          "foreign": -567,
           "inst": 256,
-          "retail": 144,
-          "smart": -314
+          "retail": 141,
+          "smart": -311
         },
         {
           "sector": "전기·전자",
-          "foreign": -10771,
-          "inst": 2083,
-          "retail": 4659,
-          "smart": -8688
+          "foreign": -10535,
+          "inst": 2079,
+          "retail": 4426,
+          "smart": -8456
         }
       ],
       "kosdaq": [
         {
           "sector": "제약",
-          "foreign": 37,
+          "foreign": 36,
           "inst": 177,
-          "retail": -212,
-          "smart": 214
+          "retail": -211,
+          "smart": 213
         },
         {
           "sector": "IT 서비스",
-          "foreign": -10,
+          "foreign": -9,
           "inst": 152,
-          "retail": -142,
-          "smart": 142
+          "retail": -144,
+          "smart": 143
         },
         {
           "sector": "오락·문화",
@@ -1051,16 +1051,16 @@
         },
         {
           "sector": "유통",
-          "foreign": 24,
+          "foreign": 25,
           "inst": -9,
           "retail": -24,
-          "smart": 15
+          "smart": 16
         },
         {
           "sector": "일반서비스",
           "foreign": 23,
           "inst": -9,
-          "retail": -17,
+          "retail": -16,
           "smart": 14
         },
         {
@@ -1074,7 +1074,7 @@
           "sector": "운송장비·부품",
           "foreign": -15,
           "inst": 20,
-          "retail": -1,
+          "retail": -2,
           "smart": 5
         },
         {
@@ -1163,38 +1163,38 @@
         },
         {
           "sector": "금융",
-          "foreign": -89,
+          "foreign": -88,
           "inst": 22,
-          "retail": 64,
-          "smart": -67
+          "retail": 63,
+          "smart": -66
         },
         {
           "sector": "금속",
           "foreign": -1,
           "inst": -68,
-          "retail": 61,
+          "retail": 60,
           "smart": -69
         },
         {
           "sector": "의료·정밀기기",
-          "foreign": -77,
+          "foreign": -76,
           "inst": -114,
           "retail": 272,
-          "smart": -191
+          "smart": -190
         },
         {
           "sector": "전기·전자",
-          "foreign": -347,
-          "inst": -164,
-          "retail": 488,
-          "smart": -511
+          "foreign": -343,
+          "inst": -165,
+          "retail": 485,
+          "smart": -508
         },
         {
           "sector": "기계·장비",
-          "foreign": -243,
-          "inst": -423,
-          "retail": 637,
-          "smart": -666
+          "foreign": -239,
+          "inst": -424,
+          "retail": 634,
+          "smart": -663
         }
       ]
     },
@@ -1223,10 +1223,10 @@
         },
         {
           "sector": "오락·문화",
-          "foreign": -68,
+          "foreign": -67,
           "inst": 345,
-          "retail": -280,
-          "smart": 277
+          "retail": -281,
+          "smart": 278
         },
         {
           "sector": "은행",
@@ -1239,14 +1239,14 @@
           "sector": "유통",
           "foreign": -381,
           "inst": 508,
-          "retail": -127,
+          "retail": -128,
           "smart": 127
         },
         {
           "sector": "의료·정밀기기",
           "foreign": -329,
           "inst": 359,
-          "retail": -35,
+          "retail": -36,
           "smart": 30
         },
         {
@@ -1300,10 +1300,10 @@
         },
         {
           "sector": "건설",
-          "foreign": 10,
+          "foreign": 8,
           "inst": -104,
-          "retail": 92,
-          "smart": -94
+          "retail": 93,
+          "smart": -96
         },
         {
           "sector": "증권",
@@ -1314,24 +1314,24 @@
         },
         {
           "sector": "기타금융",
-          "foreign": 3079,
-          "inst": -3348,
-          "retail": 129,
-          "smart": -269
+          "foreign": 3084,
+          "inst": -3362,
+          "retail": 137,
+          "smart": -278
         },
         {
           "sector": "금속",
-          "foreign": 55,
+          "foreign": 52,
           "inst": -393,
-          "retail": 153,
-          "smart": -338
+          "retail": 157,
+          "smart": -341
         },
         {
           "sector": "일반서비스",
-          "foreign": -966,
+          "foreign": -967,
           "inst": 474,
           "retail": -586,
-          "smart": -492
+          "smart": -493
         },
         {
           "sector": "음식료·담배",
@@ -1342,24 +1342,24 @@
         },
         {
           "sector": "전기·가스",
-          "foreign": -556,
+          "foreign": -557,
           "inst": -331,
-          "retail": 889,
-          "smart": -887
+          "retail": 890,
+          "smart": -888
         },
         {
           "sector": "기계·장비",
-          "foreign": -756,
-          "inst": -215,
-          "retail": 956,
-          "smart": -971
+          "foreign": -757,
+          "inst": -216,
+          "retail": 957,
+          "smart": -973
         },
         {
           "sector": "운송장비·부품",
-          "foreign": -917,
+          "foreign": -915,
           "inst": -754,
-          "retail": 412,
-          "smart": -1671
+          "retail": 410,
+          "smart": -1669
         },
         {
           "sector": "IT 서비스",
@@ -1377,10 +1377,10 @@
         },
         {
           "sector": "전기·전자",
-          "foreign": -20806,
-          "inst": -7000,
-          "retail": 6734,
-          "smart": -27806
+          "foreign": -20570,
+          "inst": -7004,
+          "retail": 6501,
+          "smart": -27574
         }
       ],
       "kosdaq": [
@@ -1407,10 +1407,10 @@
         },
         {
           "sector": "제약",
-          "foreign": -257,
+          "foreign": -258,
           "inst": 292,
-          "retail": -74,
-          "smart": 35
+          "retail": -73,
+          "smart": 34
         },
         {
           "sector": "운송·창고",
@@ -1500,22 +1500,22 @@
           "sector": "일반서비스",
           "foreign": 248,
           "inst": -487,
-          "retail": 278,
+          "retail": 279,
           "smart": -239
         },
         {
           "sector": "금융",
-          "foreign": -354,
+          "foreign": -353,
           "inst": 89,
-          "retail": 255,
-          "smart": -265
+          "retail": 254,
+          "smart": -264
         },
         {
           "sector": "금속",
-          "foreign": -260,
+          "foreign": -259,
           "inst": -102,
           "retail": 553,
-          "smart": -362
+          "smart": -361
         },
         {
           "sector": "유통",
@@ -1526,31 +1526,31 @@
         },
         {
           "sector": "의료·정밀기기",
-          "foreign": -812,
+          "foreign": -811,
           "inst": 156,
           "retail": 709,
-          "smart": -656
+          "smart": -655
         },
         {
           "sector": "전기·전자",
-          "foreign": -2985,
-          "inst": 2056,
-          "retail": 819,
-          "smart": -929
+          "foreign": -2981,
+          "inst": 2055,
+          "retail": 815,
+          "smart": -926
         },
         {
           "sector": "IT 서비스",
-          "foreign": -689,
+          "foreign": -687,
           "inst": -361,
-          "retail": 1078,
-          "smart": -1050
+          "retail": 1076,
+          "smart": -1048
         },
         {
           "sector": "기계·장비",
-          "foreign": -2861,
-          "inst": 976,
-          "retail": 1814,
-          "smart": -1885
+          "foreign": -2857,
+          "inst": 975,
+          "retail": 1811,
+          "smart": -1882
         }
       ]
     },
@@ -1565,7 +1565,7 @@
             "name": "LG전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 137
+            "value": 138
           },
           {
             "code": "278470",
@@ -1586,7 +1586,7 @@
             "name": "LIG디펜스앤에어로스페이스",
             "sector": "금속",
             "market": "KOSPI",
-            "value": 81
+            "value": 78
           },
           {
             "code": "003490",
@@ -1616,21 +1616,21 @@
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -4824
+            "value": -4821
           },
           {
             "code": "000660",
             "name": "SK하이닉스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -4623
+            "value": -4402
           },
           {
             "code": "005935",
             "name": "삼성전자우",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -939
+            "value": -937
           },
           {
             "code": "105560",
@@ -1644,7 +1644,7 @@
             "name": "삼성SDI",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -289
+            "value": -282
           },
           {
             "code": "028050",
@@ -1658,7 +1658,7 @@
             "name": "이수페타시스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -242
+            "value": -241
           }
         ]
       },
@@ -1676,14 +1676,14 @@
             "name": "SK하이닉스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 1489
+            "value": 1488
           },
           {
             "code": "402340",
             "name": "SK스퀘어",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": 376
+            "value": 363
           },
           {
             "code": "105560",
@@ -1697,7 +1697,7 @@
             "name": "이수페타시스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 205
+            "value": 202
           },
           {
             "code": "316140",
@@ -1773,35 +1773,35 @@
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 2947
+            "value": 2944
           },
           {
             "code": "005935",
             "name": "삼성전자우",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 1123
+            "value": 1120
           },
           {
             "code": "006400",
             "name": "삼성SDI",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 464
+            "value": 457
           },
           {
             "code": "009150",
             "name": "삼성전기",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 325
+            "value": 321
           },
           {
             "code": "036930",
             "name": "주성엔지니어링",
             "sector": "기계·장비",
             "market": "KOSDAQ",
-            "value": 221
+            "value": 220
           },
           {
             "code": "493260",
@@ -1824,14 +1824,14 @@
             "name": "SK하이닉스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -667
+            "value": -886
           },
           {
             "code": "402340",
             "name": "SK스퀘어",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": -266
+            "value": -259
           },
           {
             "code": "003490",
@@ -1879,14 +1879,14 @@
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 2057
+            "value": 2060
           },
           {
             "code": "402340",
             "name": "SK스퀘어",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": 2028
+            "value": 2034
           },
           {
             "code": "105560",
@@ -1930,28 +1930,28 @@
             "name": "SK하이닉스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -18538
+            "value": -18317
           },
           {
             "code": "009150",
             "name": "삼성전기",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -1313
+            "value": -1309
           },
           {
             "code": "007660",
             "name": "이수페타시스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -1087
+            "value": -1085
           },
           {
             "code": "222800",
             "name": "심텍",
             "sector": "전기·전자",
             "market": "KOSDAQ",
-            "value": -898
+            "value": -897
           },
           {
             "code": "028050",
@@ -1965,14 +1965,14 @@
             "name": "주성엔지니어링",
             "sector": "기계·장비",
             "market": "KOSDAQ",
-            "value": -856
+            "value": -855
           },
           {
             "code": "005935",
             "name": "삼성전자우",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -843
+            "value": -840
           }
         ]
       },
@@ -1983,7 +1983,7 @@
             "name": "이수페타시스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 953
+            "value": 950
           },
           {
             "code": "068270",
@@ -2034,7 +2034,7 @@
             "name": "SK스퀘어",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": -3342
+            "value": -3355
           },
           {
             "code": "000660",
@@ -2087,14 +2087,14 @@
             "name": "삼성전기",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 3789
+            "value": 3785
           },
           {
             "code": "402340",
             "name": "SK스퀘어",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": 1265
+            "value": 1272
           },
           {
             "code": "035420",
@@ -2108,28 +2108,28 @@
             "name": "한국전력",
             "sector": "전기·가스",
             "market": "KOSPI",
-            "value": 1022
+            "value": 1023
           },
           {
             "code": "005935",
             "name": "삼성전자우",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 994
+            "value": 991
           },
           {
             "code": "036930",
             "name": "주성엔지니어링",
             "sector": "기계·장비",
             "market": "KOSDAQ",
-            "value": 962
+            "value": 960
           },
           {
-            "code": "000660",
-            "name": "SK하이닉스",
+            "code": "000990",
+            "name": "DB하이텍",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 775
+            "value": 669
           }
         ],
         "sell": [
@@ -2138,7 +2138,7 @@
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -991
+            "value": -994
           },
           {
             "code": "068270",
@@ -2626,59 +2626,59 @@
   "news": {
     "items": [
       {
+        "title": "코스피 5000선 붕괴…외국인 1.4조원 매도에 4거래일 연속 하락",
+        "source": "https://www.theconnectmoney.com/",
+        "link": "https://www.theconnectmoney.com/ko-kr/articles/4724",
+        "published": "11-17 16:33",
+        "id": 1
+      },
+      {
         "title": "(마감시황) 코스피, 외인 ‘팔자’에 5,000선 붕괴…9개월 만 최저",
         "source": "뉴스투데이",
-        "link": "https://www.news2day.co.kr/article/20261117500243",
+        "link": "https://news.google.com/articles/CBMiXkFVX3lxTE1nNUVFSU1EdjlSVU5iUXRfWFJ1aUtlMUVkSmNfdXV0ZkY0elhTQnhHdXJBaGNjSXBtRFhzMklYUThMU2xhalhOaHlKTWJMVmJOc2twMTY1SThFSTBId1E?oc=5",
         "published": "11-17 16:19",
-        "id": 1
+        "id": 2
       },
       {
         "title": "코스피 9개월 만에 최저…외국인 1.4조 '팔자' 5000선 붕괴[시황종합]",
         "source": "뉴스1",
         "link": "https://news.google.com/articles/CBMiX0FVX3lxTE9ueFlLX29MSVNOcVppZ1RaS0VGN1JpU2NyS0YxTkowR05ET2M3a0JtNjZDczZad2tGQlNlQVEtQU9ObFpnX29Oc05rR2ZCOE8wMEoydEFqa3NxeUhOb0pz?oc=5",
         "published": "11-17 16:10",
-        "id": 2
+        "id": 3
       },
       {
         "title": "젠슨황 여파에 코스피 2.6%↓…5000선 내줘 [MTN 마감시황]",
         "source": "MTN 머니투데이방송",
-        "link": "https://news.google.com/articles/CBMiX0FVX3lxTFBmaEhsMFA5TDhFem9vdGpPVkVrMUpRVkNGSklvV2l3eFFHU05oNXVQYXNSa0haWTZNalR5MHJIWHNmMDlycXdpTmlYX0RrWUdRaVF1bF9yT21LYlJTdUhz?oc=5",
+        "link": "https://news.mtn.co.kr/article/2026111716073431251",
         "published": "11-17 16:07",
-        "id": 3
+        "id": 4
       },
       {
         "title": "연초로 '리셋'된 코스피…5000선 붕괴 마감 [시황]",
         "source": "데일리안",
         "link": "https://www.dailian.co.kr/news/view/1716255/%EC%97%B0%EC%B4%88%EB%A1%9C-%EB%A6%AC%EC%85%8B%EB%90%9C-%EC%BD%94%EC%8A%A4%ED%94%BC5000%EC%84%A0-%EB%B6%95%EA%B4%B4-2026",
         "published": "11-17 16:05",
-        "id": 4
+        "id": 5
+      },
+      {
+        "title": "외국인 1.4조 매도에 코스피 5000선 붕괴 마감…9개월 만에 최저",
+        "source": "파이낸셜포스트",
+        "link": "https://news.google.com/articles/CBMidEFVX3lxTE53NS11a05LYnRydzFIMDQ4MU5ZTVZoeHpWc3ppeHJPZDVMRWVZSlhxMXpMdmNEcUZNTHJRajdpXzJQNXRLZHhOakRaYjRqeUxXY1F6VVpnVnhHeEhIRm1nc2syMFZORVdlaG1NSElCckpGc3Rr?oc=5",
+        "published": "11-17 16:04",
+        "id": 6
+      },
+      {
+        "title": "외국인 1.4조 매도에 코스피 5000선 붕괴···삼성전자 3%대 '뚝'",
+        "source": "뉴스웨이",
+        "link": "https://www.newsway.co.kr/news/view?ud=2026111715465046050",
+        "published": "11-17 16:00",
+        "id": 7
       },
       {
         "title": "[마감시황] 코스피, 외인 ‘팔자’에 5000선 아래로…9개월 만에 최저",
         "source": "블록미디어",
         "link": "https://www.blockmedia.co.kr/archives/1166897",
         "published": "11-17 15:58",
-        "id": 5
-      },
-      {
-        "title": "[마감시황]코스피 2.59% 하락해 5,000선 내줘…4,968.48 마감",
-        "source": "남도일보",
-        "link": "https://www.namdonews.com/news/articleView.html?idxno=929524",
-        "published": "11-17 15:58",
-        "id": 6
-      },
-      {
-        "title": "[특징주]유진테크, 외국인 순매수에 4.87% 오른 채 마감",
-        "source": "남도일보",
-        "link": "https://news.google.com/articles/CBMibEFVX3lxTE9pX1I0cTBLbnJtcXYtdDhRS1hHOGRETXRRZ3RDeUszOEhKUzljSEUydHMyVGc1YklQcXphY0VBMHRkcjg2Wm13VzExY0VtNmJYQkZlRGNmQnhjS0xBZUhvcUVpb0xoN1BsRjFNVdIBcEFVX3lxTFBqUElsYmhwcncwVFpqUlRrdmF1aFRmV3hCOU5BV2NuMU5BSFVWWDByajNJa29TNlo1M00wTjN6MDhtVV82ZTFheHE4T3N2cDhYSDlHVVlIOVRoYTRXdjdzX3JMcUJKd2hPVk5idDdtYWM?oc=5",
-        "published": "11-17 15:57",
-        "id": 7
-      },
-      {
-        "title": "[마감시황] 코스피 9개월 만에 4000선 추락…외국인 1.5조 '팔자'",
-        "source": "뉴스핌",
-        "link": "https://www.newspim.com/news/view/20261117000928",
-        "published": "11-17 15:49",
         "id": 8
       }
     ],
@@ -2691,142 +2691,258 @@
   },
   "ai_briefing": {
     "daily": {
-      "headline": "코스피 4,968.48pt 마감, 외국인 1조 4,507억 원 순매도에 5,000선 하회",
+      "headline": "외국인 1.4조 원대 투매 충격에 코스피 5,000선 하회 마감",
       "summary": [
-        "전일 미 반도체 급락 여파로 코스피 2.59% 하락하며 5,000선 붕괴 [3]",
-        "외국인 1조 4,507억 원 순매도 기록, 전기·전자 업종 중심의 수급 이탈 심화",
-        "환율 상승세 지속 속 대형주 추가 조정 여부와 외국인 수급 변동성 주시"
+        "미 기술주 급락 여파와 반도체 대형주 매도 확대로 코스피 4,968.48pt 급락",
+        "외국인 1조 4,270억 원 순매도 속 기관과 개인의 동반 저가 매수세 유입",
+        "대형 반도체주 수급 안정 여부와 환율 변동성 완화 확인 필요"
       ],
       "sections": [
         {
           "key": "market",
           "title": "지수·매크로",
-          "points": [
-            "코스피 4,968.48pt 마감 (-2.59%), 코스닥 650.06pt 마감 (-2.34%)",
-            "원달러 환율 1,337.60원 (+0.33%)",
-            "시장 폭 코스피 상승 185개·하락 709개, 코스닥 상승 360개·하락 1,319개로 약세 우위"
+          "gist": "코스피 5,000선 하회 및 하락 종목 압도",
+          "items": [
+            {
+              "k": "코스피",
+              "v": "-2.59% 내린 4,968.48pt로 5,000선 이탈"
+            },
+            {
+              "k": "코스닥",
+              "v": "-2.34% 하락한 650.06pt로 동반 약세"
+            },
+            {
+              "k": "원·달러 환율",
+              "v": "0.3% 상승한 1,337.27원 마감"
+            },
+            {
+              "k": "시장 폭",
+              "v": "코스피 하락 709종목, 코스닥 하락 1,319종목"
+            }
           ]
         },
         {
           "key": "flow",
           "title": "수급",
-          "points": [
-            "외국인 코스피 -1조 4,507억 원, 코스닥 -890억 원 순매도",
-            "기관 코스피 +5,314억 원 순매수, 코스닥 -258억 원 순매도",
-            "개인 코스피 +4,390억 원, 코스닥 +1,165억 원 순매수",
-            "전기·전자 업종에 외국인 순매도 -1조 771억 원 집중 쏠림"
+          "gist": "외국인의 대규모 매도 vs 기관·개인 방어",
+          "items": [
+            {
+              "k": "외국인",
+              "v": "코스피 -1조 4,270억 원 대규모 순매도"
+            },
+            {
+              "k": "기관·개인",
+              "v": "코스피서 각각 5,296억 원, 4,169억 원 순매수"
+            },
+            {
+              "k": "업종 쏠림",
+              "v": "전기·전자 외국인 -1조 535억 원 매도 집중"
+            }
           ]
         },
         {
           "key": "sector",
           "title": "업종",
-          "points": [
-            "코스피 강세 업종: 섬유·의류 (+1.07%), 의료·정밀기기 (+1.06%)",
-            "코스피 약세 업종: 전기·가스 (-4.87%), 비금속 (-3.97%), 보험 (-3.86%), 건설 (-3.85%)",
-            "방어적 성격의 일부 업종 제외 전반적인 하락세 시현"
+          "gist": "전력·비금속 급락 속 방어 소비재 선방",
+          "items": [
+            {
+              "k": "강세 업종",
+              "v": "코스피 섬유·의류 +1.07%, 의료정밀 +1.06%"
+            },
+            {
+              "k": "약세 업종",
+              "v": "전기·가스 -4.87%, 비금속 -3.97% 급락"
+            },
+            {
+              "k": "수급 유입",
+              "v": "스마트머니 기준 제약(+399억 원) 순유입"
+            }
           ]
         },
         {
           "key": "stock",
           "title": "종목",
-          "points": [
-            "외국인 주요 순매수: LG전자 (+137억 원), 에이피알 (+103억 원)",
-            "외국인 주요 순매도: 삼성전자 (-4,824억 원), SK하이닉스 (-4,623억 원)",
-            "기관 주요 순매수: 삼성전자 (+1,738억 원), SK하이닉스 (+1,489억 원)",
-            "개인 주요 순매수: 삼성전자 (+2,947억 원), 삼성전자우 (+1,123억 원)"
+          "gist": "반도체 투톱에 집중된 외국인 매도 공세",
+          "items": [
+            {
+              "k": "외국인 매도",
+              "v": "삼성전자 -4,821억 원, SK하이닉스 -4,402억 원"
+            },
+            {
+              "k": "기관 매수",
+              "v": "삼성전자 1,738억 원, SK하이닉스 1,488억 원"
+            },
+            {
+              "k": "개인 매수",
+              "v": "삼성전자 2,944억 원 순매수로 물량 소화"
+            }
           ]
         },
         {
           "key": "issue",
           "title": "이슈·뉴스",
-          "points": [
-            "젠슨 황 여파 등 대외 악재로 코스피 2.6% 하락하며 5,000선 내줌 [3]",
-            "외국인 1조 4,000억 원대 매물 출회로 9개월 만에 최저치 기록 [2]",
-            "유진테크 외국인 순매수 유입에 따라 4.87% 상승 마감 [7]"
+          "gist": "글로벌 AI 반도체 조정에 따른 투자심리 위축",
+          "items": [
+            {
+              "k": "글로벌 충격",
+              "v": "미국 AI 반도체 충격 여파로 지수 급락 [4]"
+            },
+            {
+              "k": "지수 레벨",
+              "v": "외국인 대규모 매도에 5,000선 하회 및 9개월 최저 [2][3]"
+            }
           ]
         },
         {
           "key": "ace",
           "title": "ACE ETF",
-          "points": [
-            "ACE AI반도체TOP3+ -2.65%, ACE K반도체TOP2+ -2.13% 하락 마감",
-            "ACE KRX금현물 +0.58%, ACE 인버스 +2.25% 상승 선방",
-            "거래대금 상위 상품으로 ACE AI반도체TOP3+ (283억 원), ACE 미국S&P500 (281억 원) 기록"
+          "gist": "인버스·해외 분산 선방 속 반도체 레버리지 약세",
+          "items": [
+            {
+              "k": "상승 상위",
+              "v": "ACE MSCI인도네시아(합성) +3.43%, ACE 인버스 +2.25%"
+            },
+            {
+              "k": "하락 상위",
+              "v": "ACE 레버리지 -5.17%, ACE 코리아AI전력TOP10 -5.08%"
+            },
+            {
+              "k": "거래 대금",
+              "v": "ACE AI반도체TOP3+ 283억 원, ACE 미국S&P500 281억 원"
+            }
           ]
         }
       ],
       "strategy": [
-        "환율 변동성 확대 속 외국인 현물 매도세 진정 여부 확인",
-        "지수 낙폭 과대 구간에서의 반발 매수세와 대형주 수급 공방 모니터링"
+        "코스피 5,000선 재안착 여부 및 외국인 반도체 매도세 둔화 흐름 점검",
+        "변동성 확대 국면 속 제약 등 실적 방어 업종 중심의 선별적 대응"
       ]
     },
     "weekly": {
-      "headline": "코스피 주간 -5.17% 하락, 외국인 2조 2,375억 원 순매도 기록",
+      "headline": "외국인 대형 반도체 매도세 확대 속 주간 지수 조정",
       "summary": [
-        "대외 불확실성과 반도체 업종 부진으로 코스피 5거래일 연속 하락세",
-        "외국인 주간 2조 2,375억 원 순매도 기록, 전기·전자 중심 매물 출회",
-        "글로벌 매크로 지표 변화 및 국내 주도주의 반등 모멘텀 탐색 필요"
+        "반도체 및 유틸리티 업종 약세로 주간 코스피 -5.17% 하락 마감",
+        "외국인 주간 코스피 -2조 2,138억 원 순매도 속 기관 매도 동참",
+        "반도체 밸류체인 수급 진정 및 엔터·의료정밀 등 주도 섹터 차별화 점검"
       ],
       "sections": [
         {
           "key": "market",
           "title": "지수·매크로",
-          "points": [
-            "코스피 주간 -5.17%, 코스닥 주간 -2.63% 하락",
-            "원달러 환율 주간 -0.46% 변동"
+          "gist": "주간 지수 조정 지속 및 시장 전반 약세",
+          "items": [
+            {
+              "k": "코스피 주간",
+              "v": "최근 5거래일 -5.17% 하락하며 약세 지속"
+            },
+            {
+              "k": "코스닥 주간",
+              "v": "주간 -2.63% 하락으로 상대적 선방"
+            },
+            {
+              "k": "환율 추이",
+              "v": "원·달러 환율 주간 -0.49% 소폭 하향 안정"
+            }
           ]
         },
         {
           "key": "flow",
           "title": "수급",
-          "points": [
-            "외국인 누적 순매수: 코스피 -2조 2,375억 원, 코스닥 -8,605억 원",
-            "기관 누적 순매수: 코스피 -1조 941억 원, 코스닥 +3,069억 원",
-            "개인 누적 순매수: 코스피 +7,595억 원, 코스닥 +5,535억 원"
+          "gist": "외국인·기관 동반 매도 속 개인 순매수 대응",
+          "items": [
+            {
+              "k": "외국인",
+              "v": "코스피 -2조 2,138억 원, 코스닥 -8,593억 원 순매도"
+            },
+            {
+              "k": "기관",
+              "v": "코스피 -1조 959억 원 매도, 코스닥 3,067억 원 매수"
+            },
+            {
+              "k": "수급 이탈",
+              "v": "전기·전자 주간 스마트머니 -2조 7,574억 원 순유출"
+            }
           ]
         },
         {
           "key": "sector",
           "title": "업종",
-          "points": [
-            "코스피 주간 강세 업종: 의료·정밀기기 (+8.05%), 오락·문화 (+4.29%)",
-            "코스피 주간 약세 업종: 전기·가스 (-13.45%), IT 서비스 (-7.37%), 금속 (-7.09%)",
-            "전기·전자 업종 주간 -6.59% 하락하며 지수 하락 주도"
+          "gist": "의료정밀·오락문화 강세 vs 전력·IT서비스 부진",
+          "items": [
+            {
+              "k": "상승 주도",
+              "v": "의료·정밀기기 +8.05%, 오락·문화 +4.29% 강세"
+            },
+            {
+              "k": "낙폭 과대",
+              "v": "전기·가스 -13.45%, IT 서비스 -7.37% 부진"
+            },
+            {
+              "k": "수급 쏠림",
+              "v": "제약(+1,582억 원), 운송·창고(+1,113억 원) 유입"
+            }
           ]
         },
         {
           "key": "stock",
           "title": "종목",
-          "points": [
-            "외국인 주간 순매수: 삼성전자 (+2,057억 원), SK스퀘어 (+2,028억 원)",
-            "외국인 주간 순매도: SK하이닉스 (-1조 8,538억 원), 삼성전기 (-1,313억 원)",
-            "기관 주간 순매수: 이수페타시스 (+953억 원), 셀트리온 (+689억 원)"
+          "gist": "SK하이닉스 집중 매도 속 반도체 수급 재편",
+          "items": [
+            {
+              "k": "외국인 순매도",
+              "v": "SK하이닉스 -1조 8,317억 원 순매도 집중"
+            },
+            {
+              "k": "외국인 순매수",
+              "v": "삼성전자 2,060억 원, SK스퀘어 2,034억 원 매수"
+            },
+            {
+              "k": "기관 순매수",
+              "v": "이수페타시스 950억 원, 셀트리온 689억 원 유입"
+            }
           ]
         },
         {
           "key": "issue",
           "title": "이슈·뉴스",
-          "points": [
-            "외국인 대규모 매도세 지속으로 코스피 연초 수준으로 회귀 [4]",
-            "전기·전자 및 반도체 관련 종목 중심의 수급 이탈 심화"
+          "gist": "연초 수준으로 밀려난 지수와 대형 IT 차익실현",
+          "items": [
+            {
+              "k": "지수 되돌림",
+              "v": "연속 하락세로 연초 수준까지 조정 [1][5]"
+            },
+            {
+              "k": "외인 이탈",
+              "v": "외국인 지속 매도세에 9개월 만에 최저치 경신 [6][8]"
+            }
           ]
         },
         {
           "key": "ace",
           "title": "ACE ETF",
-          "points": [
-            "ACE KPOP포커스 주간 +8.17% 상승으로 상대적 강세",
-            "ACE SK하이닉스단일종목레버리지 -17.97%, ACE 미국SMR원자력TOP10 -12.14% 부진",
-            "주간 거래대금 상위: ACE 200 (1,202억 원), ACE AI반도체TOP3+ (1,002억 원)"
+          "gist": "엔터·해외 자산 호조 속 반도체 레버리지 약세",
+          "items": [
+            {
+              "k": "주간 상승",
+              "v": "ACE KPOP포커스 +8.17%, ACE MSCI인도네시아(합성) +5.68%"
+            },
+            {
+              "k": "주간 하락",
+              "v": "ACE SK하이닉스단일종목레버리지 -17.97% 급락"
+            },
+            {
+              "k": "거래 집중",
+              "v": "ACE 200 1,202억 원, ACE AI반도체TOP3+ 1,002억 원"
+            }
           ]
         }
       ],
       "strategy": [
-        "주간 낙폭 과대 업종 중심의 선별적 접근",
-        "외국인 수급의 방향성 전환 시그널 체크"
+        "주간 낙폭 과대 대형주의 밸류에이션 매력 점검 및 단기 지지선 확인",
+        "상대적 수익률 견조한 K-POP 엔터 및 헬스케어 섹터 비중 조절"
       ]
     },
     "source": "gemini",
-    "model": "gemini-3.5-flash-lite"
+    "model": "gemini-3.8-flash"
   }
 }
