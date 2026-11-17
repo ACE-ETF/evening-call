@@ -199,7 +199,7 @@ def fetch_sectors(start_date: str, prev: dict, cutoff: str = None) -> list:
 # ---------------------------------------------------------------------------
 # 투자자별 수급 (pykrx)
 # ---------------------------------------------------------------------------
-def get_investor_flow(market: str = "KOSPI"):
+def get_investor_flow(market: str = "KOSPI", cutoff: str = None):
     if stock is None:
         return None
     end_dt = now_kst().strftime("%Y%m%d")
@@ -211,6 +211,10 @@ def get_investor_flow(market: str = "KOSPI"):
                 log(f"{market} 수급: 빈 데이터 (시도 {attempt}/2)")
                 time.sleep(2)
                 continue
+            if cutoff:
+                df = df[df.index <= pd.Timestamp(cutoff)]  # 장중 실행 시 당일 잠정치 제외
+                if df.empty:
+                    return None
             if "외국인합계" not in df.columns or "기관합계" not in df.columns:
                 log(f"{market} 수급: 예상 컬럼 없음 {list(df.columns)}")
                 return None
@@ -293,9 +297,7 @@ def fetch_flow(prev: dict, cutoff: str = None) -> dict:
     prev_flow = prev.get("flow", {}) or {}
     out = {}
     for key, market in (("kospi", "KOSPI"), ("kosdaq", "KOSDAQ")):
-        flow = get_investor_flow(market)
-        if flow is not None and cutoff and flow.get("date") and flow["date"] > cutoff:
-            flow = None  # 장중 데이터면 버리고 백업 경로로
+        flow = get_investor_flow(market, cutoff)
         if flow is None:
             log(f"{market} 수급: pykrx 실패 → 네이버 금융 백업 시도")
             flow = get_investor_flow_naver(market, cutoff)
