@@ -76,6 +76,8 @@ INVESTOR_LABEL = {"foreign": "외국인", "inst": "기관", "retail": "개인"}
 
 NEWS_QUERIES = ["코스피 마감시황", "코스닥 마감 외국인"]
 NEWS_MAX = 8
+NEWS_POST_CLOSE_MIN = 4   # 장 마감(15:30) 이후 기사가 이 개수 미만이면 17시대에 기사·브리핑 보강
+NEWS_REFRESH_UNTIL = 19   # 이 시각(KST) 이후에는 기사 부족해도 보강 중단
 
 GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"]
 
@@ -833,9 +835,18 @@ def main() -> int:
     if prev_trade_date and trade_date < prev_trade_date and not FORCE_UPDATE:
         log(f"최신 거래일({trade_date})이 기존 데이터({prev_trade_date})보다 이전 → 갱신 생략.")
         return 0
-    if prev_trade_date == trade_date and not prev_stale and not FORCE_UPDATE:
+    prev_post_close = (prev.get("data_quality") or {}).get("news_post_close", NEWS_POST_CLOSE_MIN)
+    news_refresh = (
+        prev_trade_date == trade_date
+        and prev_post_close < NEWS_POST_CLOSE_MIN
+        and now_kst().strftime("%Y-%m-%d") == trade_date
+        and now_kst().hour < NEWS_REFRESH_UNTIL
+    )
+    if prev_trade_date == trade_date and not prev_stale and not news_refresh and not FORCE_UPDATE:
         log(f"최신 거래일({trade_date}) 데이터가 이미 완전함 → 휴장일/중복 실행으로 판단, 갱신 생략.")
         return 0
+    if news_refresh:
+        log(f"장 마감 기사 {prev_post_close}건뿐 → 기사·브리핑 보강 실행")
 
     dates = [d.strftime("%Y-%m-%d") for d in kospi_df.index]
 
@@ -890,7 +901,20 @@ def main() -> int:
     if ace.get("stale"):
         stale.append("ace")
     # 뉴스는 외부 요인이 커서 재수집 트리거에서 제외
-    payload["data_quality"] = {"stale_items": stale, "is_today": trade_date == now_kst().strftime("%Y-%m-%d")}
+    close_dt = datetime.strptime(trade_date, "%Y-%m-%d").replace(hour=15, minute=30, tzinfo=KST)
+    post_close = 0
+    for n in news.get("items", []):
+        try:
+            mmdd, hm = n.get("published", "").split(" ")
+            dt = datetime.strptime(f"{close_dt.year}-{mmdd} {hm}", "%Y-%m-%d %H:%M").replace(tzinfo=KST)
+            post_close += dt >= close_dt
+        except Exception:
+            pass
+    payload["data_quality"] = {
+        "stale_items": stale,
+        "is_today": trade_date == now_kst().strftime("%Y-%m-%d"),
+        "news_post_close": int(post_close),
+    }
 
     payload["ai_briefing"] = guarded("브리핑", lambda: generate_briefing(payload), lambda: build_rule_briefing(payload))
 
