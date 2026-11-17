@@ -55,7 +55,7 @@ ETF_LIST = [
     {"ticker": "459580", "name": "KODEX CD금리액티브(합성)", "sector": "파킹·현금성", "group": "cash"},
 ]
 
-GEMINI_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"]
+GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"]
 
 EMPTY_FLOW = {"daily_foreign": 0, "daily_inst": 0, "weekly_foreign": 0, "weekly_inst": 0}
 
@@ -378,7 +378,7 @@ def generate_ai_briefing(payload: dict) -> dict:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         for attempt in range(1, 3):
             try:
-                res = requests.post(url, headers=headers, json=body, timeout=40)
+                res = requests.post(url, headers=headers, json=body, timeout=90)
                 if res.status_code != 200:
                     try:
                         err = res.json().get("error", {})
