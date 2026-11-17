@@ -74,7 +74,7 @@ MARKETS = [("kospi", "KOSPI"), ("kosdaq", "KOSDAQ")]
 INVESTORS = [("foreign", "외국인"), ("inst", "기관합계"), ("retail", "개인")]
 INVESTOR_LABEL = {"foreign": "외국인", "inst": "기관", "retail": "개인"}
 
-NEWS_QUERIES = ["코스피 마감", "코스닥 마감", "증시 외국인 순매도 OR 순매수"]
+NEWS_QUERIES = ["코스피 마감시황", "코스닥 마감 외국인"]
 NEWS_MAX = 8
 
 GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"]
@@ -82,7 +82,7 @@ GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-flash-late
 EMPTY_FLOW = {f"{p}_{k}": 0 for p in ("daily", "weekly") for k, _ in INVESTORS}
 
 KRX_PAUSE = 1.0   # KRX 연속 호출 간격(초) - 과도한 호출 방지
-NEWS_PAUSE = 2.0  # 뉴스 검색 간격(초)
+NEWS_PAUSE = 4.0  # 뉴스 검색 간격(초) - 구글 429 방지
 
 
 def log(msg: str):
@@ -436,10 +436,17 @@ def fetch_sector_block(dates: list, prev: dict):
 # ---------------------------------------------------------------------------
 # 관련 기사 (구글 뉴스 RSS)
 # ---------------------------------------------------------------------------
-def fetch_news(prev: dict):
+NEWS_MUST = re.compile(r"(코스피|코스닥|증시|국내\s?증시|외국인|기관|마감)")
+NEWS_EXCLUDE = re.compile(r"(베트남|미국\s?증시|뉴욕|일본|중국|홍콩|코인|비트코인)")
+
+
+def fetch_news(prev: dict, trade_date: str):
+    """기준 거래일 장 시작(08:00) ~ 다음 거래일 개장(09:00) 사이 기사만 사용."""
     headers = {"User-Agent": "Mozilla/5.0 (compatible; KoreaMarketRadar/1.0)"}
     items, seen = [], set()
-    since = now_kst() - timedelta(hours=30)
+    since = datetime.strptime(trade_date, "%Y-%m-%d").replace(hour=8, tzinfo=KST)
+    today = now_kst()
+    until = today.replace(hour=9, minute=0, second=0, microsecond=0) if today.strftime("%Y-%m-%d") > trade_date else today
     for qi, q in enumerate(NEWS_QUERIES):
         if qi:
             time.sleep(NEWS_PAUSE)
@@ -467,10 +474,12 @@ def fetch_news(prev: dict):
                     pub_dt = parsedate_to_datetime(pub).astimezone(KST) if pub else None
                 except Exception:
                     pub_dt = None
-                if pub_dt and pub_dt < since:
+                if pub_dt and (pub_dt < since or pub_dt > until):
                     continue
                 if source and title.endswith(f" - {source}"):
                     title = title[: -len(f" - {source}")]
+                if not NEWS_MUST.search(title) or NEWS_EXCLUDE.search(title):
+                    continue
                 key = norm(title)[:40]
                 if not title or key in seen:
                     continue
@@ -528,42 +537,76 @@ def top_n(rows, n, key="pct", reverse=True):
     return sorted(rows or [], key=lambda x: x.get(key, 0), reverse=reverse)[:n]
 
 
+BRIEF_SECTIONS = [
+    ("market", "지수·매크로"),
+    ("flow", "수급"),
+    ("sector", "업종"),
+    ("stock", "종목"),
+    ("issue", "이슈·뉴스"),
+]
+
+
 def build_rule_briefing(p: dict) -> dict:
     I, F = p["indices"], p["flow"]
     out = {}
-    for period, label in (("daily", "일간"), ("weekly", "5거래일")):
+    for period in ("daily", "weekly"):
         pk = f"{period}_pct"
         k, q, fx, sox = I["kospi"], I["kosdaq"], I["usdkrw"], I["sox"]
-        fk = F["kospi"]
-        mood = "약세" if k[pk] < -0.5 else ("강세" if k[pk] > 0.5 else "보합권")
-        headline = f"코스피 {k[pk]:+.2f}%·코스닥 {q[pk]:+.2f}% {mood}"
+        fk, fq = F["kospi"], F["kosdaq"]
+        mood = "약세" if k[pk] < -0.5 else ("강세" if k[pk] > 0.5 else "보합")
+        si = ((p.get("sector_indices") or {}).get("kospi") or {}).get(period) or []
+        sf = ((p.get("sector_flow") or {}).get(period) or {}).get("kospi") or []
+        ts = (p.get("top_stocks") or {}).get(period) or {}
+        b = (p.get("breadth") or {}).get("kospi") or {}
+
+        lead = None
         if not fk.get("stale"):
             lead = max(INVESTORS, key=lambda x: abs(fk.get(f"{period}_{x[0]}", 0)))[0]
-            headline += f", {INVESTOR_LABEL[lead]} {fmt_eok(fk[f'{period}_{lead}'])} 주도"
-        points = [
-            f"지수: 코스피 {k['price']:,.2f}pt({k[pk]:+.2f}%), 코스닥 {q['price']:,.2f}pt({q[pk]:+.2f}%)",
-            f"환율·해외: 원/달러 {fx['price']:,.1f}원({fx[pk]:+.2f}%), 필라델피아 반도체 {sox[pk]:+.2f}%",
+        headline = f"코스피 {k[pk]:+.2f}% {mood}" + (f", {INVESTOR_LABEL[lead]} {fmt_eok(fk[f'{period}_{lead}'])}이 방향 결정" if lead else "")
+
+        summary = [f"코스피 {k['price']:,.2f}pt({k[pk]:+.2f}%), 코스닥 {q[pk]:+.2f}%로 {mood} 마감"]
+        if lead:
+            summary.append(f"수급 주체는 {INVESTOR_LABEL[lead]}({fmt_eok(fk[f'{period}_{lead}'])})")
+        if si:
+            summary.append(f"업종은 {si[0]['name']}({si[0]['pct']:+.2f}%) 강세, {si[-1]['name']}({si[-1]['pct']:+.2f}%) 약세")
+
+        sec = {key: [] for key, _ in BRIEF_SECTIONS}
+        sec["market"] = [
+            f"코스피 {k['price']:,.2f}pt({k[pk]:+.2f}%), 코스닥 {q['price']:,.2f}pt({q[pk]:+.2f}%)",
+            f"원/달러 {fx['price']:,.1f}원({fx[pk]:+.2f}%), 필라델피아 반도체 {sox[pk]:+.2f}%",
         ]
-        if not fk.get("stale"):
-            points.append("코스피 수급: " + ", ".join(f"{INVESTOR_LABEL[x]} {fmt_eok(fk[f'{period}_{x}'])}" for x, _ in INVESTORS))
-        si = (p.get("sector_indices") or {}).get("kospi") or {}
-        rows = si.get(period) or []
-        if rows:
-            points.append("업종 강세: " + ", ".join(f"{r['name']} {r['pct']:+.2f}%" for r in rows[:3]))
-            points.append("업종 약세: " + ", ".join(f"{r['name']} {r['pct']:+.2f}%" for r in rows[-3:][::-1]))
-        sf = ((p.get("sector_flow") or {}).get(period) or {}).get("kospi") or []
-        if sf:
-            points.append("외국인+기관 순매수 상위 업종: " + ", ".join(f"{r['sector']} {fmt_eok(r['smart'])}" for r in sf[:3]))
-        b = (p.get("breadth") or {}).get("kospi") or {}
         if period == "daily" and b.get("up") is not None and not b.get("stale"):
-            points.append(f"시장 폭(코스피): 상승 {b['up']} / 하락 {b['down']} / 보합 {b['flat']}")
+            sec["market"].append(f"코스피 상승 {b['up']} / 하락 {b['down']} / 보합 {b['flat']} 종목")
+        if not fk.get("stale"):
+            sec["flow"].append("코스피: " + ", ".join(f"{INVESTOR_LABEL[x]} {fmt_eok(fk[f'{period}_{x}'])}" for x, _ in INVESTORS))
+        if not fq.get("stale"):
+            sec["flow"].append("코스닥: " + ", ".join(f"{INVESTOR_LABEL[x]} {fmt_eok(fq[f'{period}_{x}'])}" for x, _ in INVESTORS))
+        if sf:
+            sec["flow"].append("외국인+기관 순매수 업종: " + ", ".join(f"{r['sector']} {fmt_eok(r['smart'])}" for r in sf[:3]))
+            sec["flow"].append("외국인+기관 순매도 업종: " + ", ".join(f"{r['sector']} {fmt_eok(r['smart'])}" for r in sf[-3:][::-1]))
+        if si:
+            sec["sector"].append("강세: " + ", ".join(f"{r['name']} {r['pct']:+.2f}%" for r in si[:3]))
+            sec["sector"].append("약세: " + ", ".join(f"{r['name']} {r['pct']:+.2f}%" for r in si[-3:][::-1]))
+        fb = (ts.get("foreign") or {})
+        if fb.get("buy"):
+            sec["stock"].append("외국인 순매수: " + ", ".join(f"{x['name']} {fmt_eok(x['value'])}" for x in fb["buy"][:3]))
+        if fb.get("sell"):
+            sec["stock"].append("외국인 순매도: " + ", ".join(f"{x['name']} {fmt_eok(x['value'])}" for x in fb["sell"][:3]))
+        news = (p.get("news") or {}).get("items") or []
+        sec["issue"] = [f"{n['title']} [{n['id']}]" for n in news[:3]]
+
         strategy = []
         if k[pk] < -2 or (not fk.get("stale") and fk.get(f"{period}_foreign", 0) < 0 and fx[pk] > 0.3):
             strategy.append("외국인 이탈·환율 부담 구간 → 추격 매수 자제, 낙폭 과대 업종은 분할 접근")
-        if rows:
-            strategy.append(f"상대 강세 업종({rows[0]['name']}) 중심 순환매 지속 여부 확인")
+        if si:
+            strategy.append(f"상대 강세 업종({si[0]['name']}) 중심 순환매 지속 여부 확인")
         strategy.append("다음 거래일 외국인 수급 방향과 반도체 업종 반등 여부 점검")
-        out[period] = {"headline": headline, "points": points, "strategy": strategy}
+        out[period] = {
+            "headline": headline,
+            "summary": summary,
+            "sections": [{"key": key, "title": t, "points": sec[key]} for key, t in BRIEF_SECTIONS if sec[key]],
+            "strategy": strategy,
+        }
     out["source"] = "rule"
     return out
 
@@ -619,17 +662,23 @@ def generate_briefing(p: dict) -> dict:
     news = [f"[{n['id']}] {n['title']} ({n['source']}, {n['published']})" for n in (p.get("news") or {}).get("items", [])]
     prompt = (
         "당신은 한국 증시 시니어 리서치 애널리스트입니다. 아래 장 마감 데이터와 기사 헤드라인으로 '시황 브리핑'을 작성하세요.\n"
-        "작성 원칙:\n"
-        "- 두괄식: headline에 오늘 시장의 결론을 한 문장(40자 내외)으로. 무엇이 시장을 움직였는지가 드러나게.\n"
-        "- 개조식: points는 6~8개, 각 항목은 '주제: 내용' 형태의 명사형 종결(~함, ~세, ~확대 등), 구체적 수치(%·억 원·pt) 필수.\n"
-        "  다룰 주제: 지수·환율, 투자자 수급(외국인·기관·개인), 업종 강약, 업종별 수급 쏠림, 주요 순매수/순매도 종목, 시장 폭, 해외(반도체).\n"
-        "- 기사 연계: 기사 헤드라인에서 확인되는 원인·이벤트가 있으면 해당 항목 끝에 [번호]로 인용. 헤드라인에 없는 사실·수치는 지어내지 말 것.\n"
-        "- strategy는 2~3개, 다음 거래일 점검 포인트와 대응(추격 매수 자제/분할 접근/순환매 확인 등)을 개조식으로.\n"
-        "- daily는 일간 기준, weekly는 최근 5거래일 누적 기준으로 각각 작성. stale=true 항목은 언급 금지.\n"
-        "- 숫자 표기: 수급 데이터 단위는 억 원. 1만억 이상은 조 단위로 환산(예: -13300 → -1조 3,300억 원), 그 미만은 천 단위 콤마(예: -4,635억 원). 지수는 소수 둘째 자리(5,100.50pt).\n"
+        "작성 원칙 (읽는 사람이 30초 안에 오늘 시장을 이해하도록):\n"
+        "1) headline: 오늘 시장의 결론 한 문장(40자 내외). '무엇 때문에 어떻게 됐다'가 드러나게.\n"
+        "2) summary(총평): 핵심 메시지 3개. 각 1문장. ①시장 방향과 원인 ②돈의 흐름(누가 사고 팔았나) ③다음에 볼 것. 수치는 꼭 필요한 것만.\n"
+        "3) sections: 파트별 근거. 각 파트 2~4개 항목, 명사형 종결(~함/~세/~확대), 구체적 수치 필수, 앞 파트와 중복 금지.\n"
+        "   - market(지수·매크로): 지수·환율·해외 반도체·시장 폭\n"
+        "   - flow(수급): 외국인·기관·개인 순매수, 업종별 수급 쏠림\n"
+        "   - sector(업종): 강세·약세 업종과 그 의미(순환매/방어 등)\n"
+        "   - stock(종목): 투자자별 주요 순매수·순매도 종목\n"
+        "   - issue(이슈·뉴스): 기사 헤드라인에서 확인되는 원인·이벤트, 항목 끝에 [번호] 인용\n"
+        "4) strategy(대응 포인트): 2~3개, 다음 거래일 점검 포인트와 대응.\n"
+        "- 기사에 없는 사실·수치는 지어내지 말 것. 다른 파트에서도 기사 근거가 있으면 [번호] 인용 가능.\n"
+        "- daily는 일간, weekly는 최근 5거래일 누적 기준. stale=true 항목은 언급 금지.\n"
+        "- 숫자 표기: 수급 단위는 억 원. 1만억 이상은 조 단위로 환산(예: -13300 → -1조 3,300억 원), 그 미만은 천 단위 콤마(예: -4,635억 원). 지수는 5,100.50pt 형식.\n"
         "반드시 아래 JSON 형식으로만 응답:\n"
-        '{"daily":{"headline":"...","points":["..."],"strategy":["..."]},'
-        '"weekly":{"headline":"...","points":["..."],"strategy":["..."]}}\n\n'
+        '{"daily":{"headline":"...","summary":["...","...","..."],'
+        '"sections":{"market":["..."],"flow":["..."],"sector":["..."],"stock":["..."],"issue":["..."]},'
+        '"strategy":["..."]},"weekly":{...같은 구조...}}\n\n'
         f"[데이터]\n{json.dumps(briefing_input(p), ensure_ascii=False)}\n\n"
         "[기사 헤드라인]\n" + ("\n".join(news) if news else "(없음)")
     )
@@ -660,11 +709,18 @@ def generate_briefing(p: dict) -> dict:
                 for per in ("daily", "weekly"):
                     blk = parsed.get(per) or {}
                     headline = str(blk.get("headline", "")).strip()
-                    points = clean_list(blk.get("points"), 9)
+                    summary = clean_list(blk.get("summary"), 4)
+                    raw = blk.get("sections") or {}
+                    sections = []
+                    for key, title in BRIEF_SECTIONS:
+                        pts = clean_list(raw.get(key) if isinstance(raw, dict) else None, 5)
+                        if pts:
+                            sections.append({"key": key, "title": title, "points": pts})
                     strategy = clean_list(blk.get("strategy"), 4)
-                    if not headline or len(points) < 3:
+                    if not headline or len(summary) < 2 or len(sections) < 3:
                         raise ValueError(f"{per} 형식 불충분")
-                    out[per] = {"headline": headline, "points": points, "strategy": strategy or fallback[per]["strategy"]}
+                    out[per] = {"headline": headline, "summary": summary, "sections": sections,
+                                "strategy": strategy or fallback[per]["strategy"]}
                 out["source"] = "gemini"
                 out["model"] = model
                 log(f"Gemini 브리핑 생성 완료 ({model})")
@@ -721,7 +777,7 @@ def main() -> int:
         return si, sf, ts, br
 
     sector_indices, sector_flow, top_stocks, breadth = guarded("업종", lambda: fetch_sector_block(dates, prev), sector_fallback)
-    news = guarded("뉴스", lambda: fetch_news(prev),
+    news = guarded("뉴스", lambda: fetch_news(prev, trade_date),
                    lambda: {"items": (prev.get("news") or {}).get("items", []) if isinstance(prev.get("news"), dict) else [], "stale": True})
 
     payload = {

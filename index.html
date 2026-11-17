@@ -76,6 +76,24 @@
   .cite { display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0 4px; border: 1px solid rgba(245,185,66,.4); border-radius: 4px; margin-left: 3px; line-height: 16px; vertical-align: 1px; }
   .cite:hover { background: rgba(245,185,66,.15); }
   .src { margin-top: 12px; color: var(--muted); font-size: 12px; }
+  .part { display: flex; align-items: baseline; gap: 10px; margin: 30px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .part:first-of-type { margin-top: 4px; }
+  .part .no { color: var(--accent); font-weight: 800; font-size: 13px; letter-spacing: .04em; }
+  .part h2 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+  .part .desc { color: var(--muted); font-size: 12.5px; }
+  .summary { background: rgba(245,185,66,.07); border: 1px solid rgba(245,185,66,.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; }
+  .summary .lbl { font-size: 12px; font-weight: 800; color: var(--accent); margin-bottom: 4px; letter-spacing: .02em; }
+  .summary ol { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+  .summary li { counter-increment: s; position: relative; padding: 5px 0 5px 26px; font-size: 15px; font-weight: 600; line-height: 1.5; border: 0; }
+  .summary li::before { content: counter(s); position: absolute; left: 0; top: 7px; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: #1a1406; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .bsec { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .bsec { grid-template-columns: 1fr; } }
+  .bsec .blk { background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+  .bsec .blk.strat { background: rgba(60,207,145,.07); border: 1px solid rgba(60,207,145,.25); }
+  .bsec .blk h4 { margin: 0 0 4px; font-size: 12.5px; font-weight: 800; color: var(--text-2); }
+  .bsec .blk.strat h4 { color: var(--ok); }
+  .bsec .blk li { font-size: 13.5px; padding: 4px 0 4px 14px; }
+  .bsec .blk li::before { top: 12px; width: 4px; height: 4px; background: var(--muted); }
 
   .news ol { margin: 0; padding: 0; list-style: none; }
   .news li { padding: 8px 0; border-top: 1px solid var(--line); display: flex; gap: 10px; }
@@ -221,13 +239,18 @@
   function render() {
     if (!DATA) return;
     renderMeta();
+    function part(no, title, desc) { return '<div class="part"><span class="no">' + no + '</span><h2>' + title + '</h2><span class="desc">' + desc + '</span></div>'; }
     var h = "";
+    h += part("01", "시황 요약", "결론 → 총평 → 파트별 근거 → 대응");
     h += '<div class="grid g-brief">' + briefCard() + newsCard() + '</div>';
-    h += '<div class="grid g-kpi section">' + kpiCards() + '</div>';
+    h += part("02", "지수·수급", "지수 흐름과 투자자별 매매, 시장 체감");
+    h += '<div class="grid g-kpi">' + kpiCards() + '</div>';
     h += '<div class="grid g-flow section">' + flowCard() + breadthCard() + '</div>';
-    h += '<div class="section">' + sectorIndexCard() + '</div>';
-    h += '<div class="grid g-2 section">' + sectorFlowCard() + topStocksCard() + '</div>';
-    h += '<div class="section">' + etfCard() + '</div>';
+    h += part("03", "업종", "어디가 오르고, 돈은 어디로 갔나");
+    h += sectorIndexCard();
+    h += '<div class="section">' + sectorFlowCard() + '</div>';
+    h += part("04", "종목·ETF", "주체별 매매 상위 종목과 섹터 ETF");
+    h += '<div class="grid g-2">' + topStocksCard() + etfCard() + '</div>';
     document.getElementById("app").innerHTML = h;
     bindSegs();
   }
@@ -267,7 +290,15 @@
     var br = DATA.ai_briefing || {};
     var b = br[S.mode];
     var body;
-    if (b && b.headline) {
+    if (b && b.headline && b.sections) {
+      function lis(arr) { return '<ul>' + (arr || []).map(function (p) { return '<li>' + richText(p) + '</li>'; }).join("") + '</ul>'; }
+      body = '<div class="headline">' + richText(b.headline) + '</div>' +
+        ((b.summary && b.summary.length) ? '<div class="summary"><div class="lbl">총평</div><ol>' + b.summary.map(function (p) { return '<li>' + richText(p) + '</li>'; }).join("") + '</ol></div>' : "") +
+        '<div class="bsec">' + b.sections.map(function (sc) {
+          return '<div class="blk"><h4>' + esc(sc.title) + '</h4>' + lis(sc.points) + '</div>';
+        }).join("") +
+        ((b.strategy && b.strategy.length) ? '<div class="blk strat"><h4>대응 포인트</h4>' + lis(b.strategy) + '</div>' : "") + '</div>';
+    } else if (b && b.headline) {
       body = '<div class="headline">' + richText(b.headline) + '</div>' +
         '<ul>' + (b.points || []).map(function (p) { return '<li>' + richText(p) + '</li>'; }).join("") + '</ul>' +
         ((b.strategy && b.strategy.length) ? '<h3>대응 포인트</h3><ul>' + b.strategy.map(function (p) { return '<li>' + richText(p) + '</li>'; }).join("") + '</ul>' : "");
@@ -468,7 +499,10 @@
     L.push("[시황 브리핑] " + modeLabel() + " · 기준 거래일 " + (DATA.trade_date || "-"));
     if (br.headline) L.push("■ " + br.headline.replace(/\s*\[[\d,\s]+\]/g, ""));
     L.push("");
-    (br.points || []).forEach(function (x) { L.push("- " + x.replace(/\s*\[[\d,\s]+\]/g, "")); });
+    function clean(x) { return x.replace(/\s*\[[\d,\s]+\]/g, ""); }
+    if (br.summary && br.summary.length) { L.push("[총평]"); br.summary.forEach(function (x, i) { L.push((i + 1) + ") " + clean(x)); }); }
+    (br.sections || []).forEach(function (sc) { L.push(""); L.push("[" + sc.title + "]"); sc.points.forEach(function (x) { L.push("- " + clean(x)); }); });
+    (br.points || []).forEach(function (x) { L.push("- " + clean(x)); });
     if (br.strategy && br.strategy.length) { L.push(""); L.push("[대응 포인트]"); br.strategy.forEach(function (x) { L.push("- " + x.replace(/\s*\[[\d,\s]+\]/g, "")); }); }
     L.push("");
     L.push("[지수] KOSPI " + fmt((I.kospi || {}).price, 2) + "(" + pct((I.kospi || {})[k]) + ") / KOSDAQ " + fmt((I.kosdaq || {}).price, 2) + "(" + pct((I.kosdaq || {})[k]) + ") / 원달러 " + fmt((I.usdkrw || {}).price, 1) + "(" + pct((I.usdkrw || {})[k]) + ")");
