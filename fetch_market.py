@@ -220,6 +220,17 @@ def get_price_metrics(df, cutoff: str = None, series_len: int = 0):
         return None
 
 
+def cutoff_for(key: str, trade_date: str):
+    """국내 기준 거래일에 맞춘 데이터 기준일.
+    - KOSPI/KOSDAQ/환율: 기준 거래일까지
+    - SOX(미국장): 기준 거래일 '전날'까지 → 국내 장에 영향을 준 전일 밤 미국장 (모닝콜에서 다룬 값)"""
+    if not trade_date:
+        return None
+    if key == "sox":
+        return (pd.Timestamp(trade_date) - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+    return trade_date
+
+
 def fetch_indices(start_date: str, prev: dict):
     """지수 수집. KOSPI 원본 DataFrame도 함께 반환(거래일 목록 산출용)."""
     prev_indices = prev.get("indices", {}) or {}
@@ -227,10 +238,10 @@ def fetch_indices(start_date: str, prev: dict):
     out, cutoff, kospi_df = {}, None, None
     for key, symbol in INDEX_SYMBOLS.items():
         df = safe_read(symbol, start_date)
-        metrics = get_price_metrics(df, cutoff if key in KRX_INDEX_KEYS else None, series_len=20)
+        metrics = get_price_metrics(df, cutoff_for(key, cutoff), series_len=20)
         if metrics is None:
             for alt in INDEX_FALLBACK_SYMBOLS.get(key, []):
-                metrics = get_price_metrics(safe_read(alt, start_date, retries=1), series_len=20)
+                metrics = get_price_metrics(safe_read(alt, start_date, retries=1), cutoff_for(key, cutoff), series_len=20)
                 if metrics is not None:
                     metrics["symbol_used"] = alt
                     break
@@ -629,7 +640,8 @@ def build_rule_briefing(p: dict) -> dict:
         sec = {key: [] for key, _ in BRIEF_SECTIONS}
         sec["market"] = [
             f"코스피 {k['price']:,.2f}pt({k[pk]:+.2f}%), 코스닥 {q['price']:,.2f}pt({q[pk]:+.2f}%)",
-            f"원/달러 {fx['price']:,.1f}원({fx[pk]:+.2f}%), 필라델피아 반도체 {sox[pk]:+.2f}%",
+            f"원/달러 {fx['price']:,.1f}원({fx[pk]:+.2f}%)"
+            + (f", 전일 미 반도체 {'약세' if sox[pk] < 0 else '강세'} 영향 반영" if abs(sox[pk]) >= 1 else ""),
         ]
         if period == "daily" and b.get("up") is not None and not b.get("stale"):
             sec["market"].append(f"코스피 상승 {b['up']} / 하락 {b['down']} / 보합 {b['flat']} 종목")
@@ -729,7 +741,7 @@ def generate_briefing(p: dict) -> dict:
         "1) headline: 오늘 시장의 결론 한 문장(40자 내외). '무엇 때문에 어떻게 됐다'가 드러나게.\n"
         "2) summary(총평): 핵심 메시지 3개. 각 1문장. ①시장 방향과 원인 ②돈의 흐름(누가 사고 팔았나) ③다음에 볼 것. 수치는 꼭 필요한 것만.\n"
         "3) sections: 파트별 근거. 각 파트 2~4개 항목, 구체적 수치 필수, 앞 파트와 중복 금지.\n"
-        "   - market(지수·매크로): 지수·환율·해외 반도체·시장 폭\n"
+        "   - market(지수·매크로): 지수·환율·시장 폭. 국내 장에서 실제로 벌어진 일 중심.\n"
         "   - flow(수급): 외국인·기관·개인 순매수, 업종별 수급 쏠림\n"
         "   - sector(업종): 강세·약세 업종과 그 의미(순환매/방어 등)\n"
         "   - stock(종목): 투자자별 주요 순매수·순매도 종목\n"
@@ -739,6 +751,9 @@ def generate_briefing(p: dict) -> dict:
         "4) strategy(대응 포인트): 2~3개, 다음 거래일 점검 포인트와 대응.\n"
         "- 문체(전 항목 공통, 증권사 시황 리포트 스타일): 명사로 끝맺음. 예) '코스피 -3.59% 급락', '외국인 1조 3,300억 원 순매도', '방어주 강세', '반도체 수급 이탈 지속'.\n"
         "  '~함', '~했음', '~기록함', '~보임', '~됨', '~다' 로 끝내지 말 것. 군더더기 없이 짧게(한 항목 60자 내외).\n"
+        "- 이 브리핑은 아침 'ACE 모닝콜'에 이어지는 장 마감 피드백임. indices.sox(필라델피아 반도체)와 전일 밤 미국장 소식은 모닝콜에서 이미 다룸.\n"
+        "  → '전일 미 반도체 급락 영향 반영'처럼 원인 배경으로 한 번만 짧게 언급하고, SOX 수치를 독립 항목으로 반복하지 말 것.\n"
+        "  → 대신 국내 장에서 그 영향이 어떻게 나타났는지(어느 업종·종목·수급으로 번졌는지, 예상보다 강했는지 약했는지)에 집중.\n"
         "- 지수 레벨 표현은 실제 수치와 일치시킬 것(예: 5,100.50pt면 '5100선 붕괴'가 아니라 '5100선 턱걸이'). 기사 제목의 표현보다 데이터를 우선.\n"
         "- 기사에 없는 사실·수치는 지어내지 말 것. 다른 파트에서도 기사 근거가 있으면 [번호] 인용 가능.\n"
         "- daily는 일간, weekly는 최근 5거래일 누적 기준. stale=true 항목은 언급 금지.\n"

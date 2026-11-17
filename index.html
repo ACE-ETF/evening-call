@@ -352,7 +352,7 @@
     var I = DATA.indices || {};
     return [
       ["kospi", "KOSPI", 2, "pt"], ["kosdaq", "KOSDAQ", 2, "pt"],
-      ["usdkrw", "원/달러 환율", 1, "원"], ["sox", "필라델피아 반도체(SOX)", 2, ""]
+      ["usdkrw", "원/달러 환율", 1, "원"], ["sox", "필라델피아 반도체 · 전일 미국장", 2, ""]
     ].map(function (k) {
       var o = I[k[0]] || {}; var v = num(o[pk()]);
       var series = o.series || [];
