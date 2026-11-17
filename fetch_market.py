@@ -778,6 +778,8 @@ def generate_briefing(p: dict) -> dict:
         "  → '전일 미 반도체 급락 영향 반영'처럼 원인 배경으로 한 번만 짧게 언급하고, SOX 수치를 독립 항목으로 반복하지 말 것.\n"
         "  → 대신 국내 장에서 그 영향이 어떻게 나타났는지(어느 업종·종목·수급으로 번졌는지, 예상보다 강했는지 약했는지)에 집중.\n"
         "- 지수 레벨 표현은 실제 수치와 일치시킬 것(예: 5,100.50pt면 '5100선 붕괴'가 아니라 '5100선 턱걸이'). 기사 제목의 표현보다 데이터를 우선.\n"
+        "- 수치 우선순위: 지수·수급·업종·종목 수치와 방향(순매수/순매도)은 반드시 [데이터]의 값만 사용. 기사 제목의 수치(예: '1.5조')와 다르면 데이터를 따를 것.\n"
+        f"  오늘 코스피 수급(억 원): 외국인 {p['flow']['kospi'].get('daily_foreign')}, 기관 {p['flow']['kospi'].get('daily_inst')}, 개인 {p['flow']['kospi'].get('daily_retail')} (음수=순매도, 양수=순매수)\n"
         "- 기사에 없는 사실·수치는 지어내지 말 것. 다른 파트에서도 기사 근거가 있으면 [번호] 인용 가능.\n"
         "- daily는 일간, weekly는 최근 5거래일 누적 기준. stale=true 항목은 언급 금지.\n"
         "- 숫자 표기: 수급 단위는 억 원. 1만억 이상은 조 단위로 환산(예: -13300 → -1조 3,300억 원), 그 미만은 천 단위 콤마(예: -4,635억 원). 지수는 5,100.50pt 형식.\n"
@@ -857,9 +859,10 @@ def main() -> int:
         log(f"최신 거래일({trade_date})이 기존 데이터({prev_trade_date})보다 이전 → 갱신 생략.")
         return 0
     prev_post_close = (prev.get("data_quality") or {}).get("news_post_close", NEWS_POST_CLOSE_MIN)
+    prev_model = (prev.get("ai_briefing") or {}).get("model")
     news_refresh = (
         prev_trade_date == trade_date
-        and prev_post_close < NEWS_POST_CLOSE_MIN
+        and (prev_post_close < NEWS_POST_CLOSE_MIN or prev_model != GEMINI_MODELS[0])
         and now_kst().strftime("%Y-%m-%d") == trade_date
         and now_kst().hour < NEWS_REFRESH_UNTIL
     )
