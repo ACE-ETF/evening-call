@@ -81,7 +81,8 @@ GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-flash-late
 
 EMPTY_FLOW = {f"{p}_{k}": 0 for p in ("daily", "weekly") for k, _ in INVESTORS}
 
-KRX_PAUSE = 0.6  # KRX 연속 호출 간격(초) - 과도한 호출 방지
+KRX_PAUSE = 1.0   # KRX 연속 호출 간격(초) - 과도한 호출 방지
+NEWS_PAUSE = 2.0  # 뉴스 검색 간격(초)
 
 
 def log(msg: str):
@@ -99,9 +100,9 @@ def ymd(d: str) -> str:
 def eok(v) -> float:
     """원 → 억 원"""
     try:
-        return round(float(v) / 1e8, 0)
+        return int(round(float(v) / 1e8))
     except Exception:
-        return 0.0
+        return 0
 
 
 # ---------------------------------------------------------------------------
@@ -313,7 +314,8 @@ def get_sector_indices(market: str, dates: list, sector_names: set):
     if len(dates) < 2:
         return None
     out = {}
-    for period, start in (("daily", dates[-2]), ("weekly", dates[-6] if len(dates) >= 6 else dates[0])):
+    # KRX 기간등락률은 '시작일의 전일 종가' 대비 → 일간은 (당일~당일), 5일은 (5거래일 전~당일)
+    for period, start in (("daily", dates[-1]), ("weekly", dates[-5] if len(dates) >= 5 else dates[0])):
         df = krx_call(f"{market} 업종지수({period})", stock.get_index_price_change if stock else None, ymd(start), ymd(dates[-1]), market)
         if df is None or "등락률" not in df.columns:
             return None
@@ -438,14 +440,23 @@ def fetch_news(prev: dict):
     headers = {"User-Agent": "Mozilla/5.0 (compatible; KoreaMarketRadar/1.0)"}
     items, seen = [], set()
     since = now_kst() - timedelta(hours=30)
-    for q in NEWS_QUERIES:
+    for qi, q in enumerate(NEWS_QUERIES):
+        if qi:
+            time.sleep(NEWS_PAUSE)
         try:
-            res = requests.get(
-                "https://news.google.com/rss/search",
-                params={"q": f"{q} when:2d", "hl": "ko", "gl": "KR", "ceid": "KR:ko"},
-                headers=headers, timeout=15,
-            )
-            res.raise_for_status()
+            res = None
+            for attempt in range(1, 3):
+                res = requests.get(
+                    "https://news.google.com/rss/search",
+                    params={"q": f"{q} when:2d", "hl": "ko", "gl": "KR", "ceid": "KR:ko"},
+                    headers=headers, timeout=15,
+                )
+                if res.status_code == 200:
+                    break
+                log(f"뉴스 검색({q}) HTTP {res.status_code} (시도 {attempt}/2)")
+                time.sleep(NEWS_PAUSE * 2 * attempt)
+            if res is None or res.status_code != 200:
+                continue
             root = ET.fromstring(res.content)
             for it in root.iter("item"):
                 title = (it.findtext("title") or "").strip()
@@ -605,7 +616,7 @@ def generate_briefing(p: dict) -> dict:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         for attempt in range(1, 3):
             try:
-                res = requests.post(url, headers=headers, json=body, timeout=90)
+                res = requests.post(url, headers=headers, json=body, timeout=60)
                 if res.status_code != 200:
                     try:
                         err = res.json().get("error", {})
@@ -662,10 +673,30 @@ def main() -> int:
         return 0
 
     dates = [d.strftime("%Y-%m-%d") for d in kospi_df.index]
-    sectors = fetch_sectors(start_date, prev, trade_date)
-    flow = fetch_flow(prev, trade_date)
-    sector_indices, sector_flow, top_stocks, breadth = fetch_sector_block(dates, prev)
-    news = fetch_news(prev)
+
+    def guarded(label, fn, fallback):
+        """블록 하나가 예외로 죽어도 전체 수집은 계속 진행."""
+        try:
+            return fn()
+        except Exception as e:
+            log(f"{label} 블록 오류 → 이전값 유지: {type(e).__name__}: {e}")
+            return fallback()
+
+    sectors = guarded("섹터 ETF", lambda: fetch_sectors(start_date, prev, trade_date),
+                      lambda: [dict(s, stale=True) for s in (prev.get("sectors") or [])])
+    flow = guarded("투자자 수급", lambda: fetch_flow(prev, trade_date),
+                   lambda: {k: keep_previous(None, (prev.get("flow") or {}).get(k), EMPTY_FLOW) for k, _ in MARKETS})
+
+    def sector_fallback():
+        si = {k: keep_previous(None, (prev.get("sector_indices") or {}).get(k), {"daily": [], "weekly": []}) for k, _ in MARKETS}
+        br = {k: keep_previous(None, (prev.get("breadth") or {}).get(k), {"up": 0, "down": 0, "flat": 0}) for k, _ in MARKETS}
+        sf = dict(prev.get("sector_flow") or {"daily": {}, "weekly": {}}, stale=True)
+        ts = dict(prev.get("top_stocks") or {}, stale=True)
+        return si, sf, ts, br
+
+    sector_indices, sector_flow, top_stocks, breadth = guarded("업종", lambda: fetch_sector_block(dates, prev), sector_fallback)
+    news = guarded("뉴스", lambda: fetch_news(prev),
+                   lambda: {"items": (prev.get("news") or {}).get("items", []) if isinstance(prev.get("news"), dict) else [], "stale": True})
 
     payload = {
         "updated_at": now_kst().strftime("%Y-%m-%d %H:%M KST"),
@@ -690,7 +721,7 @@ def main() -> int:
     # 뉴스는 외부 요인이 커서 재수집 트리거에서 제외
     payload["data_quality"] = {"stale_items": stale, "is_today": trade_date == now_kst().strftime("%Y-%m-%d")}
 
-    payload["ai_briefing"] = generate_briefing(payload)
+    payload["ai_briefing"] = guarded("브리핑", lambda: generate_briefing(payload), lambda: build_rule_briefing(payload))
 
     atomic_write_json(DATA_PATH, payload)
     log(f"data.json 갱신 완료 (거래일 {trade_date}, 이전값 유지 항목 {len(stale)}개: {stale})")
