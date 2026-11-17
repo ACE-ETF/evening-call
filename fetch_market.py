@@ -117,7 +117,13 @@ def safe_read(symbol: str, start_date: str, retries: int = 2):
     return None
 
 
-def get_price_metrics(df):
+def get_price_metrics(df, cutoff: str = None):
+    """cutoff(YYYY-MM-DD)가 주어지면 그 날짜까지만 사용 → 장중 실행 시 KRX 종목 기준일을 KOSPI와 맞춤."""
+    if df is not None and cutoff:
+        try:
+            df = df[df.index <= pd.Timestamp(cutoff)]
+        except Exception:
+            pass
     if df is None or len(df) < 2:
         return None
     try:
@@ -153,12 +159,18 @@ def with_fallback(new_value, prev_value, default):
     return d
 
 
+KRX_INDEX_KEYS = {"kospi", "kosdaq"}
+
+
 def fetch_indices(start_date: str, prev: dict) -> dict:
     prev_indices = prev.get("indices", {}) or {}
     default = {"price": 0, "daily_pct": 0.0, "weekly_pct": 0.0, "date": None}
     out = {}
+    cutoff = None
     for key, symbol in INDEX_SYMBOLS.items():
-        metrics = get_price_metrics(safe_read(symbol, start_date))
+        metrics = get_price_metrics(safe_read(symbol, start_date), cutoff if key in KRX_INDEX_KEYS else None)
+        if key == "kospi" and metrics is not None:
+            cutoff = metrics["date"]
         if metrics is None:
             for alt in INDEX_FALLBACK_SYMBOLS.get(key, []):
                 metrics = get_price_metrics(safe_read(alt, start_date, retries=1))
@@ -169,12 +181,12 @@ def fetch_indices(start_date: str, prev: dict) -> dict:
     return out
 
 
-def fetch_sectors(start_date: str, prev: dict) -> list:
+def fetch_sectors(start_date: str, prev: dict, cutoff: str = None) -> list:
     prev_map = {s.get("ticker"): s for s in (prev.get("sectors") or []) if isinstance(s, dict)}
     default = {"price": 0, "daily_pct": 0.0, "weekly_pct": 0.0, "date": None}
     sectors = []
     for item in ETF_LIST:
-        metrics = get_price_metrics(safe_read(item["ticker"], start_date))
+        metrics = get_price_metrics(safe_read(item["ticker"], start_date), cutoff)
         prev_item = prev_map.get(item["ticker"])
         prev_metrics = None
         if prev_item:
@@ -218,12 +230,77 @@ def get_investor_flow(market: str = "KOSPI"):
     return None
 
 
-def fetch_flow(prev: dict) -> dict:
-    prev_flow = prev.get("flow", {}) or {}
+NAVER_SOSOK = {"KOSPI": "01", "KOSDAQ": "02"}
+
+
+def get_investor_flow_naver(market: str = "KOSPI", cutoff: str = None):
+    """네이버 금융 '투자자별 매매동향(일별)' 백업 수집. 단위: 억 원."""
+    try:
+        from bs4 import BeautifulSoup
+    except Exception:
+        return None
+    import re
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
+    bizdate = now_kst().strftime("%Y%m%d")
+    rows = []
+    for page in (1, 2):
+        try:
+            res = requests.get(
+                "https://finance.naver.com/sise/investorDealTrendDay.naver",
+                params={"bizdate": bizdate, "sosok": NAVER_SOSOK.get(market, "01"), "page": page},
+                headers=headers, timeout=15,
+            )
+            res.raise_for_status()
+            html = res.content.decode("euc-kr", errors="replace")
+            soup = BeautifulSoup(html, "html.parser")
+            for tr in soup.select("table tr"):
+                tds = [td.get_text(strip=True) for td in tr.find_all("td")]
+                if len(tds) < 4 or not re.match(r"^\d{2}\.\d{2}\.\d{2}$", tds[0]):
+                    continue
+                def n(x):
+                    x = x.replace(",", "").replace("+", "")
+                    return float(x) if re.match(r"^-?\d+(\.\d+)?$", x) else None
+                date = "20" + tds[0].replace(".", "-")
+                personal, foreign, inst = n(tds[1]), n(tds[2]), n(tds[3])
+                if foreign is None or inst is None:
+                    continue
+                rows.append({"date": date, "foreign": foreign, "inst": inst})
+        except Exception as e:
+            log(f"{market} 네이버 수급 오류(page {page}): {type(e).__name__}: {e}")
+            break
+    if not rows:
+        return None
+    # 날짜 중복 제거 + 최신순 정렬 + 기준 거래일 이후 데이터(장중) 제외
+    uniq = {r["date"]: r for r in rows}
+    ordered = sorted(uniq.values(), key=lambda r: r["date"], reverse=True)
+    if cutoff:
+        ordered = [r for r in ordered if r["date"] <= cutoff]
+    if not ordered:
+        return None
+    last5 = ordered[:5]
     return {
-        "kospi": with_fallback(get_investor_flow("KOSPI"), prev_flow.get("kospi"), EMPTY_FLOW),
-        "kosdaq": with_fallback(get_investor_flow("KOSDAQ"), prev_flow.get("kosdaq"), EMPTY_FLOW),
+        "daily_foreign": round(ordered[0]["foreign"], 0),
+        "daily_inst": round(ordered[0]["inst"], 0),
+        "weekly_foreign": round(sum(r["foreign"] for r in last5), 0),
+        "weekly_inst": round(sum(r["inst"] for r in last5), 0),
+        "date": ordered[0]["date"],
+        "source": "naver",
+        "stale": False,
     }
+
+
+def fetch_flow(prev: dict, cutoff: str = None) -> dict:
+    prev_flow = prev.get("flow", {}) or {}
+    out = {}
+    for key, market in (("kospi", "KOSPI"), ("kosdaq", "KOSDAQ")):
+        flow = get_investor_flow(market)
+        if flow is not None and cutoff and flow.get("date") and flow["date"] > cutoff:
+            flow = None  # 장중 데이터면 버리고 백업 경로로
+        if flow is None:
+            log(f"{market} 수급: pykrx 실패 → 네이버 금융 백업 시도")
+            flow = get_investor_flow_naver(market, cutoff)
+        out[key] = with_fallback(flow, prev_flow.get(key), EMPTY_FLOW)
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -241,17 +318,20 @@ def build_fallback_briefing(payload: dict) -> dict:
     worst_d = min(sectors, key=lambda s: s["daily_pct"], default=None)
     best_w = max(sectors, key=lambda s: s["weekly_pct"], default=None)
 
+    flow_ok = not flow.get("stale")
     daily = (
         f"코스피는 {kospi['daily_pct']:+.2f}% 변동한 {kospi['price']:,.2f}pt, 코스닥은 {kosdaq['daily_pct']:+.2f}%로 마감했으며 "
-        f"원/달러 환율 {fx['price']:,.1f}원({fx['daily_pct']:+.2f}%), 코스피 외국인 {flow['daily_foreign']:+,.0f}억 원·기관 {flow['daily_inst']:+,.0f}억 원입니다. "
+        f"원/달러 환율은 {fx['price']:,.1f}원({fx['daily_pct']:+.2f}%)"
+        + (f", 코스피 외국인 {flow['daily_foreign']:+,.0f}억 원·기관 {flow['daily_inst']:+,.0f}억 원입니다. " if flow_ok else "입니다. ")
     )
     if best_d and worst_d:
         daily += f"섹터 ETF는 {best_d['sector']}({best_d['daily_pct']:+.2f}%)가 강했고 {worst_d['sector']}({worst_d['daily_pct']:+.2f}%)가 약했습니다."
 
-    risk_off = kospi["weekly_pct"] < -2 or flow["weekly_foreign"] < 0 or fx["weekly_pct"] > 1
+    risk_off = (kospi["weekly_pct"] < -2 or kospi["daily_pct"] < -2
+                or (flow_ok and flow["weekly_foreign"] < 0) or fx["weekly_pct"] > 1)
     weekly = (
-        f"최근 5거래일 코스피 {kospi['weekly_pct']:+.2f}%, 필라델피아 반도체 {sox['weekly_pct']:+.2f}%, "
-        f"외국인 누적 {flow['weekly_foreign']:+,.0f}억 원·기관 {flow['weekly_inst']:+,.0f}억 원입니다. "
+        f"최근 5거래일 코스피 {kospi['weekly_pct']:+.2f}%, 필라델피아 반도체 {sox['weekly_pct']:+.2f}%"
+        + (f", 외국인 누적 {flow['weekly_foreign']:+,.0f}억 원·기관 {flow['weekly_inst']:+,.0f}억 원입니다. " if flow_ok else "입니다. ")
     )
     if risk_off:
         weekly += "외국인 이탈·환율 부담 신호가 있어 추격 매수보다 순환매·방어 업종과 현금 버퍼 비중을 높여 포트폴리오 베타를 낮출 구간입니다."
@@ -332,8 +412,8 @@ def main() -> int:
         log(f"최신 거래일({trade_date})이 기존 데이터({prev_trade_date})와 같거나 이전 → 휴장일/중복 실행으로 판단, 갱신 생략.")
         return 0
 
-    sectors = fetch_sectors(start_date, prev)
-    flow = fetch_flow(prev)
+    sectors = fetch_sectors(start_date, prev, trade_date)
+    flow = fetch_flow(prev, trade_date)
 
     payload = {
         "updated_at": now_kst().strftime("%Y-%m-%d %H:%M KST"),
