@@ -1,0 +1,141 @@
+{
+  "updated_at": "2026-11-17 10:34 KST",
+  "trade_date": "2026-11-16",
+  "indices": {
+    "kospi": {
+      "price": 5100.5,
+      "daily_pct": -3.59,
+      "weekly_pct": 1.63,
+      "date": "2026-11-16",
+      "stale": false
+    },
+    "kosdaq": {
+      "price": 665.65,
+      "daily_pct": -4.86,
+      "weekly_pct": 4.18,
+      "date": "2026-11-16",
+      "stale": false
+    },
+    "usdkrw": {
+      "price": 1341.18,
+      "daily_pct": 0.59,
+      "weekly_pct": -0.2,
+      "date": "2026-11-17",
+      "stale": false
+    },
+    "sox": {
+      "price": 9610.65,
+      "daily_pct": -5.28,
+      "weekly_pct": -4.22,
+      "date": "2026-11-16",
+      "stale": false
+    }
+  },
+  "flow": {
+    "kospi": {
+      "daily_foreign": 0,
+      "daily_inst": 0,
+      "weekly_foreign": 0,
+      "weekly_inst": 0,
+      "stale": true
+    },
+    "kosdaq": {
+      "daily_foreign": 0,
+      "daily_inst": 0,
+      "weekly_foreign": 0,
+      "weekly_inst": 0,
+      "stale": true
+    }
+  },
+  "sectors": [
+    {
+      "ticker": "069500",
+      "name": "KODEX 200",
+      "sector": "시장대표",
+      "group": "core",
+      "price": 78830.0,
+      "daily_pct": -1.34,
+      "weekly_pct": -3.87,
+      "date": "2026-11-17",
+      "stale": false
+    },
+    {
+      "ticker": "396500",
+      "name": "TIGER 반도체TOP10",
+      "sector": "반도체·AI",
+      "group": "growth",
+      "price": 25245.0,
+      "daily_pct": 0.18,
+      "weekly_pct": -4.57,
+      "date": "2026-11-17",
+      "stale": false
+    },
+    {
+      "ticker": "466920",
+      "name": "SOL 조선TOP3플러스",
+      "sector": "조선·방산",
+      "group": "rotation",
+      "price": 17850.0,
+      "daily_pct": -2.38,
+      "weekly_pct": -2.49,
+      "date": "2026-11-17",
+      "stale": false
+    },
+    {
+      "ticker": "466940",
+      "name": "TIGER 은행고배당플러스TOP10",
+      "sector": "금융·밸류업",
+      "group": "rotation",
+      "price": 23875.0,
+      "daily_pct": -0.5,
+      "weekly_pct": 3.33,
+      "date": "2026-11-17",
+      "stale": false
+    },
+    {
+      "ticker": "305720",
+      "name": "KODEX 2차전지산업",
+      "sector": "2차전지",
+      "group": "growth",
+      "price": 12365.0,
+      "daily_pct": -0.6,
+      "weekly_pct": -0.8,
+      "date": "2026-11-17",
+      "stale": false
+    },
+    {
+      "ticker": "244580",
+      "name": "KODEX 바이오",
+      "sector": "바이오",
+      "group": "rotation",
+      "price": 7000.0,
+      "daily_pct": 0.86,
+      "weekly_pct": -3.38,
+      "date": "2026-11-17",
+      "stale": false
+    },
+    {
+      "ticker": "459580",
+      "name": "KODEX CD금리액티브(합성)",
+      "sector": "파킹·현금성",
+      "group": "cash",
+      "price": 1075050.0,
+      "daily_pct": 0.01,
+      "weekly_pct": 0.06,
+      "date": "2026-11-17",
+      "stale": false
+    }
+  ],
+  "data_quality": {
+    "stale_items": [
+      "flow.kospi",
+      "flow.kosdaq"
+    ],
+    "is_today": false
+  },
+  "ai_briefing": {
+    "daily_comment": "코스피는 -3.59% 변동한 5,100.50pt, 코스닥은 -4.86%로 마감했으며 원/달러 환율 1,341.2원(+0.59%), 코스피 외국인 +0억 원·기관 +0억 원입니다. 섹터 ETF는 바이오(+0.86%)가 강했고 조선·방산(-2.38%)가 약했습니다.",
+    "weekly_comment": "최근 5거래일 코스피 +1.63%, 필라델피아 반도체 -4.22%, 외국인 누적 +0억 원·기관 +0억 원입니다. 금융·밸류업 중심의 주도력이 유지되고 있어 반도체·AI 코어는 유지하되 순환매 속도를 점검하며 비중을 조절할 구간입니다.",
+    "source": "rule"
+  }
+}
