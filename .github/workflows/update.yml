@@ -39,6 +39,8 @@ jobs:
       - name: Fetch market data
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
           FORCE_UPDATE: ${{ github.event.inputs.force_update || '0' }}
         run: python fetch_market.py
 
