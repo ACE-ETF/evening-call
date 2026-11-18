@@ -196,7 +196,11 @@
   .achip { font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(245,185,66,.12); border: 1px solid rgba(245,185,66,.3); padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
   .achip.none { color: var(--muted); background: transparent; border-color: var(--line); }
   .tlist { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 4px; }
-  .trow { display: grid; grid-template-columns: 34px 1fr auto; gap: 6px; align-items: center; padding: 5px 0; font-size: 13px; border-bottom: 1px dashed var(--grid); }
+  .trow { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; font-size: 13px; border-bottom: 1px dashed var(--grid); }
+  .trow .tbody { min-width: 0; display: flex; flex-direction: column; }
+  .trow .tm { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .trow .rk { font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; }
+  .tlist.flat { margin-top: 0; border-top: 0; padding-top: 0; }
   .trow:last-child { border-bottom: 0; }
   .trow .tn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .trow .tp { font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -610,19 +614,39 @@
       });
     }
     var stats = '<div class="ace-stats">' +
-      '<div><span class="k">ACE ETF</span><b class="num">' + num(A.count) + '종</b></div>' +
+      '<div><span class="k">ACE ETF' + (A.aum_total ? ' · 순자산 ' + aumFmt(A.aum_total) : "") + '</span><b class="num">' + num(A.count) + '종</b></div>' +
       '<div><span class="k">상승 · 하락</span><b class="num"><span class="up">' + num(a.up) + '</span> · <span class="down">' + num(a.down) + '</span></b></div>' +
       '<div><span class="k">수익률 중간값</span><b class="num ' + cls(a.median) + '">' + pct(a.median) + '</b></div>' +
       '<div><span class="k">코스피 대비</span><b class="num ' + cls(num(a.median) - num(k[pk()])) + '">' + (num(a.median) - num(k[pk()]) >= 0 ? "+" : "") + (num(a.median) - num(k[pk()])).toFixed(2) + '%p</b></div>' +
       '</div>' +
       (tot ? '<div class="bbar" style="margin:4px 0 16px" data-tip="' + esc("<b>ACE ETF 등락 분포</b><br>상승 " + a.up + " · 보합 " + a.flat + " · 하락 " + a.down) + '"><div style="flex:' + a.up + ';background:var(--up)"></div><div style="flex:' + a.flat + ';background:var(--line)"></div><div style="flex:' + a.down + ';background:var(--down)"></div></div>' : "");
-    var vt = '<table><thead><tr><th>상품</th><th>' + (S.mode === "daily" ? "1D" : "5D") + '</th><th>거래대금(억)</th></tr></thead><tbody>' + (a.value_top || []).slice(0, an).map(function (x) {
-      return '<tr><td>' + esc(x.name.replace(/^ACE\s+/, "")) + '<div style="color:var(--muted);font-size:11.5px">' + esc(x.code) + '</div></td><td class="' + cls(x.pct) + '"><b>' + pct(x.pct) + '</b></td><td>' + Math.round(num(x.value)).toLocaleString("ko-KR") + '</td></tr>';
-    }).join("") + '</tbody></table>';
+    function list(arr) { return '<div class="tlist flat">' + (arr || []).slice(0, an).map(function (x, i) { return etfLine(x, String(i + 1)); }).join("") + '</div>'; }
+    var big = a.aum_top ? ['aum_top', '순자산 상위'] : ['value_top', '거래대금 상위'];
     return '<div class="card"><div class="card-h"><h2>ACE ETF 마감 성과<span class="sub">' + modeLabel() + '</span>' + staleBadge(A) + '</h2></div>' + asOf("etf") + stats +
-      '<div class="ace-grid"><div><h4 class="up" style="font-size:12.5px;margin:0 0 6px">수익률 상위</h4>' + hbars(rows(a.top), { unit: "%" }) + '</div>' +
-      '<div><h4 class="down" style="font-size:12.5px;margin:0 0 6px">수익률 하위</h4>' + hbars(rows(a.bottom), { unit: "%" }) + '</div>' +
-      '<div><h4 style="font-size:12.5px;margin:0 0 6px;color:var(--text-2)">거래대금 상위</h4>' + vt + '</div></div></div>';
+      '<div class="ace-grid"><div><h4 class="up" style="font-size:12.5px;margin:0 0 6px">수익률 상위</h4>' + list(a.top) + '</div>' +
+      '<div><h4 class="down" style="font-size:12.5px;margin:0 0 6px">수익률 하위</h4>' + list(a.bottom) + '</div>' +
+      '<div><h4 style="font-size:12.5px;margin:0 0 6px;color:var(--text-2)">' + big[1] + '</h4>' + list(a[big[0]]) + '</div></div></div>';
+  }
+
+  // ---------- ETF 행 공통: 이름 · 현재 기간 수익률 / 순자산 · 1D · 1W · 1M ----------
+  function aumFmt(v) {
+    v = num(v); if (!v) return "-";
+    return v >= 10000 ? (v / 10000).toFixed(v >= 100000 ? 0 : 1) + "조" : Math.round(v).toLocaleString("ko-KR") + "억";
+  }
+  function rv(x, k) { var v = x[k]; return v == null ? null : num(v); }
+  function softPct(v) { return v == null ? "-" : '<span class="' + (v > 0 ? "nu" : v < 0 ? "nd" : "") + '">' + pct(v) + '</span>'; }
+  function etfLine(x, tag) {
+    var main = rv(x, S.mode === "daily" ? "d1" : "w1"); if (main == null) main = num(x.pct);
+    var isAce = /^ACE\s/.test(x.name);
+    var nm = isAce ? x.name.replace(/^ACE\s+/, "") : x.name;
+    var meta = x.aum != null || x.d1 != null
+      ? '순자산 ' + aumFmt(x.aum) + ' · 1D ' + softPct(rv(x, "d1")) + ' · 1W ' + softPct(rv(x, "w1")) + ' · 1M ' + softPct(rv(x, "m1"))
+      : '거래대금 ' + Math.round(num(x.value)).toLocaleString("ko-KR") + '억';
+    var tip = "<b>" + esc(x.name) + "</b> (" + esc(x.code) + ")<br>순자산 " + aumFmt(x.aum) + " · 거래대금 " + Math.round(num(x.value)).toLocaleString("ko-KR") + "억<br>1D " + pct(rv(x, "d1")) + " · 1W " + pct(rv(x, "w1")) + " · 1M " + pct(rv(x, "m1"));
+    var tg = tag === "ace" ? '<span class="atag">ACE</span>' : tag === "cmp" ? '<span class="otag">비교</span>' : '<span class="rk">' + esc(tag || "") + '</span>';
+    return '<div class="trow' + (isAce ? " ace" : "") + '" data-tip="' + esc(tip) + '">' + tg +
+      '<div class="tbody"><span class="tn">' + esc(nm) + '</span><span class="tm">' + meta + '</span></div>' +
+      '<span class="tp ' + cls(main) + '">' + pct(main) + '</span></div>';
   }
 
   // ---------- 테마별 ETF (ACE 우선) ----------
@@ -643,8 +667,8 @@
       var w = Math.abs(num(t.median)) / mx * 50;
       var bar = '<div class="track"><span class="axis"></span><i class="' + (num(t.median) >= 0 ? "pos" : "neg") + '" style="width:' + w + '%"></i></div>';
       var aceInfo = t.ace_count ? '<span class="achip">ACE ' + t.ace_count + '종' + (t.ace_median != null ? ' · ' + pct(t.ace_median) : "") + '</span>' : '<span class="achip none">ACE 없음</span>';
-      var rows = (t.ace || []).map(function (x) { return etfRow(x, true); }).join("") +
-        (t.others || []).map(function (x) { return etfRow(x, false); }).join("");
+      var rows = (t.ace || []).map(function (x) { return etfLine(x, "ace"); }).join("") +
+        (t.others || []).map(function (x) { return etfLine(x, "cmp"); }).join("");
       return '<details class="theme"' + (isM() ? "" : " open") + '><summary>' +
         '<div class="th"><span class="tname">' + esc(t.theme) + '</span><span class="tmed ' + cls(t.median) + '">' + pct(t.median) + '</span></div>' +
         '<div class="tsub">' + bar + aceInfo + '</div></summary>' +
@@ -652,7 +676,7 @@
     }).join("");
     return '<div class="card"><div class="card-h"><h2>테마별 ETF 수익률<span class="sub">' + modeLabel() + ' · 테마 중간값 높은 순 · 레버리지/인버스 제외</span>' + staleBadge(T) + '</h2></div>' + asOf("etf") +
       '<div class="themes">' + body + '</div>' + lim.btn +
-      '<div class="src">테마 수익률은 해당 테마 국내 상장 ETF 전체의 중간값 · ACE는 거래대금 순 · 비교는 타사 거래대금 상위</div></div>';
+      '<div class="src">테마 수익률 = 해당 테마 국내 상장 ETF 전체의 중간값 · 정렬: ACE ' + modeLabel() + ' 수익률 상위 → 비교(타사, 순자산 100억 이상) ' + modeLabel() + ' 수익률 상위 3</div></div>';
   }
 
   // ---------- 상호작용 ----------

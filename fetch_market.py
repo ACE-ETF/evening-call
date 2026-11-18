@@ -615,22 +615,53 @@ def theme_of(name: str):
     return None
 
 
-def etf_rows(df, names: dict):
-    df = df.copy()
+def _num(v):
+    try:
+        return float(str(v).replace(",", "").strip() or "nan")
+    except Exception:
+        return float("nan")
+
+
+def etf_snapshot(date: str):
+    """ETF 전종목 시세(1회): 종가·1일 등락률·거래대금·순자산총액(AUM)."""
+    from pykrx.website.krx.etx.core import 전종목시세_ETF
+    df = krx_call(f"ETF 전종목 시세({date})", lambda d: 전종목시세_ETF().fetch(d), ymd(date))
+    if df is None or "ISU_SRT_CD" not in df.columns:
+        return None
+    out = {}
+    for _, r in df.iterrows():
+        aum = _num(r.get("INVSTASST_NETASST_TOTAMT"))
+        if not (aum > 0):
+            aum = _num(r.get("MKTCAP"))  # 순자산 미제공 시 시가총액으로 대체(ETF는 거의 동일)
+        out[str(r["ISU_SRT_CD"])] = {
+            "d1": _num(r.get("FLUC_RT")),
+            "price": _num(r.get("TDD_CLSPRC")),
+            "value": _num(r.get("ACC_TRDVAL")),
+            "aum": aum,
+        }
+    return out
+
+
+def etf_period_change(start: str, end: str, label: str):
+    df = krx_call(f"ETF 등락률({label})", stock.get_etf_price_change_by_ticker if stock else None, ymd(start), ymd(end))
+    if df is None or "등락률" not in df.columns:
+        return {}
     df.index = df.index.astype(str)
-    for c in ("등락률", "거래대금", "종가"):
-        df[c] = pd.to_numeric(df.get(c), errors="coerce")
-    df = df.dropna(subset=["등락률"])
-    return [{"code": c, "name": str(names.get(c, c)), "pct": round(float(r["등락률"]), 2),
-             "price": int(r["종가"] or 0), "value": eok(r["거래대금"] or 0)}
-            for c, r in df.iterrows() if c in names]
+    return {c: _num(v) for c, v in df["등락률"].items()}
 
 
-def build_themes(rows: list) -> list:
+def r2(v):
+    return None if v != v else round(float(v), 2)  # NaN → None
+
+
+COMPARE_MIN_AUM = 100  # 비교군(타사)은 순자산 100억 원 이상만 (초소형 상품 노이즈 방지)
+
+
+def build_themes(rows: list, key: str) -> list:
     groups = {}
     for r in rows:
         t = theme_of(r["name"])
-        if t:
+        if t and r.get(key) is not None:
             groups.setdefault(t, []).append(r)
     out = []
     for t, _ in THEMES:
@@ -638,52 +669,65 @@ def build_themes(rows: list) -> list:
         if len(g) < 2:
             continue
         ace = [x for x in g if x["name"].startswith(ACE_PREFIX)]
-        others = [x for x in g if not x["name"].startswith(ACE_PREFIX)]
+        others = [x for x in g if not x["name"].startswith(ACE_PREFIX) and x.get("aum", 0) >= COMPARE_MIN_AUM]
         out.append({
             "theme": t,
-            "median": round(float(pd.Series([x["pct"] for x in g]).median()), 2),
+            "median": round(float(pd.Series([x[key] for x in g]).median()), 2),
             "count": len(g),
             "ace_count": len(ace),
-            "ace_median": round(float(pd.Series([x["pct"] for x in ace]).median()), 2) if ace else None,
-            # ACE: 거래대금 큰 순으로 최대 6개 / 타사 비교: 거래대금 상위 3개
-            "ace": sorted(ace, key=lambda x: x["value"], reverse=True)[:6],
-            "others": sorted(others, key=lambda x: x["value"], reverse=True)[:3],
+            "ace_median": round(float(pd.Series([x[key] for x in ace]).median()), 2) if ace else None,
+            # 정렬: ACE는 해당 기간 수익률 높은 순(최대 8) / 비교군은 타사 중 수익률 상위 3
+            "ace": sorted(ace, key=lambda x: x[key], reverse=True)[:8],
+            "others": sorted(others, key=lambda x: x[key], reverse=True)[:3],
         })
     return sorted(out, key=lambda x: x["median"], reverse=True)
 
 
 def fetch_etf_block(dates: list):
-    """ETF 전종목 등락률 1회 조회(기간별) → ACE 라인업 요약 + 테마별 묶음."""
+    """ETF 데이터: 전종목 시세 1회 + 기간 등락률 2회(1주·1개월) = KRX 3회 (+이름표)."""
     names = etf_names()
     if not names:
         return None, None
-    ace_codes = {c: n for c, n in names.items() if str(n).startswith(ACE_PREFIX)}
     trade = dates[-1]
-    ace = {"count": len(ace_codes)}
+    snap = etf_snapshot(trade)
+    if not snap:
+        return None, None
+    w1 = etf_period_change(dates[-5] if len(dates) >= 5 else dates[0], trade, "1주")
+    m1 = etf_period_change(dates[-20] if len(dates) >= 20 else dates[0], trade, "1개월")
+    rows = []
+    for code, v in snap.items():
+        if code not in names or v["d1"] != v["d1"]:
+            continue
+        rows.append({
+            "code": code, "name": str(names[code]),
+            "d1": r2(v["d1"]), "w1": r2(w1.get(code, float("nan"))), "m1": r2(m1.get(code, float("nan"))),
+            "price": int(v["price"]) if v["price"] == v["price"] else 0,
+            "value": eok(v["value"]) if v["value"] == v["value"] else 0,
+            "aum": eok(v["aum"]) if v["aum"] == v["aum"] else 0,
+        })
+    k200 = next((x for x in rows if x["code"] == "069500"), None)
+    if k200:
+        log(f"ETF 검증: KODEX 200 1D {k200['d1']}% / 1W {k200['w1']}% / 1M {k200['m1']}% / 순자산 {k200['aum']:,}억")
+
+    arows = [x for x in rows if x["name"].startswith(ACE_PREFIX)]
+    if not arows:
+        return None, None
+    ace = {"count": len(arows)}
     themes = {}
-    # KRX 기간등락률은 시작일의 전일 종가 기준 → 일간 (당일~당일), 5일 (5거래일 전~당일)
-    for period, start in (("daily", trade), ("weekly", dates[-5] if len(dates) >= 5 else dates[0])):
-        df = krx_call(f"ETF 등락률({period})", stock.get_etf_price_change_by_ticker if stock else None, ymd(start), ymd(trade))
-        if df is None or "등락률" not in df.columns:
-            return None, None
-        rows = etf_rows(df, names)
-        if period == "daily":
-            k200 = next((x for x in rows if x["code"] == "069500"), None)
-            if k200:
-                log(f"ETF 등락률 검증: KODEX 200 {k200['pct']:.2f}%")
-        themes[period] = build_themes(rows)
-        arows = [x for x in rows if x["code"] in ace_codes]
-        if not arows:
-            return None, None
-        by_pct = sorted(arows, key=lambda x: x["pct"], reverse=True)
-        r = pd.Series([x["pct"] for x in arows])
+    for period, key in (("daily", "d1"), ("weekly", "w1")):
+        themes[period] = build_themes(rows, key)
+        valid = [x for x in arows if x.get(key) is not None]
+        by = sorted(valid, key=lambda x: x[key], reverse=True)
+        sr = pd.Series([x[key] for x in valid])
         ace[period] = {
-            "up": int((r > 0).sum()), "down": int((r < 0).sum()), "flat": int((r == 0).sum()),
-            "median": round(float(r.median()), 2),
-            "top": by_pct[:8],
-            "bottom": by_pct[-8:][::-1],
-            "value_top": sorted(arows, key=lambda x: x["value"], reverse=True)[:8],
+            "up": int((sr > 0).sum()), "down": int((sr < 0).sum()), "flat": int((sr == 0).sum()),
+            "median": round(float(sr.median()), 2),
+            "top": [dict(x, pct=x[key]) for x in by[:8]],
+            "bottom": [dict(x, pct=x[key]) for x in by[-8:][::-1]],
+            "value_top": [dict(x, pct=x[key]) for x in sorted(valid, key=lambda x: x["value"], reverse=True)[:8]],
+            "aum_top": [dict(x, pct=x[key]) for x in sorted(valid, key=lambda x: x["aum"], reverse=True)[:8]],
         }
+    ace["aum_total"] = int(sum(x["aum"] for x in arows))
     ace["stale"] = False
     themes["stale"] = False
     return ace, themes
@@ -916,7 +960,7 @@ def briefing_input(p: dict) -> dict:
         "top_stocks_eok": slim_ts,
         "theme_etf": None if (p.get("themes") or {}).get("stale") else {
             per: [{"theme": t["theme"], "median": t["median"], "ace_median": t.get("ace_median"),
-                   "ace": [(x["name"], x["pct"]) for x in t.get("ace", [])[:2]]}
+                   "ace": [(x["name"], x.get("d1" if per == "daily" else "w1")) for x in t.get("ace", [])[:2]]}
                   for t in (p.get("themes") or {}).get(per, [])]
             for per in ("daily", "weekly")},
         "ace_etf": {per: {kk: ((p.get("ace") or {}).get(per) or {}).get(kk) for kk in ("up", "down", "median", "top", "bottom", "value_top")}
