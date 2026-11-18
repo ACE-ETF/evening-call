@@ -319,6 +319,12 @@ def fetch_indices(start_date: str, prev: dict):
                 if metrics is not None:
                     metrics["symbol_used"] = alt
                     break
+        if key == "kospi" and metrics is not None and df is not None:
+            # 장중(15:40 이전) 실행이면 오늘 잠정 시세 행은 제외하고 직전 거래일 종가 기준으로
+            now = now_kst()
+            if (now.hour, now.minute) < (15, 40):
+                y = (pd.Timestamp(now.strftime("%Y-%m-%d")) - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+                metrics = get_price_metrics(df, y, series_len=20)
         if key == "kospi" and metrics is not None:
             cutoff = metrics["date"]
             kospi_df = cut(df, cutoff)
