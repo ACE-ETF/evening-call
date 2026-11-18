@@ -1048,7 +1048,7 @@ def generate_briefing(p: dict) -> dict:
     )
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.3},
+        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.3, "maxOutputTokens": 8192},
     }
     headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
     for model in GEMINI_MODELS:
@@ -1251,6 +1251,11 @@ def main() -> int:
         return 0
 
     payload["ai_briefing"] = guarded("브리핑", lambda: generate_briefing(payload), lambda: build_rule_briefing(payload))
+    pb = prev.get("ai_briefing") or {}
+    if payload["ai_briefing"].get("source") != "gemini" and prev_trade_date == trade_date and pb.get("source") == "gemini":
+        # 같은 거래일에 이미 Gemini 브리핑이 있으면 규칙 기반으로 덮지 않고 유지 (다음 실행에서 재시도)
+        log("Gemini 실패 → 같은 거래일의 기존 Gemini 브리핑 유지")
+        payload["ai_briefing"] = dict(pb, reused=True)
 
     payload["as_of"]["briefing"] = f"{payload['ai_briefing'].get('model') or '규칙 기반'} · {hm} 작성"
     atomic_write_json(DATA_PATH, payload)
