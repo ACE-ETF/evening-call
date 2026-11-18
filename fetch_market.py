@@ -907,8 +907,11 @@ def build_themes(rows: list, key: str, bench: dict = None, drivers: dict = None)
             continue
         b = bench.get(t)
         if not b or b.get(key) is None:
-            b = {"name": "ETF 순자산 가중평균", "src": "ETF 가중",
-                 "d1": aum_weighted(g, "d1"), "w1": aum_weighted(g, "w1"), "m1": aum_weighted(g, "m1")}
+            # 맞는 지수가 없는 테마: 테마 안 수익률 1위 ETF (AUM 100억 이상, 없으면 전체 중)
+            pool = [x for x in g if (x.get("aum") or 0) >= COMPARE_MIN_AUM] or g
+            top = max(pool, key=lambda x: x[key])
+            b = {"name": top["name"], "code": top["code"], "src": "상위 ETF",
+                 "d1": top.get("d1"), "w1": top.get("w1"), "m1": top.get("m1")}
         ace = [x for x in g if x["name"].startswith(ACE_PREFIX)]
         others = [x for x in g if not x["name"].startswith(ACE_PREFIX) and x.get("aum", 0) >= COMPARE_MIN_AUM]
         out.append({
@@ -1144,7 +1147,7 @@ def rule_picks(p: dict, n: int = 6) -> list:
         if t["theme"] in PICK_SKIP_THEMES or t["theme"] not in by_theme:
             continue
         b = t.get("bench") or {}
-        basis = "테마 ETF 가중" if b.get("src") == "ETF 가중" else b.get("name", "-")
+        basis = f"테마 1위 {b.get('name', '-')}" if b.get("src") == "상위 ETF" else b.get("name", "-")
         add(by_theme[t["theme"]], f"{t['theme']} 상대 강세 ({basis} {b.get('d1') or 0:+.2f}%)")
     defensive = ["채권·금리·파킹", "금·원자재", "배당·인컴"] if kospi < 0 else ["국내 대표지수", "미국 대표지수", "반도체"]
     for th in defensive + ["미국 대표지수", "미국 빅테크·성장", "국내 대표지수", "배당·인컴", "금·원자재"]:
@@ -1366,16 +1369,31 @@ def generate_briefing(p: dict) -> dict:
         "[ACE 후보] (code, 상품명, 테마, 1D, 1W, 1M, AUM억)\n" +
         "\n".join(f"{x['code']}, {x['name']}, {x['theme']}, {x.get('d1')}, {x.get('w1')}, {x.get('m1')}, {x.get('aum')}" for x in picks_pool(p))
     )
+    S_, A_, O_ = {"type": "STRING"}, (lambda it: {"type": "ARRAY", "items": it}), (lambda props, req=None: {"type": "OBJECT", "properties": props, "required": req or list(props)})
+    sec_schema = O_({"gist": S_, "items": A_(O_({"k": S_, "v": S_}))})
+    brief_schema = O_({"headline": S_, "summary": A_(S_),
+                       "sections": O_({k: sec_schema for k, _ in BRIEF_SECTIONS}, []),
+                       "strategy": A_(S_)})
+    schema = O_({"ace_picks": A_(O_({"code": S_, "point": S_})), "daily": brief_schema, "weekly": brief_schema})
+    # 응답 구조(스키마)를 지정해 JSON이 깨지지 않게 함. 스키마를 못 받는 모델이면 스키마 없이 재시도
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.3, "maxOutputTokens": 8192},
+        "generationConfig": {"responseMimeType": "application/json", "responseSchema": schema,
+                             "temperature": 0.3, "maxOutputTokens": 16384},
     }
+    body_plain = {"contents": body["contents"],
+                  "generationConfig": {"responseMimeType": "application/json", "temperature": 0.3, "maxOutputTokens": 16384}}
     headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
     for model in GEMINI_MODELS:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+        use_body = body
         for attempt in range(1, 3):
             try:
-                res = requests.post(url, headers=headers, json=body, timeout=60)
+                res = requests.post(url, headers=headers, json=use_body, timeout=90)
+                if res.status_code == 400 and use_body is body:
+                    log(f"Gemini {model}: 스키마 미지원 추정(400) → 스키마 없이 재시도")
+                    use_body = body_plain
+                    continue
                 if res.status_code != 200:
                     try:
                         err = res.json().get("error", {})
@@ -1383,11 +1401,14 @@ def generate_briefing(p: dict) -> dict:
                     except Exception:
                         detail = res.text[:200]
                     log(f"Gemini {model} 실패 (시도 {attempt}/2): HTTP {res.status_code} {detail}")
-                    if res.status_code in (400, 401, 403, 404):
+                    if res.status_code in (400, 401, 403, 404, 429):  # 429(모델별 한도 소진)는 재시도해도 같음 → 다음 모델로
                         break
                     time.sleep(3)
                     continue
-                text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
+                cand = res.json()["candidates"][0]
+                if cand.get("finishReason") not in (None, "STOP"):
+                    log(f"Gemini {model} 응답 종료 사유: {cand.get('finishReason')}")
+                text = cand["content"]["parts"][0]["text"]
                 parsed = json.loads(text.replace("```json", "").replace("```", "").strip())
                 out = {}
                 for per in ("daily", "weekly"):

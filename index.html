@@ -696,7 +696,7 @@
   // ---------- 테마별 ETF (ACE 우선) ----------
   function themeKey() { return S.mode === "daily" ? "d1" : "w1"; }
   function benchOf(t) { return t.bench || { name: "테마 ETF 중간값", src: "ETF", d1: t.median, w1: t.median, m1: null }; }
-  function benchLabel(b) { return b.src === "ETF 가중" ? "ETF AUM 가중" : b.name; }
+  function benchLabel(b) { return b.src === "상위 ETF" ? "1위 " + b.name : b.src === "ETF 가중" ? "ETF AUM 가중" : b.name; }
 
   // 전체 테마 흐름: 테마 × 1D/1W/1M 히트맵
   function heatCell(v) {
@@ -718,7 +718,7 @@
     }).join("");
     return '<div class="card"><div class="card-h"><h2>전체 테마 흐름<span class="sub">기준지수 수익률 · ' + (S.mode === "daily" ? "1D" : "1W") + ' 높은 순 · 행을 누르면 상세로 이동</span></h2></div>' +
       '<div class="heat-wrap"><table class="heat"><thead><tr><th>테마 · 기준</th><th>1D</th><th>1W</th><th>1M</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<div class="src">기준: 국내 테마는 한국거래소 KRX·테마 지수, 해외 테마는 대표 지수(미국·홍콩·인도 등은 국내 기준일 전날 종가), 맞는 지수가 없는 테마는 테마 내 ETF 순자산(AUM) 가중평균</div></div>';
+      '<div class="src">기준: 국내 테마는 한국거래소 KRX·테마 지수, 해외 테마는 대표 지수(미국·홍콩·인도 등은 국내 기준일 전날 종가), 맞는 지수가 없는 테마는 테마 안 수익률 1위 ETF(AUM 100억 이상)</div></div>';
   }
 
   function driversBlock(d) {
