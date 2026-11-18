@@ -198,8 +198,10 @@
   .tlist { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 4px; }
   .trow { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; font-size: 13px; border-bottom: 1px dashed var(--grid); }
   .trow .tbody { min-width: 0; display: flex; flex-direction: column; }
-  .trow .tm { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .trow .tm { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; margin-top: 1px; line-height: 1.4; }
   .trow .rk { font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; }
+  .trow .tp { text-align: right; }
+  .tpl { display: block; font-size: 10px; color: var(--muted); font-weight: 600; line-height: 1.1; }
   .tlist.flat { margin-top: 0; border-top: 0; padding-top: 0; }
   .trow:last-child { border-bottom: 0; }
   .trow .tn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -640,13 +642,13 @@
     var isAce = /^ACE\s/.test(x.name);
     var nm = isAce ? x.name.replace(/^ACE\s+/, "") : x.name;
     var meta = x.aum != null || x.d1 != null
-      ? '순자산 ' + aumFmt(x.aum) + ' · 1D ' + softPct(rv(x, "d1")) + ' · 1W ' + softPct(rv(x, "w1")) + ' · 1M ' + softPct(rv(x, "m1"))
+      ? 'AUM ' + aumFmt(x.aum) + (S.mode === "daily" ? "" : ' · 1D ' + softPct(rv(x, "d1"))) + (S.mode === "weekly" ? "" : ' · 1W ' + softPct(rv(x, "w1"))) + ' · 1M ' + softPct(rv(x, "m1"))
       : '거래대금 ' + Math.round(num(x.value)).toLocaleString("ko-KR") + '억';
     var tip = "<b>" + esc(x.name) + "</b> (" + esc(x.code) + ")<br>순자산 " + aumFmt(x.aum) + " · 거래대금 " + Math.round(num(x.value)).toLocaleString("ko-KR") + "억<br>1D " + pct(rv(x, "d1")) + " · 1W " + pct(rv(x, "w1")) + " · 1M " + pct(rv(x, "m1"));
     var tg = tag === "ace" ? '<span class="atag">ACE</span>' : tag === "cmp" ? '<span class="otag">비교</span>' : '<span class="rk">' + esc(tag || "") + '</span>';
     return '<div class="trow' + (isAce ? " ace" : "") + '" data-tip="' + esc(tip) + '">' + tg +
       '<div class="tbody"><span class="tn">' + esc(nm) + '</span><span class="tm">' + meta + '</span></div>' +
-      '<span class="tp ' + cls(main) + '">' + pct(main) + '</span></div>';
+      '<span class="tp ' + cls(main) + '"><small class="tpl">' + (S.mode === "daily" ? "1D" : "1W") + '</small>' + pct(main) + '</span></div>';
   }
 
   // ---------- 테마별 ETF (ACE 우선) ----------
