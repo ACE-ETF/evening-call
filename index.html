@@ -528,7 +528,7 @@
     ].map(function (k) {
       var o = I[k[0]] || {}; var v = num(o[pk()]);
       var series = o.series || [];
-      var trendUp = series.length > 1 ? series[series.length - 1].c >= series[0].c : v >= 0;
+      var trendUp = v >= 0;  // 미니 차트 색 = 카드에 표시된 등락률(1D/1W) 방향
       return '<div class="card kpi"><div class="label">' + k[1] + staleBadge(o) + '</div>' +
         '<div class="value num">' + fmt(o.price, k[2]) + '<small style="font-size:13px;color:var(--muted);font-weight:500"> ' + k[3] + '</small></div>' +
         '<div class="chg num ' + cls(v) + '">' + pct(v) + ' <span>' + (S.mode === "daily" ? "전일 대비" : "5거래일") + '</span></div>' +
