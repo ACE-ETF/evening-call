@@ -1,5 +1,18 @@
 [
   {
+    "date": "2026-11-18",
+    "kospi": 5067.44,
+    "kospi_pct": 1.99,
+    "kosdaq": 662.81,
+    "kosdaq_pct": 1.96,
+    "foreign": -2644,
+    "inst": 4165,
+    "retail": -6169,
+    "headline": "엔비디아 훈풍과 기관 매수에 코스피 5000선 회복",
+    "final": true,
+    "updated_at": "2026-11-18 20:20 KST"
+  },
+  {
     "date": "2026-11-17",
     "kospi": 4968.48,
     "kospi_pct": -2.59,
