@@ -186,6 +186,42 @@ KRX_STATE = {"fails": 0, "down": False}
 KRX_MAX_FAILS = 3  # 연속 실패 시 KRX 호출 중단 (로그인 실패 반복으로 계정이 잠기는 것 방지)
 
 
+def krx_login_check() -> bool:
+    """실행 시작 시 KRX 로그인 1회 점검. 실패하면 KRX가 돌려준 오류 코드·메시지를 로그로 남기고
+    이번 실행의 KRX 호출을 전부 건너뜀 (실패한 로그인이 반복돼 계정이 잠기는 것 방지)."""
+    login_id, login_pw = os.environ.get("KRX_ID", ""), os.environ.get("KRX_PW", "")
+    if not (login_id and login_pw):
+        log("KRX_ID/KRX_PW 없음 → KRX 호출 건너뜀")
+        KRX_STATE["down"] = True
+        return False
+    try:
+        from pykrx.website.comm import auth as krx_auth
+        sess = requests.Session()
+        krx_auth.warmup_krx_session(sess)
+        payload = {"mbrNm": "", "telNo": "", "di": "", "certType": "", "mbrId": login_id, "pw": login_pw}
+        headers = {"User-Agent": krx_auth.USER_AGENT, "Referer": krx_auth.LOGIN_PAGE}
+        resp = sess.post(krx_auth.LOGIN_URL, data=payload, headers=headers, timeout=15)
+        try:
+            data = resp.json()
+        except Exception:
+            log(f"KRX 로그인 점검: JSON 아님 (HTTP {resp.status_code}) {resp.text[:120]!r}")
+            KRX_STATE["down"] = True
+            return False
+        code, msg = data.get("_error_code", ""), data.get("_error_message", "")
+        if code == "CD011":  # 중복 로그인 → 기존 세션 끊고 재시도
+            payload["skipDup"] = "Y"
+            data = sess.post(krx_auth.LOGIN_URL, data=payload, headers=headers, timeout=15).json()
+            code, msg = data.get("_error_code", ""), data.get("_error_message", "")
+        log(f"KRX 로그인 점검: 코드 {code or '-'} / {msg or '-'} (ID 길이 {len(login_id)}, PW 길이 {len(login_pw)})")
+        if code == "CD001":
+            return True
+        KRX_STATE["down"] = True
+        return False
+    except Exception as e:
+        log(f"KRX 로그인 점검 오류: {type(e).__name__}: {e}")
+        return True  # 점검 자체 오류면 기존 방식으로 진행
+
+
 def krx_call(label: str, fn, *args, retries: int = 2):
     """pykrx 호출 공통 래퍼: 빈 결과/오류 시 재시도 후 None. 연속 실패가 쌓이면 이후 호출을 모두 건너뜀."""
     if stock is None or fn is None:
@@ -532,6 +568,8 @@ ACE_PREFIX = "ACE "
 
 def etf_names():
     """ETF 전종목 이름표 (pykrx 내부 싱글톤 - 실행당 1회만 조회)."""
+    if KRX_STATE["down"]:
+        return {}
     try:
         from pykrx.website.krx.etx.ticker import EtxTicker
         df = EtxTicker().df
@@ -1025,6 +1063,7 @@ def generate_briefing(p: dict) -> dict:
 def main() -> int:
     prev = load_previous()
     start_date = (now_kst() - timedelta(days=45)).strftime("%Y-%m-%d")
+    krx_login_check()
 
     indices, kospi_df = fetch_indices(start_date, prev)
     kospi = indices["kospi"]
