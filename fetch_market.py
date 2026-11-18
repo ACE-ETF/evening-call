@@ -582,32 +582,39 @@ def etf_names():
 
 # 테마 분류: 위에서부터 먼저 맞는 테마 하나에만 배정 (ETF 이름 기준)
 THEMES = [
+    # 1) 자산 성격이 분명한 것 먼저
     ("채권혼합", r"채권혼합|채혼합|국채혼합|TDF|TRF|자산배분"),
-    ("채권·금리·파킹", r"국채|채권|회사채|크레딧|금리|CD|KOFR|SOFR|머니마켓|단기|통안|하이일드|국공채|미국채|T-?Bill|채\b"),
+    ("채권·금리·파킹", r"국채|채권|회사채|크레딧|금리|CD|KOFR|SOFR|머니마켓|단기|통안|하이일드|국공채|미국채|T-?Bill|채\\b"),
     ("리츠·부동산", r"리츠|부동산|REIT"),
-    ("반도체", r"반도체|하이닉스|삼성전자|SK하이닉스|HBM|ASML|TSMC"),
+    ("금·원자재", r"금현물|골드|금선물|금액티브|은선물|원유|WTI|구리|원자재|금속|천연가스|농산물"),
+    # 2) 지역 (이름에 지역이 있으면 지역 우선: 차이나테크 → 중국)
+    ("중국·홍콩", r"중국|차이나|China|항셍|홍콩|과창판|CSI|심천|상해|창업판"),
+    ("일본·유럽", r"일본|TOPIX|니케이|Nikkei|유로|유럽|독일|프랑스|영국"),
+    ("인도·신흥국", r"인도|베트남|인도네시아|멕시코|브라질|신흥|아세안|중남미|사우디"),
+    ("미국 섹터", r"(미국|S&P|나스닥|NASDAQ).*(필수소비재|유틸리티|에너지|헬스케어|금융|산업재|소재|커뮤니케이션|임의소비재|경기소비재|소비재|은행|보험|정유)"),
+    # 3) 산업·테마
+    ("반도체", r"반도체|하이닉스|삼성전자|HBM|ASML|TSMC"),
     ("전력·원전·인프라", r"전력|원자력|원전|SMR|전선|그리드|인프라|데이터센터|송전"),
-    ("AI·소프트웨어", r"AI|인공지능|소프트웨어|클라우드|로봇|휴머노이드|양자|플랫폼|인터넷|자율주행"),
     ("2차전지", r"2차전지|이차전지|배터리|리튬|전기차|EV|양극재"),
     ("바이오·헬스케어", r"바이오|헬스케어|제약|빅파마|일라이릴리|비만|의료|헬스"),
-    ("조선·방산·우주", r"조선|방산|방위|우주|항공|K-?방산|기계|중공업"),
+    ("조선·방산·우주", r"조선|방산|방위|우주|항공|기계|중공업"),
     ("금융·밸류업", r"은행|금융|증권|보험|밸류업|지주|PBR"),
+    ("미국 빅테크·성장", r"빅테크|FANG|엔비디아|테슬라|애플|마이크로소프트|구글|알파벳|아마존|메타|브로드컴|팔란티어|M7|매그니피센트|미국.*테크|테크.*미국"),
+    ("AI·소프트웨어", r"AI|인공지능|소프트웨어|클라우드|로봇|휴머노이드|양자|플랫폼|인터넷|자율주행|테크"),
     ("배당·인컴", r"배당|커버드콜|인컴|월지급|프리미엄"),
-    ("미국 빅테크·성장", r"빅테크|테크|FANG|엔비디아|테슬라|애플|마이크로소프트|구글|알파벳|아마존|메타|브로드컴|팔란티어|M7|매그니피센트"),
-    ("미국 대표지수", r"S&P500|S&P 500|나스닥|NASDAQ|다우존스|러셀|미국\s?MSCI|미국대표|미국 대표|미국S&P"),
-    ("인도·신흥국", r"인도|베트남|인도네시아|멕시코|브라질|신흥|아세안|중남미|사우디"),
-    ("중국·일본·유럽", r"중국|차이나|China|항셍|홍콩|과창판|CSI|일본|TOPIX|니케이|Nikkei|유로|유럽|독일"),
-    ("금·원자재", r"금현물|골드|금선물|금액티브|은선물|원유|WTI|구리|원자재|금속|천연가스|농산물"),
+    ("미국 대표지수", r"S&P500|S&P 500|나스닥|NASDAQ|다우존스|러셀|미국\\s?MSCI|미국대표|미국 대표|미국S&P"),
     ("K컬처·소비", r"KPOP|K-POP|미디어|엔터|게임|화장품|뷰티|소비|음식료|여행|K컬처|컨텐츠|콘텐츠"),
     ("국내 대표지수", r" 200(TR)?$| 200 |코스피|KOSPI|코스닥|KOSDAQ|KRX300|KRX 300|MSCI Korea|MSCI코리아|TOP10$|대형주|중소형"),
 ]
 THEME_RE = [(n, re.compile(rx, re.I)) for n, rx in THEMES]
 LEV_INV = re.compile(r"레버리지|인버스|2X|곱버스|선물인버스|-1X|2배|3배", re.I)
+# 전략형(롱숏·헤지·버퍼 등)은 기초 테마와 수익 구조가 달라 테마 비교에서 제외
+STRATEGY = re.compile(r"롱|숏|헤지|버퍼|목표|양매도|변동성|VIX|절대수익|마켓뉴트럴|매니지드|스트래들|하방", re.I)
 OTHER_BRANDS = re.compile(r"\b(KODEX|TIGER|SOL|RISE|KBSTAR|HANARO|PLUS|KIWOOM|KOSEF|ARIRANG|1Q|TIME|TIMEFOLIO|BNK|WON|마이티|파워|UNICORN|FOCUS|에셋플러스|히어로즈|VITA|DAISHIN343|TRUSTON|마이다스|HK|KCGI|BNK|하나)\b")
 
 
 def theme_of(name: str):
-    if LEV_INV.search(name):
+    if LEV_INV.search(name) or STRATEGY.search(name):
         return None
     for n, rx in THEME_RE:
         if rx.search(name):
@@ -705,6 +712,16 @@ def fetch_etf_block(dates: list):
             "value": eok(v["value"]) if v["value"] == v["value"] else 0,
             "aum": eok(v["aum"]) if v["aum"] == v["aum"] else 0,
         })
+    try:
+        tmap = {}
+        for r in rows:
+            t = theme_of(r["name"]) or ("레버리지·인버스(제외)" if LEV_INV.search(r["name"]) else "전략형(제외)" if STRATEGY.search(r["name"]) else "미분류")
+            tmap.setdefault(t, []).append(r["name"])
+        os.makedirs(HISTORY_DIR, exist_ok=True)
+        with open(os.path.join(HISTORY_DIR, "theme_map.json"), "w", encoding="utf-8") as f:
+            json.dump({k: sorted(v) for k, v in sorted(tmap.items())}, f, ensure_ascii=False, indent=1)
+    except Exception as e:
+        log(f"테마 분류표 저장 실패(무시): {e}")
     k200 = next((x for x in rows if x["code"] == "069500"), None)
     if k200:
         log(f"ETF 검증: KODEX 200 1D {k200['d1']}% / 1W {k200['w1']}% / 1M {k200['m1']}% / 순자산 {k200['aum']:,}억")

@@ -676,7 +676,7 @@
         '<div class="tsub">' + bar + aceInfo + '</div></summary>' +
         '<div class="tlist">' + rows + '</div></details>';
     }).join("");
-    return '<div class="card"><div class="card-h"><h2>테마별 ETF 수익률<span class="sub">' + modeLabel() + ' · 테마 중간값 높은 순 · 레버리지/인버스 제외</span>' + staleBadge(T) + '</h2></div>' + asOf("etf") +
+    return '<div class="card"><div class="card-h"><h2>테마별 ETF 수익률<span class="sub">' + modeLabel() + ' · 테마 중간값 높은 순 · 레버리지·인버스·전략형(롱숏·헤지 등) 제외</span>' + staleBadge(T) + '</h2></div>' + asOf("etf") +
       '<div class="themes">' + body + '</div>' + lim.btn +
       '<div class="src">테마 수익률 = 해당 테마 국내 상장 ETF 전체의 중간값 · 정렬: ACE ' + modeLabel() + ' 수익률 상위 → 비교(타사, 순자산 100억 이상) ' + modeLabel() + ' 수익률 상위 3</div></div>';
   }
