@@ -484,6 +484,9 @@ def get_net_purchases(market: str, start: str, end: str, investor: str):
     return df
 
 
+STOCK_RET = {}  # 국내 종목 코드 → {name, ret(일간 등락률)}
+
+
 def fetch_sector_block(dates: list, prev: dict):
     """업종지수·업종별 수급·상위 종목·시장 폭을 한 번에 수집."""
     trade = dates[-1]
@@ -496,6 +499,12 @@ def fetch_sector_block(dates: list, prev: dict):
     for key, market in MARKETS:
         cls_df = get_classification(trade, market)
         breadth[key] = breadth_from(cls_df)
+        if cls_df is not None and "등락률" in cls_df.columns:
+            nm_col = "종목명" if "종목명" in cls_df.columns else None
+            for code, r in cls_df.iterrows():
+                v = _num(r["등락률"])
+                if v == v:
+                    STOCK_RET[str(code)] = {"name": str(r[nm_col]) if nm_col else str(code), "ret": round(v, 2)}
         sector_names = set(norm(x) for x in cls_df["업종명"].unique()) if cls_df is not None and "업종명" in cls_df.columns else set()
         sector_indices[key] = get_sector_indices(market, dates, sector_names)
 
@@ -675,7 +684,217 @@ def r2(v):
 COMPARE_MIN_AUM = 100  # 비교군(타사)은 순자산 100억 원 이상만 (초소형 상품 노이즈 방지)
 
 
-def build_themes(rows: list, key: str) -> list:
+# 테마 기준지수: 국내는 KRX 지수(KRX·테마 시리즈), 해외는 대표 지수, 없으면 ETF 순자산 가중평균
+THEME_BENCH = {
+    "반도체": [("idx", r"^KRX 반도체$"), ("idx", r"반도체")],
+    "2차전지": [("idx", r"2차전지 TOP ?10"), ("idx", r"2차전지")],
+    "바이오·헬스케어": [("idx", r"^KRX 헬스케어$"), ("idx", r"헬스케어|바이오")],
+    "조선·방산·우주": [("idx", r"조선"), ("idx", r"방산|방위"), ("idx", r"기계장비")],
+    "금융·밸류업": [("idx", r"^KRX 은행$"), ("idx", r"밸류업"), ("idx", r"은행|금융")],
+    "전력·원전·인프라": [("idx", r"원자력|원전"), ("idx", r"전력|유틸리티")],
+    "자동차·모빌리티": [("idx", r"^KRX 자동차$"), ("idx", r"자동차|모빌리티")],
+    "AI·소프트웨어": [("idx", r"인터넷|소프트웨어"), ("idx", r"정보기술|(?<![A-Za-z])AI")],
+    "K컬처·소비": [("idx", r"미디어|엔터"), ("idx", r"화장품|경기소비재")],
+    "친환경·에너지전환": [("idx", r"기후변화|신재생|수소|탄소")],
+    "배당·인컴": [("idx", r"고배당 ?50"), ("idx", r"고배당|배당")],
+    "커버드콜(전략)": [("idx", r"커버드콜")],
+    "국내 스타일·팩터": [("idx", r"모멘텀|로우볼|저변동|퀄리티|팩터")],
+    "리츠·부동산": [("idx", r"리츠|부동산")],
+    "국내 대표지수": [("kospi", None)],
+    "통화(달러)": [("usdkrw", None)],
+    "미국 대표지수": [("fdr", ["US500", "^GSPC"])],
+    "미국 빅테크·성장": [("fdr", ["^NDX", "IXIC"])],
+    "중국·홍콩": [("fdr", ["HK50", "^HSI", "HSI"])],
+    "일본·유럽": [("fdr", ["JP225", "^N225", "N225"])],
+    "인도·신흥국": [("fdr", ["^NSEI", "NIFTY50"])],
+    "금·원자재": [("fdr", ["GC=F", "GC"])],
+}
+# 해외 지수는 국내 장 마감 이후 끝나는 시장이 많아 기준 거래일 '전날'까지 (일본은 당일 마감 반영)
+FDR_SAME_DAY = {"JP225", "^N225", "N225"}
+
+
+def fetch_index_change_table(dates: list) -> dict:
+    """KRX·테마 시리즈 지수 전체 등락률(1D/1W/1M). KRX 6회 호출. 지수명 목록은 history/index_names.json에 기록."""
+    trade = dates[-1]
+    starts = {"d1": trade, "w1": dates[-5] if len(dates) >= 5 else dates[0], "m1": dates[-20] if len(dates) >= 20 else dates[0]}
+    table = {}
+    for market in ("KRX", "테마"):
+        for k, st in starts.items():
+            df = krx_call(f"{market} 지수 등락률({k})", stock.get_index_price_change if stock else None, ymd(st), ymd(trade), market)
+            if df is None or "등락률" not in df.columns:
+                continue
+            for name, v in df["등락률"].items():
+                table.setdefault(str(name), {})[k] = r2(_num(v))
+    try:
+        os.makedirs(HISTORY_DIR, exist_ok=True)
+        with open(os.path.join(HISTORY_DIR, "index_names.json"), "w", encoding="utf-8") as f:
+            json.dump(sorted(table.keys()), f, ensure_ascii=False, indent=1)
+    except Exception:
+        pass
+    log(f"KRX·테마 지수 {len(table)}개 등락률 확보")
+    return table
+
+
+def fdr_bench(symbols, trade_date: str, start_date: str):
+    for sym in symbols:
+        df = safe_read(sym, start_date, retries=1)
+        if df is None:
+            continue
+        cutoff = trade_date if sym in FDR_SAME_DAY else (pd.Timestamp(trade_date) - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+        df = cut(df, cutoff)
+        if df is None or len(df) < 6:
+            continue
+        c = df["Close"].astype(float)
+        last = c.iloc[-1]
+        def chg(n):
+            return r2((last / c.iloc[-1 - n] - 1) * 100) if len(c) > n else None
+        return {"name": sym, "d1": chg(1), "w1": chg(5), "m1": chg(20) if len(c) > 20 else r2((last / c.iloc[0] - 1) * 100),
+                "date": df.index[-1].strftime("%Y-%m-%d"), "src": "해외 지수"}
+    return None
+
+
+FDR_LABEL = {"US500": "S&P 500", "^GSPC": "S&P 500", "^NDX": "나스닥 100", "IXIC": "나스닥 종합", "HK50": "항셍", "^HSI": "항셍", "HSI": "항셍",
+             "JP225": "닛케이 225", "^N225": "닛케이 225", "N225": "닛케이 225", "^NSEI": "인도 Nifty 50", "NIFTY50": "인도 Nifty 50",
+             "GC=F": "금 선물", "GC": "금 선물"}
+
+
+def build_bench_map(dates: list, idx_table: dict, indices: dict, start_date: str) -> dict:
+    out = {}
+    trade = dates[-1]
+    for theme, cands in THEME_BENCH.items():
+        for kind, arg in cands:
+            b = None
+            if kind == "idx" and idx_table:
+                rx = re.compile(arg)
+                names = sorted([n for n in idx_table if rx.search(n) and idx_table[n].get("d1") is not None], key=len)
+                if names:
+                    n = names[0]
+                    b = dict(idx_table[n], name=n, src="KRX 지수", date=trade)
+            elif kind == "kospi":
+                k = indices.get("kospi") or {}
+                ser = k.get("series") or []
+                m1 = r2((ser[-1]["c"] / ser[0]["c"] - 1) * 100) if len(ser) >= 2 else None
+                b = {"name": "코스피", "d1": k.get("daily_pct"), "w1": k.get("weekly_pct"), "m1": m1, "src": "KRX 지수", "date": trade}
+            elif kind == "usdkrw":
+                k = indices.get("usdkrw") or {}
+                ser = k.get("series") or []
+                m1 = r2((ser[-1]["c"] / ser[0]["c"] - 1) * 100) if len(ser) >= 2 else None
+                b = {"name": "원/달러 환율", "d1": k.get("daily_pct"), "w1": k.get("weekly_pct"), "m1": m1, "src": "환율", "date": k.get("date")}
+            elif kind == "fdr":
+                b = fdr_bench(arg, trade, start_date)
+                if b:
+                    b["name"] = FDR_LABEL.get(b["name"], b["name"])
+            if b and b.get("d1") is not None:
+                out[theme] = b
+                break
+    log("테마 기준지수: " + ", ".join(f"{t}={b['name']}" for t, b in out.items()))
+    return out
+
+
+def aum_weighted(g: list, key: str):
+    num_, den = 0.0, 0.0
+    for x in g:
+        v, w = x.get(key), x.get("aum") or 0
+        if v is not None and w > 0:
+            num_ += v * w
+            den += w
+    return r2(num_ / den) if den else None
+
+
+# ---- 테마를 움직인 종목 (국내 주식 테마, 대표 ETF 구성종목 기반) ----
+DOMESTIC_THEMES = {"반도체", "2차전지", "바이오·헬스케어", "조선·방산·우주", "금융·밸류업", "전력·원전·인프라",
+                   "자동차·모빌리티", "AI·소프트웨어", "K컬처·소비", "친환경·에너지전환", "그룹주", "국내 업종",
+                   "국내 대표지수", "배당·인컴", "국내 스타일·팩터"}
+FOREIGN_NAME = re.compile(r"미국|글로벌|차이나|중국|일본|인도|S&P|나스닥|채권|커버드콜|국채|선진국|아시아|유럽|대만|베트남")
+PDF_PATH = "history/pdf_cache.json"
+PDF_PER_RUN = 12      # 하루 최대 구성종목(PDF) 조회 수
+PDF_MAX_AGE = 7       # 구성종목 캐시 유효기간(일)
+REPS_PER_THEME = 2
+
+
+def theme_reps(rows: list) -> dict:
+    groups = {}
+    for r in rows:
+        t = theme_of(r["name"])
+        if t in DOMESTIC_THEMES and not FOREIGN_NAME.search(r["name"]) and (r.get("aum") or 0) > 0:
+            groups.setdefault(t, []).append(r)
+    return {t: [x["code"] for x in sorted(g, key=lambda x: x["aum"], reverse=True)[:REPS_PER_THEME]] for t, g in groups.items()}
+
+
+def refresh_pdf_cache(reps: dict, trade: str, allow_fetch: bool) -> dict:
+    try:
+        with open(PDF_PATH, encoding="utf-8") as f:
+            cache = json.load(f)
+    except Exception:
+        cache = {}
+    if not allow_fetch or stock is None:
+        return cache
+    need = []
+    for codes in reps.values():
+        for rank, c in enumerate(codes):
+            ent = cache.get(c)
+            age = 999 if not ent else (pd.Timestamp(trade) - pd.Timestamp(ent.get("date", "2000-01-01"))).days
+            if age >= PDF_MAX_AGE:
+                need.append((rank, -age, c))  # 테마별 1순위 ETF부터 → 모든 테마가 빨리 채워지게
+    seen, ordered = set(), []
+    for _, _, c in sorted(need):
+        if c not in seen:
+            seen.add(c)
+            ordered.append(c)
+    need = ordered[:PDF_PER_RUN]
+    got = 0
+    for c in need:
+        df = krx_call(f"PDF {c}", stock.get_etf_portfolio_deposit_file, c, ymd(trade), retries=1)
+        if df is None or "비중" not in df.columns:
+            continue
+        df = df.copy()
+        df["비중"] = pd.to_numeric(df["비중"], errors="coerce").fillna(0)
+        df = df[df["비중"] > 0].sort_values("비중", ascending=False).head(15)
+        cache[c] = {"date": trade, "h": [[str(t), round(float(w), 2)] for t, w in df["비중"].items()]}
+        got += 1
+    if got:
+        os.makedirs(HISTORY_DIR, exist_ok=True)
+        atomic_write_json(PDF_PATH, cache)
+    log(f"구성종목(PDF) 갱신 {got}/{len(need)}건 (캐시 {len(cache)}개 ETF)")
+    return cache
+
+
+def theme_drivers(reps: dict, cache: dict, names: dict) -> dict:
+    out = {}
+    for t, codes in reps.items():
+        have = [c for c in codes if c in cache and cache[c].get("h")]
+        if not have or not STOCK_RET:
+            continue
+        wsum, cnt = {}, {}
+        for c in have:
+            for tk, w in cache[c]["h"]:
+                wsum[tk] = wsum.get(tk, 0) + w
+                cnt[tk] = cnt.get(tk, 0) + 1
+        n = len(have)
+        common = [tk for tk in wsum if cnt[tk] >= 2] if n >= 2 else list(wsum)
+        if len(common) < 3:
+            common = list(wsum)
+        rows = []
+        for tk in common:
+            sr = STOCK_RET.get(tk)
+            if not sr:
+                continue
+            w = wsum[tk] / n
+            rows.append({"name": sr["name"], "w": round(w, 1), "ret": sr["ret"], "c": round(w * sr["ret"] / 100, 2), "n": cnt[tk]})
+        if not rows:
+            continue
+        rows.sort(key=lambda x: x["c"])
+        out[t] = {
+            "reps": [names.get(c, c) for c in have],
+            "common": n >= 2,
+            "up": [x for x in sorted(rows, key=lambda x: x["c"], reverse=True) if x["c"] > 0][:3],
+            "down": [x for x in rows if x["c"] < 0][:3],
+        }
+    return out
+
+
+def build_themes(rows: list, key: str, bench: dict = None, drivers: dict = None) -> list:
+    bench, drivers = bench or {}, drivers or {}
     groups = {}
     for r in rows:
         t = theme_of(r["name"])
@@ -686,22 +905,27 @@ def build_themes(rows: list, key: str) -> list:
         g = groups.get(t) or []
         if len(g) < 2:
             continue
+        b = bench.get(t)
+        if not b or b.get(key) is None:
+            b = {"name": "ETF 순자산 가중평균", "src": "ETF 가중",
+                 "d1": aum_weighted(g, "d1"), "w1": aum_weighted(g, "w1"), "m1": aum_weighted(g, "m1")}
         ace = [x for x in g if x["name"].startswith(ACE_PREFIX)]
         others = [x for x in g if not x["name"].startswith(ACE_PREFIX) and x.get("aum", 0) >= COMPARE_MIN_AUM]
         out.append({
             "theme": t,
-            "median": round(float(pd.Series([x[key] for x in g]).median()), 2),
+            "bench": b,
+            "median": b.get(key),  # (호환) 테마 대표 수익률 = 기준지수
             "count": len(g),
             "ace_count": len(ace),
             "ace_median": round(float(pd.Series([x[key] for x in ace]).median()), 2) if ace else None,
-            # 정렬: ACE는 해당 기간 수익률 높은 순(최대 8) / 비교군은 타사 중 수익률 상위 3
             "ace": sorted(ace, key=lambda x: x[key], reverse=True)[:8],
             "others": sorted(others, key=lambda x: x[key], reverse=True)[:3],
+            "drivers": drivers.get(t),
         })
-    return sorted(out, key=lambda x: x["median"], reverse=True)
+    return sorted(out, key=lambda x: (x["median"] is None, -(x["median"] or 0)))
 
 
-def fetch_etf_block(dates: list):
+def fetch_etf_block(dates: list, indices: dict = None, start_date: str = None, allow_pdf: bool = False):
     """ETF 데이터: 전종목 시세 1회 + 기간 등락률 2회(1주·1개월) = KRX 3회 (+이름표)."""
     names = etf_names()
     if not names:
@@ -742,8 +966,23 @@ def fetch_etf_block(dates: list):
         return None, None
     ace = {"count": len(arows)}
     themes = {}
+    try:
+        idx_table = fetch_index_change_table(dates)
+        bench = build_bench_map(dates, idx_table, indices or {}, start_date or dates[0])
+    except Exception as e:
+        log(f"테마 기준지수 실패(ETF 가중으로 대체): {type(e).__name__}: {e}")
+        bench = {}
+    try:
+        reps = theme_reps(rows)
+        cache = refresh_pdf_cache(reps, dates[-1], allow_pdf)
+        drivers = theme_drivers(reps, cache, {r["code"]: r["name"] for r in rows})
+    except Exception as e:
+        log(f"테마 기여 종목 실패(무시): {type(e).__name__}: {e}")
+        drivers = {}
+    themes["picks_pool"] = [dict(x, theme=theme_of(x["name"]) or "기타") for x in sorted(arows, key=lambda x: x["aum"], reverse=True)
+                            if (x.get("aum") or 0) >= 300][:40]
     for period, key in (("daily", "d1"), ("weekly", "w1")):
-        themes[period] = build_themes(rows, key)
+        themes[period] = build_themes(rows, key, bench, drivers)
         valid = [x for x in arows if x.get(key) is not None]
         by = sorted(valid, key=lambda x: x[key], reverse=True)
         sr = pd.Series([x[key] for x in valid])
@@ -875,6 +1114,53 @@ BRIEF_SECTIONS = [
 ]
 
 
+PICK_SKIP_THEMES = {"채권혼합", "기타", "커버드콜(전략)"}
+
+
+def picks_pool(p: dict) -> list:
+    return ((p.get("themes") or {}).get("picks_pool")) or []
+
+
+def rule_picks(p: dict, n: int = 6) -> list:
+    """규칙 기반 '오늘의 ACE ETF': 강세 테마의 ACE 대표 상품 + 시장 상황별 방어/코어 상품, 테마 중복 없이."""
+    pool = picks_pool(p)
+    if not pool:
+        return []
+    by_theme = {}
+    for x in pool:  # pool은 AUM 큰 순
+        by_theme.setdefault(x["theme"], x)
+    themes = (p.get("themes") or {}).get("daily") or []
+    kospi = (p.get("indices") or {}).get("kospi", {}).get("daily_pct") or 0
+    picks, used = [], set()
+
+    def add(x, point):
+        if x and x["code"] not in {y["code"] for y in picks} and x["theme"] not in used:
+            picks.append(dict(x, point=point))
+            used.add(x["theme"])
+
+    for t in themes:  # 기준지수 강세 순
+        if len(picks) >= 3:
+            break
+        if t["theme"] in PICK_SKIP_THEMES or t["theme"] not in by_theme:
+            continue
+        b = t.get("bench") or {}
+        basis = "테마 ETF 가중" if b.get("src") == "ETF 가중" else b.get("name", "-")
+        add(by_theme[t["theme"]], f"{t['theme']} 상대 강세 ({basis} {b.get('d1') or 0:+.2f}%)")
+    defensive = ["채권·금리·파킹", "금·원자재", "배당·인컴"] if kospi < 0 else ["국내 대표지수", "미국 대표지수", "반도체"]
+    for th in defensive + ["미국 대표지수", "미국 빅테크·성장", "국내 대표지수", "배당·인컴", "금·원자재"]:
+        if len(picks) >= n:
+            break
+        x = by_theme.get(th)
+        if x:
+            add(x, f"{th} 대표 ACE 상품 · AUM {x['aum']:,}억, 1M {x.get('m1') or 0:+.2f}%")
+    for th, x in by_theme.items():  # 그래도 모자라면 AUM 큰 테마 대표로 채움
+        if len(picks) >= n:
+            break
+        if th not in PICK_SKIP_THEMES:
+            add(x, f"{th} 대표 ACE 상품 · AUM {x['aum']:,}억")
+    return picks[:n]
+
+
 def build_rule_briefing(p: dict) -> dict:
     I, F = p["indices"], p["flow"]
     out = {}
@@ -952,6 +1238,7 @@ def build_rule_briefing(p: dict) -> dict:
             "strategy": strategy,
         }
     out["source"] = "rule"
+    out["ace_picks"] = rule_picks(p)
     return out
 
 
@@ -1067,12 +1354,17 @@ def generate_briefing(p: dict) -> dict:
         "- 기사에 없는 사실·수치는 지어내지 말 것. 다른 파트에서도 기사 근거가 있으면 [번호] 인용 가능.\n"
         "- daily는 일간, weekly는 최근 5거래일 누적 기준. stale=true 항목은 언급 금지.\n"
         "- 숫자 표기: 수급 단위는 억 원. 1만억 이상은 조 단위로 환산(예: -13300 → -1조 3,300억 원), 그 미만은 천 단위 콤마(예: -4,635억 원). 지수는 5,100.50pt 형식.\n"
+        "5) ace_picks(오늘의 ACE ETF): [ACE 후보]에서 오늘 시장 흐름과 연결해 살펴볼 만한 ACE ETF 6개를 고르고 각각 point(35자 내외)를 작성.\n"
+        "   - 반드시 후보의 code만 사용. 가능한 한 서로 다른 테마로 구성(강세 테마 2~3개 + 시장 상황에 맞는 방어/분산 상품 등).\n"
+        "   - point는 오늘 데이터와의 연결(예: '반도체 기준지수 -2.2% 속 상대적 선방', '변동성 확대 구간 파킹 수요')을 명사형으로. 추천·매수·유망·수익 보장 표현 금지.\n"
         "반드시 아래 JSON 형식으로만 응답:\n"
-        '{"daily":{"headline":"...","summary":["...","...","..."],'
+        '{"ace_picks":[{"code":"...","point":"..."}],"daily":{"headline":"...","summary":["...","...","..."],'
         '"sections":{"market":{"gist":"...","items":[{"k":"...","v":"..."}]},"flow":{...},"sector":{...},"stock":{...},"issue":{...},"ace":{...}},'
         '"strategy":["..."]},"weekly":{...같은 구조...}}\n\n'
         f"[데이터]\n{json.dumps(briefing_input(p), ensure_ascii=False)}\n\n"
-        "[기사 헤드라인]\n" + ("\n".join(news) if news else "(없음)")
+        "[기사 헤드라인]\n" + ("\n".join(news) if news else "(없음)") + "\n\n"
+        "[ACE 후보] (code, 상품명, 테마, 1D, 1W, 1M, AUM억)\n" +
+        "\n".join(f"{x['code']}, {x['name']}, {x['theme']}, {x.get('d1')}, {x.get('w1')}, {x.get('m1')}, {x.get('aum')}" for x in picks_pool(p))
     )
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
@@ -1119,6 +1411,14 @@ def generate_briefing(p: dict) -> dict:
                         raise ValueError(f"{per} 형식 불충분")
                     out[per] = {"headline": headline, "summary": summary, "sections": sections,
                                 "strategy": strategy or fallback[per]["strategy"]}
+                pool = {x["code"]: x for x in picks_pool(p)}
+                gp = []
+                for it in (parsed.get("ace_picks") or []):
+                    if isinstance(it, dict) and str(it.get("code")) in pool and str(it.get("code")) not in {y["code"] for y in gp}:
+                        point = str(it.get("point", "")).strip()
+                        if not OTHER_BRANDS.search(point):
+                            gp.append(dict(pool[str(it["code"])], point=point))
+                out["ace_picks"] = gp[:6] if len(gp) >= 4 else fallback.get("ace_picks", [])
                 out["source"] = "gemini"
                 out["model"] = model
                 log(f"Gemini 브리핑 생성 완료 ({model})")
@@ -1198,8 +1498,24 @@ def main() -> int:
             return fallback()
 
     sectors = []  # 섹터 대표 ETF는 테마별 ETF(themes)로 대체
-    flow = guarded("투자자 수급", lambda: fetch_flow(prev, trade_date),
-                   lambda: {k: keep_previous(None, (prev.get("flow") or {}).get(k), EMPTY_FLOW) for k, _ in MARKETS})
+
+    # 실행 단계별 수집 범위 (KRX 호출 최소화)
+    #  - 1차(거래일 첫 실행) 또는 이전값 보충: 전부 수집
+    #  - 17:15 보강(기사·브리핑만): KRX 재호출 없이 기존 데이터 재사용
+    #  - 18:05 확정: 시간외 거래로 바뀌는 수급(시장·업종·종목)만 재수집, ETF·테마·지수는 재사용
+    same_day = prev_trade_date == trade_date and not prev_stale and not FORCE_UPDATE
+    light = same_day and news_refresh and not final_refresh
+    flows_only = same_day and final_refresh
+    if light:
+        log("실행 범위: 기사·브리핑 보강만 (KRX 데이터 재사용)")
+    elif flows_only:
+        log("실행 범위: 수급 확정치만 재수집 (ETF·테마·지수 재사용)")
+
+    if light:
+        flow = prev.get("flow")
+    else:
+        flow = guarded("투자자 수급", lambda: fetch_flow(prev, trade_date),
+                       lambda: {k: keep_previous(None, (prev.get("flow") or {}).get(k), EMPTY_FLOW) for k, _ in MARKETS})
 
     def sector_fallback():
         si = {k: keep_previous(None, (prev.get("sector_indices") or {}).get(k), {"daily": [], "weekly": []}) for k, _ in MARKETS}
@@ -1208,10 +1524,18 @@ def main() -> int:
         ts = dict(prev.get("top_stocks") or {}, stale=True)
         return si, sf, ts, br
 
-    sector_indices, sector_flow, top_stocks, breadth = guarded("업종", lambda: fetch_sector_block(dates, prev), sector_fallback)
-    ace, themes = guarded("ETF", lambda: fetch_etf_block(dates), lambda: (None, None))
-    ace = keep_previous(ace, prev.get("ace"), {"count": 0})
-    themes = keep_previous(themes, prev.get("themes"), {"daily": [], "weekly": []})
+    if light:
+        sector_indices, sector_flow, top_stocks, breadth = prev.get("sector_indices"), prev.get("sector_flow"), prev.get("top_stocks"), prev.get("breadth")
+    else:
+        sector_indices, sector_flow, top_stocks, breadth = guarded("업종", lambda: fetch_sector_block(dates, prev), sector_fallback)
+    if light or flows_only:
+        ace, themes = prev.get("ace") or {"count": 0}, prev.get("themes") or {"daily": [], "weekly": []}
+        indices = {k: (prev.get("indices") or {}).get(k, v) for k, v in indices.items()} if light else indices
+    else:
+        first_run_today = prev_trade_date != trade_date  # 구성종목(PDF) 조회는 거래일당 첫 실행에서만
+        ace, themes = guarded("ETF", lambda: fetch_etf_block(dates, indices, start_date, allow_pdf=first_run_today), lambda: (None, None))
+        ace = keep_previous(ace, prev.get("ace"), {"count": 0})
+        themes = keep_previous(themes, prev.get("themes"), {"daily": [], "weekly": []})
     news = guarded("뉴스", lambda: fetch_news(prev, trade_date),
                    lambda: {"items": (prev.get("news") or {}).get("items", []) if isinstance(prev.get("news"), dict) else [], "stale": True})
 
@@ -1273,6 +1597,15 @@ def main() -> int:
         "sox": f"필라델피아 반도체 {sox.get('date') or '-'} 미국장 종가",
         "news": f"구글 뉴스 {trade_date} 08:00 ~ {hm}",
     }
+    prev_asof = prev.get("as_of") or {}
+    if light:  # 재사용한 블록은 원래 수집 시각 유지
+        for k in ("index", "flow", "breadth", "sector", "stock", "etf", "fx", "sox"):
+            if prev_asof.get(k):
+                payload["as_of"][k] = prev_asof[k]
+    elif flows_only:
+        for k in ("etf",):
+            if prev_asof.get(k):
+                payload["as_of"][k] = prev_asof[k]
 
     if prev_trade_date == trade_date and len(stale) > len(prev_stale):
         log(f"이번 수집 결과가 기존보다 나쁨(이전값 {len(prev_stale)}→{len(stale)}개) → 기존 data.json 유지 (강제 실행이어도 동일)")

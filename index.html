@@ -164,7 +164,7 @@
   .chips::-webkit-scrollbar { display: none; }
   .chips a { flex: none; text-decoration: none; font-size: 13px; font-weight: 600; color: var(--text-2); padding: 6px 12px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); }
   .chips a.on { color: #1a1406; background: var(--accent); border-color: var(--accent); }
-  .part { scroll-margin-top: 64px; }
+  .part, details.theme { scroll-margin-top: 64px; }
   details.blk > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
   details.blk > summary::-webkit-details-marker { display: none; }
   details.blk > summary h4 { margin: 0; }
@@ -216,6 +216,40 @@
   .trow:not(.ace) .tn { color: var(--muted); }
   .atag { font-size: 10px; font-weight: 800; color: var(--ace-ink); background: var(--ace); border-radius: 4px; text-align: center; padding: 1px 0; }
   .otag { font-size: 10px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; text-align: center; padding: 0; }
+  .heat-wrap { overflow-x: auto; }
+  table.heat { width: 100%; border-collapse: separate; border-spacing: 0 3px; }
+  table.heat th { text-align: right; font-size: 11.5px; padding: 2px 8px; }
+  table.heat th:first-child { text-align: left; }
+  table.heat td { border: 0; padding: 6px 8px; font-size: 13px; }
+  table.heat tr[data-jump] { cursor: pointer; }
+  table.heat tr[data-jump]:hover td { filter: brightness(1.25); }
+  table.heat td.hn { background: var(--panel-2); border-radius: 6px 0 0 6px; white-space: nowrap; }
+  table.heat td.hn b { font-size: 13px; }
+  table.heat .hb { display: block; color: var(--muted); font-size: 10.5px; font-weight: 500; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+  table.heat td.hc { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text); width: 72px; }
+  table.heat td.ha { width: 54px; text-align: right; background: var(--panel-2); border-radius: 0 6px 6px 0; }
+  @media (max-width: 640px) { table.heat td.hc { width: auto; padding: 6px 5px; font-size: 12px; } table.heat .hb { max-width: 110px; } table.heat td.ha { display: none; } }
+  .theme .tbn { color: var(--muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .drivers { margin-top: 8px; padding: 8px 10px; background: rgba(255,255,255,.03); border-radius: 8px; }
+  .drivers .dh { font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 4px; }
+  .drivers .dh small { color: var(--muted); font-weight: 500; margin-left: 4px; }
+  .drivers .dl { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; font-size: 12.5px; margin-top: 3px; }
+  .drivers .dk { font-size: 11px; font-weight: 700; margin-right: 2px; }
+  .drv small { color: var(--muted); margin-left: 2px; font-size: 10.5px; }
+  .drv small::before { content: "("; } .drv small::after { content: ")"; }
+  .picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 960px) { .picks { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) { .picks { grid-template-columns: 1fr; gap: 8px; } }
+  .pick { background: var(--panel-2); border-radius: 10px; padding: 12px; border-top: 3px solid var(--ace); display: flex; flex-direction: column; gap: 6px; }
+  .pick .ph { display: flex; align-items: center; gap: 6px; }
+  .pick .ph .atag { padding: 1px 6px; }
+  .pick .pt { font-size: 11.5px; color: var(--ace-text); font-weight: 700; }
+  .pick .pcode { margin-left: auto; color: var(--muted); font-size: 11px; }
+  .pick .pn { font-weight: 800; font-size: 15px; line-height: 1.35; }
+  .pick .pr { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .pick .pr .tm { color: var(--muted); font-size: 11px; text-align: right; }
+  .pick .pr .tp { font-size: 17px; font-weight: 800; text-align: left; }
+  .pick .pp { font-size: 13px; color: var(--text-2); border-top: 1px dashed var(--line); padding-top: 6px; }
   .more { display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px dashed var(--line); background: transparent; color: var(--text-2); font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer; }
   .gap-row { text-align: center; color: var(--muted); font-size: 12px; line-height: 14px; }
   @media (max-width: 640px) {
@@ -270,7 +304,7 @@
         <button data-v="weekly">주간<span class="hide-m"> 5D</span></button>
       </div>
       <nav class="chips">
-        <a href="#p1">요약</a><a href="#p2">수급</a><a href="#p3">업종</a><a href="#p4">종목</a><a href="#p5">테마<span class="hide-m">·ACE</span></a>
+        <a href="#p1">요약</a><a href="#p2">수급</a><a href="#p3">업종</a><a href="#p4">종목</a><a href="#p5">테마</a><a href="#p6">ACE</a>
       </nav>
       <button class="btn" id="btnCopy" title="브리핑 요약 복사">📋<span class="hide-m"> 요약 복사</span></button>
     </div>
@@ -356,9 +390,11 @@
     h += '<div class="section">' + sectorFlowCard() + '</div>';
     h += part("04", "종목", "주체별 순매수·순매도 상위 종목");
     h += topStocksCard();
-    h += part("05", "테마·ACE ETF", "테마별 ETF 흐름 (ACE 우선) · ACE 라인업 성과");
-    h += themeCard();
-    h += '<div class="section">' + aceCard() + '</div>';
+    h += part("05", "테마·ETF", "전체 테마 흐름 → 테마별 ACE 라인업 · 비교 · 움직인 종목");
+    h += themeHeatmap();
+    h += '<div class="section">' + themeCard() + '</div>';
+    var pk6 = acePicksCard();
+    if (pk6) { h += part("06", "오늘의 ACE ETF", "오늘 시장 흐름과 함께 볼 만한 ACE 상품"); h += pk6; }
     document.getElementById("app").innerHTML = h;
     bindSegs();
     bindMore();
@@ -658,33 +694,82 @@
   }
 
   // ---------- 테마별 ETF (ACE 우선) ----------
+  function themeKey() { return S.mode === "daily" ? "d1" : "w1"; }
+  function benchOf(t) { return t.bench || { name: "테마 ETF 중간값", src: "ETF", d1: t.median, w1: t.median, m1: null }; }
+  function benchLabel(b) { return b.src === "ETF 가중" ? "ETF AUM 가중" : b.name; }
+
+  // 전체 테마 흐름: 테마 × 1D/1W/1M 히트맵
+  function heatCell(v) {
+    if (v == null) return '<td class="hc">-</td>';
+    var a = Math.min(Math.abs(v) / 4, 1) * 0.55 + 0.06;
+    var bg = v > 0 ? "rgba(239,79,79," + a.toFixed(2) + ")" : v < 0 ? "rgba(61,139,253," + a.toFixed(2) + ")" : "transparent";
+    return '<td class="hc" style="background:' + bg + '">' + pct(v) + '</td>';
+  }
+  function themeHeatmap() {
+    var list = (DATA.themes || {})[S.mode] || [];
+    if (!list.length) return "";
+    var k = themeKey();
+    var sorted = list.slice().sort(function (a, b) { return num(benchOf(b)[k], -99) - num(benchOf(a)[k], -99); });
+    var rows = sorted.map(function (t, i) {
+      var b = benchOf(t);
+      return '<tr data-jump="th-' + i + '" data-theme="' + esc(t.theme) + '"><td class="hn"><b>' + esc(t.theme) + '</b><span class="hb">' + esc(benchLabel(b)) + '</span></td>' +
+        heatCell(b.d1) + heatCell(b.w1) + heatCell(b.m1) +
+        '<td class="ha">' + (t.ace_count ? '<span class="achip">ACE ' + t.ace_count + '</span>' : "") + '</td></tr>';
+    }).join("");
+    return '<div class="card"><div class="card-h"><h2>전체 테마 흐름<span class="sub">기준지수 수익률 · ' + (S.mode === "daily" ? "1D" : "1W") + ' 높은 순 · 행을 누르면 상세로 이동</span></h2></div>' +
+      '<div class="heat-wrap"><table class="heat"><thead><tr><th>테마 · 기준</th><th>1D</th><th>1W</th><th>1M</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<div class="src">기준: 국내 테마는 한국거래소 KRX·테마 지수, 해외 테마는 대표 지수(미국·홍콩·인도 등은 국내 기준일 전날 종가), 맞는 지수가 없는 테마는 테마 내 ETF 순자산(AUM) 가중평균</div></div>';
+  }
+
+  function driversBlock(d) {
+    if (!d || (!d.up.length && !d.down.length)) return "";
+    function li(x) {
+      return '<span class="drv" data-tip="' + esc("<b>" + esc(x.name) + "</b><br>평균 비중 " + x.w + "% · 1D " + pct(x.ret) + "<br>테마 기여 " + (x.c > 0 ? "+" : "") + x.c.toFixed(2) + "%p") + '">' +
+        esc(x.name) + ' <span class="' + (x.ret > 0 ? "nu" : x.ret < 0 ? "nd" : "") + '">' + pct(x.ret) + '</span><small>' + x.w + '%</small></span>';
+    }
+    return '<div class="drivers"><div class="dh">움직인 종목 <small>' + (d.common ? "대표 ETF 공통 편입" : "대표 ETF 편입") + ' · 1D 기여 순 · 괄호 비중</small></div>' +
+      (d.up.length ? '<div class="dl"><span class="dk up">끌어올림</span>' + d.up.map(li).join("") + '</div>' : "") +
+      (d.down.length ? '<div class="dl"><span class="dk down">끌어내림</span>' + d.down.map(li).join("") + '</div>' : "") + '</div>';
+  }
+
   function themeCard() {
     var T = DATA.themes || {};
-    var list = T[S.mode] || [];
+    var list = (T[S.mode] || []).slice();
     if (!list.length) return '<div class="card"><div class="empty">테마별 ETF 데이터가 아직 없습니다. 다음 자동 실행부터 표시됩니다.</div></div>';
-    var mx = Math.max.apply(null, list.map(function (t) { return Math.abs(num(t.median)); }).concat([0.5]));
+    var k = themeKey();
+    list.sort(function (a, b) { return num(benchOf(b)[k], -99) - num(benchOf(a)[k], -99); });
     var lim = limitRows("themes", list, 8);
-    function etfRow(x, isAce) {
-      var nm = isAce ? x.name.replace(/^ACE\s+/, "") : x.name;
-      var tip = "<b>" + esc(x.name) + "</b> (" + esc(x.code) + ")<br>" + modeLabel() + " " + pct(x.pct) + "<br>거래대금 " + Math.round(num(x.value)).toLocaleString("ko-KR") + "억";
-      return '<div class="trow' + (isAce ? " ace" : "") + '" data-tip="' + esc(tip) + '">' +
-        (isAce ? '<span class="atag">ACE</span>' : '<span class="otag">비교</span>') +
-        '<span class="tn">' + esc(nm) + '</span><span class="tp ' + cls(x.pct) + '">' + pct(x.pct) + '</span></div>';
-    }
-    var body = lim.rows.map(function (t) {
-      var w = Math.abs(num(t.median)) / mx * 50;
-      var bar = '<div class="track"><span class="axis"></span><i class="' + (num(t.median) >= 0 ? "pos" : "neg") + '" style="width:' + w + '%"></i></div>';
-      var aceInfo = t.ace_count ? '<span class="achip">ACE ' + t.ace_count + '종' + (t.ace_median != null ? ' · ' + pct(t.ace_median) : "") + '</span>' : '<span class="achip none">ACE 없음</span>';
+    var body = lim.rows.map(function (t, i) {
+      var b = benchOf(t), v = b[k];
+      var aceInfo = t.ace_count ? '<span class="achip">ACE ' + t.ace_count + '종' + (t.ace_median != null ? ' · 중간 ' + pct(t.ace_median) : "") + '</span>' : '<span class="achip none">ACE 없음</span>';
       var rows = (t.ace || []).map(function (x) { return etfLine(x, "ace"); }).join("") +
         (t.others || []).map(function (x) { return etfLine(x, "cmp"); }).join("");
-      return '<details class="theme"' + (isM() ? "" : " open") + '><summary>' +
-        '<div class="th"><span class="tname">' + esc(t.theme) + '<span class="tcnt">' + num(t.count) + '종 중간값</span></span><span class="tmed ' + cls(t.median) + '">' + pct(t.median) + '</span></div>' +
-        '<div class="tsub">' + bar + aceInfo + '</div></summary>' +
-        '<div class="tlist">' + rows + '</div></details>';
+      return '<details class="theme" id="th-' + i + '" data-theme="' + esc(t.theme) + '"' + (isM() ? "" : " open") + '><summary>' +
+        '<div class="th"><span class="tname">' + esc(t.theme) + '</span><span class="tmed ' + cls(v) + '">' + (v == null ? "-" : pct(v)) + '</span></div>' +
+        '<div class="tsub"><span class="tbn">' + esc(benchLabel(b)) + ' · 1W ' + softPct(b.w1 == null ? null : num(b.w1)) + ' · 1M ' + softPct(b.m1 == null ? null : num(b.m1)) + '</span>' + aceInfo + '</div></summary>' +
+        driversBlock(t.drivers) + '<div class="tlist">' + rows + '</div></details>';
     }).join("");
-    return '<div class="card"><div class="card-h"><h2>테마별 ETF 수익률<span class="sub">' + modeLabel() + ' · 테마 중간값 높은 순 · 레버리지·인버스·전략형(롱숏·헤지 등) 제외</span>' + staleBadge(T) + '</h2></div>' + asOf("etf") +
+    return '<div class="card"><div class="card-h"><h2>테마별 상세<span class="sub">' + modeLabel() + ' · ACE 라인업 우선 · 타사 비교</span>' + staleBadge(T) + '</h2></div>' + asOf("etf") +
       '<div class="themes">' + body + '</div>' + lim.btn +
-      '<div class="src">테마 수익률 = 해당 테마 국내 상장 ETF 전체 수익률의 중간값(가운데 값) · 레버리지·인버스·롱숏·헤지 등 전략형 제외, 커버드콜은 별도 테마 · 정렬: ACE ' + modeLabel() + ' 수익률 상위 → 비교(타사, 순자산 100억 이상) ' + modeLabel() + ' 수익률 상위 3</div></div>';
+      '<div class="src">테마 분류에서 레버리지·인버스·전략형(롱숏·헤지 등) 제외, 커버드콜은 별도 테마 · 정렬: ACE ' + modeLabel() + ' 수익률 상위 → 비교(타사, AUM 100억 이상) 수익률 상위 3 · 움직인 종목은 국내 주식 테마만(대표 ETF 구성종목 주 1회 갱신)</div></div>';
+  }
+
+  // 오늘의 ACE ETF 6종
+  function acePicksCard() {
+    var br = DATA.ai_briefing || {};
+    var picks = br.ace_picks || [];
+    if (!picks.length) return "";
+    var cards = picks.map(function (x) {
+      var main = rv(x, themeKey()); if (main == null) main = rv(x, "d1");
+      return '<div class="pick"><div class="ph"><span class="atag">ACE</span><span class="pt">' + esc(x.theme || "") + '</span><span class="pcode">' + esc(x.code) + '</span></div>' +
+        '<div class="pn">' + esc(x.name.replace(/^ACE\s+/, "")) + '</div>' +
+        '<div class="pr"><span class="tp ' + cls(main) + '"><small class="tpl">' + (S.mode === "daily" ? "1D" : "1W") + '</small>' + pct(main) + '</span>' +
+        '<span class="tm">AUM ' + aumFmt(x.aum) + (S.mode === "daily" ? "" : ' · 1D ' + softPct(rv(x, "d1"))) + (S.mode === "weekly" ? "" : ' · 1W ' + softPct(rv(x, "w1"))) + ' · 1M ' + softPct(rv(x, "m1")) + '</span></div>' +
+        (x.point ? '<div class="pp">' + esc(x.point) + '</div>' : "") + '</div>';
+    }).join("");
+    return '<div class="card"><div class="card-h"><h2>오늘의 <span style="color:var(--ace-text)">ACE</span> ETF<span class="sub">오늘 시장 흐름과 함께 볼 만한 ACE 상품 ' + picks.length + '종</span></h2></div>' + asOf("etf") +
+      '<div class="picks">' + cards + '</div>' +
+      '<div class="src">' + (br.source === "gemini" ? esc(br.model || "Gemini") + "가 오늘 데이터 기준으로 선정·작성" : "규칙 기반 선정(강세 테마 대표 + 시장 상황별 코어·방어 상품)") + ' · 투자 권유가 아닌 참고용 정보이며, 투자 전 설명서와 약관을 확인하세요.</div></div>';
   }
 
   // ---------- 상호작용 ----------
@@ -705,6 +790,15 @@
       b.classList.toggle("active", b.getAttribute("data-v") === S.mode);
     });
   }
+
+  document.addEventListener("click", function (e) {
+    var tr = e.target.closest && e.target.closest("tr[data-theme]");
+    if (!tr) return;
+    var name = tr.getAttribute("data-theme");
+    var el = document.querySelector('details.theme[data-theme="' + name.replace(/"/g, '\\"') + '"]');
+    if (!el && !MORE.themes) { MORE.themes = true; render(); el = document.querySelector('details.theme[data-theme="' + name.replace(/"/g, '\\"') + '"]'); }
+    if (el) { el.open = true; el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  });
 
   // 상단 칩: 스크롤 위치에 따라 현재 파트 표시
   window.addEventListener("scroll", function () {
