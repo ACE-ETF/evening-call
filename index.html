@@ -17,8 +17,9 @@
     --up: #ef4f4f;      /* 한국 관례: 상승/순매수 = 빨강 */
     --down: #3d8bfd;    /* 하락/순매도 = 파랑 */
     --accent: #f5b942;
-    --ace: #3ec3f3;      /* ACE 브랜드 스카이블루 */
-    --ace-ink: #06222e;
+    --ace: #557eaa;      /* ACE 브랜드 컬러 (로고 배경) */
+    --ace-ink: #ffffff;  /* ACE 바탕 위 글자 */
+    --ace-text: #9dbbe0; /* 어두운 배경 위 ACE 글자용 밝은 톤 */
     --ok: #3ccf91;
     --radius: 12px;
   }
@@ -175,8 +176,8 @@
   .nd { color: #d3e2fb; }   /* 흰색에 가까운 아주 옅은 파랑: 하락·순매도 수치 */
   .asof { color: var(--muted); font-size: 11.5px; margin: -6px 0 10px; line-height: 1.45; }
   .asof-kpi { color: var(--muted); font-size: 11.5px; margin-top: 8px; line-height: 1.6; }
-  .bsec .blk.ace-blk { border: 1px solid rgba(62,195,243,.35); }
-  .bsec .blk.ace-blk h4 { color: var(--ace); }
+  .bsec .blk.ace-blk { border: 1px solid rgba(85,126,170,.6); }
+  .bsec .blk.ace-blk h4 { color: var(--ace-text); }
   .gist { font-size: 14.5px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1.4; }
   .bsec .blk h4 { font-size: 11.5px; color: var(--accent); letter-spacing: .04em; }
   .kv { margin-top: 8px; border-top: 1px solid var(--line); }
@@ -198,7 +199,7 @@
   .theme .tcnt { color: var(--muted); font-size: 11px; font-weight: 600; margin-left: 6px; }
   .theme .tmed { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
   .theme .tsub { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-top: 6px; }
-  .achip { font-size: 11px; font-weight: 700; color: var(--ace); background: rgba(62,195,243,.12); border: 1px solid rgba(62,195,243,.35); padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+  .achip { font-size: 11px; font-weight: 700; color: var(--ace-text); background: rgba(85,126,170,.22); border: 1px solid rgba(85,126,170,.6); padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
   .achip.none { color: var(--muted); background: transparent; border-color: var(--line); }
   .tlist { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 4px; }
   .trow { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; font-size: 13px; border-bottom: 1px dashed var(--grid); }
@@ -629,7 +630,7 @@
       (tot ? '<div class="bbar" style="margin:4px 0 16px" data-tip="' + esc("<b>ACE ETF 등락 분포</b><br>상승 " + a.up + " · 보합 " + a.flat + " · 하락 " + a.down) + '"><div style="flex:' + a.up + ';background:var(--up)"></div><div style="flex:' + a.flat + ';background:var(--line)"></div><div style="flex:' + a.down + ';background:var(--down)"></div></div>' : "");
     function list(arr) { return '<div class="tlist flat">' + (arr || []).slice(0, an).map(function (x, i) { return etfLine(x, String(i + 1)); }).join("") + '</div>'; }
     var big = a.aum_top ? ['aum_top', '순자산 상위'] : ['value_top', '거래대금 상위'];
-    return '<div class="card"><div class="card-h"><h2><span style="color:var(--ace)">ACE</span> ETF 마감 성과<span class="sub">' + modeLabel() + '</span>' + staleBadge(A) + '</h2></div>' + asOf("etf") + stats +
+    return '<div class="card"><div class="card-h"><h2><span style="color:var(--ace-text)">ACE</span> ETF 마감 성과<span class="sub">' + modeLabel() + '</span>' + staleBadge(A) + '</h2></div>' + asOf("etf") + stats +
       '<div class="ace-grid"><div><h4 class="up" style="font-size:12.5px;margin:0 0 6px">수익률 상위</h4>' + list(a.top) + '</div>' +
       '<div><h4 class="down" style="font-size:12.5px;margin:0 0 6px">수익률 하위</h4>' + list(a.bottom) + '</div>' +
       '<div><h4 style="font-size:12.5px;margin:0 0 6px;color:var(--text-2)">' + big[1] + '</h4>' + list(a[big[0]]) + '</div></div></div>';
