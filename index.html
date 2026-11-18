@@ -191,6 +191,7 @@
   details.theme > summary::-webkit-details-marker { display: none; }
   .theme .th { display: flex; justify-content: space-between; align-items: baseline; }
   .theme .tname { font-weight: 800; font-size: 14px; }
+  .theme .tcnt { color: var(--muted); font-size: 11px; font-weight: 600; margin-left: 6px; }
   .theme .tmed { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
   .theme .tsub { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-top: 6px; }
   .achip { font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(245,185,66,.12); border: 1px solid rgba(245,185,66,.3); padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
@@ -672,13 +673,13 @@
       var rows = (t.ace || []).map(function (x) { return etfLine(x, "ace"); }).join("") +
         (t.others || []).map(function (x) { return etfLine(x, "cmp"); }).join("");
       return '<details class="theme"' + (isM() ? "" : " open") + '><summary>' +
-        '<div class="th"><span class="tname">' + esc(t.theme) + '</span><span class="tmed ' + cls(t.median) + '">' + pct(t.median) + '</span></div>' +
+        '<div class="th"><span class="tname">' + esc(t.theme) + '<span class="tcnt">' + num(t.count) + '종 중간값</span></span><span class="tmed ' + cls(t.median) + '">' + pct(t.median) + '</span></div>' +
         '<div class="tsub">' + bar + aceInfo + '</div></summary>' +
         '<div class="tlist">' + rows + '</div></details>';
     }).join("");
     return '<div class="card"><div class="card-h"><h2>테마별 ETF 수익률<span class="sub">' + modeLabel() + ' · 테마 중간값 높은 순 · 레버리지·인버스·전략형(롱숏·헤지 등) 제외</span>' + staleBadge(T) + '</h2></div>' + asOf("etf") +
       '<div class="themes">' + body + '</div>' + lim.btn +
-      '<div class="src">테마 수익률 = 해당 테마 국내 상장 ETF 전체의 중간값 · 정렬: ACE ' + modeLabel() + ' 수익률 상위 → 비교(타사, 순자산 100억 이상) ' + modeLabel() + ' 수익률 상위 3</div></div>';
+      '<div class="src">테마 수익률 = 해당 테마 국내 상장 ETF 전체 수익률의 중간값(가운데 값) · 레버리지·인버스·롱숏·헤지 등 전략형 제외, 커버드콜은 별도 테마 · 정렬: ACE ' + modeLabel() + ' 수익률 상위 → 비교(타사, 순자산 100억 이상) ' + modeLabel() + ' 수익률 상위 3</div></div>';
   }
 
   // ---------- 상호작용 ----------
