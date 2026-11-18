@@ -17,6 +17,8 @@
     --up: #ef4f4f;      /* 한국 관례: 상승/순매수 = 빨강 */
     --down: #3d8bfd;    /* 하락/순매도 = 파랑 */
     --accent: #f5b942;
+    --ace: #3ec3f3;      /* ACE 브랜드 스카이블루 */
+    --ace-ink: #06222e;
     --ok: #3ccf91;
     --radius: 12px;
   }
@@ -149,7 +151,7 @@
   .etf .hrow { grid-template-columns: minmax(120px, 270px) 1fr 64px; }
   @media (max-width: 640px) { .hrow { grid-template-columns: 96px 1fr 60px; } .etf .hrow { grid-template-columns: 140px 1fr 60px; } }
   .ace-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
-  .ace-stats div { background: var(--panel-2); border-radius: 10px; padding: 8px 12px; }
+  .ace-stats div { background: var(--panel-2); border-radius: 10px; padding: 8px 12px; border-left: 3px solid var(--ace); }
   .ace-stats .k { display: block; color: var(--muted); font-size: 12px; }
   .ace-stats b { font-size: 18px; }
   .ace-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
@@ -173,6 +175,8 @@
   .nd { color: #d3e2fb; }   /* 흰색에 가까운 아주 옅은 파랑: 하락·순매도 수치 */
   .asof { color: var(--muted); font-size: 11.5px; margin: -6px 0 10px; line-height: 1.45; }
   .asof-kpi { color: var(--muted); font-size: 11.5px; margin-top: 8px; line-height: 1.6; }
+  .bsec .blk.ace-blk { border: 1px solid rgba(62,195,243,.35); }
+  .bsec .blk.ace-blk h4 { color: var(--ace); }
   .gist { font-size: 14.5px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1.4; }
   .bsec .blk h4 { font-size: 11.5px; color: var(--accent); letter-spacing: .04em; }
   .kv { margin-top: 8px; border-top: 1px solid var(--line); }
@@ -194,7 +198,7 @@
   .theme .tcnt { color: var(--muted); font-size: 11px; font-weight: 600; margin-left: 6px; }
   .theme .tmed { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
   .theme .tsub { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-top: 6px; }
-  .achip { font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(245,185,66,.12); border: 1px solid rgba(245,185,66,.3); padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+  .achip { font-size: 11px; font-weight: 700; color: var(--ace); background: rgba(62,195,243,.12); border: 1px solid rgba(62,195,243,.35); padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
   .achip.none { color: var(--muted); background: transparent; border-color: var(--line); }
   .tlist { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 4px; }
   .trow { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; font-size: 13px; border-bottom: 1px dashed var(--grid); }
@@ -209,7 +213,7 @@
   .trow .tp { font-variant-numeric: tabular-nums; font-weight: 600; }
   .trow.ace .tn { font-weight: 700; color: var(--text); }
   .trow:not(.ace) .tn { color: var(--muted); }
-  .atag { font-size: 10px; font-weight: 800; color: #1a1406; background: var(--accent); border-radius: 4px; text-align: center; padding: 1px 0; }
+  .atag { font-size: 10px; font-weight: 800; color: var(--ace-ink); background: var(--ace); border-radius: 4px; text-align: center; padding: 1px 0; }
   .otag { font-size: 10px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; text-align: center; padding: 0; }
   .more { display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px dashed var(--line); background: transparent; color: var(--text-2); font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer; }
   .gap-row { text-align: center; color: var(--muted); font-size: 12px; line-height: 14px; }
@@ -429,7 +433,7 @@
             return '<div class="kv-row">' + (it.k ? '<span class="kk">' + esc(it.k) + '</span>' : '<span class="kk dot"></span>') +
               '<span class="vv">' + richText(it.v, true) + '</span></div>';
           }).join("");
-          return '<details class="blk"' + (isM() ? "" : " open") + '><summary><div><h4>' + esc(sc.title) + '</h4>' +
+          return '<details class="blk' + (sc.key === "ace" ? " ace-blk" : "") + '"' + (isM() ? "" : " open") + '><summary><div><h4>' + esc(sc.title) + '</h4>' +
             (sc.gist ? '<div class="gist">' + richText(sc.gist, true) + '</div>' : "") + '</div></summary><div class="kv">' + rows + '</div></details>';
         }).join("") +
         ((b.strategy && b.strategy.length) ? '<div class="blk strat"><h4>대응 포인트</h4>' + lis(b.strategy) + '</div>' : "") + '</div>';
@@ -625,7 +629,7 @@
       (tot ? '<div class="bbar" style="margin:4px 0 16px" data-tip="' + esc("<b>ACE ETF 등락 분포</b><br>상승 " + a.up + " · 보합 " + a.flat + " · 하락 " + a.down) + '"><div style="flex:' + a.up + ';background:var(--up)"></div><div style="flex:' + a.flat + ';background:var(--line)"></div><div style="flex:' + a.down + ';background:var(--down)"></div></div>' : "");
     function list(arr) { return '<div class="tlist flat">' + (arr || []).slice(0, an).map(function (x, i) { return etfLine(x, String(i + 1)); }).join("") + '</div>'; }
     var big = a.aum_top ? ['aum_top', '순자산 상위'] : ['value_top', '거래대금 상위'];
-    return '<div class="card"><div class="card-h"><h2>ACE ETF 마감 성과<span class="sub">' + modeLabel() + '</span>' + staleBadge(A) + '</h2></div>' + asOf("etf") + stats +
+    return '<div class="card"><div class="card-h"><h2><span style="color:var(--ace)">ACE</span> ETF 마감 성과<span class="sub">' + modeLabel() + '</span>' + staleBadge(A) + '</h2></div>' + asOf("etf") + stats +
       '<div class="ace-grid"><div><h4 class="up" style="font-size:12.5px;margin:0 0 6px">수익률 상위</h4>' + list(a.top) + '</div>' +
       '<div><h4 class="down" style="font-size:12.5px;margin:0 0 6px">수익률 하위</h4>' + list(a.bottom) + '</div>' +
       '<div><h4 style="font-size:12.5px;margin:0 0 6px;color:var(--text-2)">' + big[1] + '</h4>' + list(a[big[0]]) + '</div></div></div>';
