@@ -5,11 +5,11 @@
     "kospi_pct": -2.59,
     "kosdaq": 650.06,
     "kosdaq_pct": -2.34,
-    "foreign": -14270,
-    "inst": 5296,
-    "retail": 4169,
-    "headline": "외국인 1.4조 원대 투매 충격에 코스피 5,000선 하회 마감",
-    "final": false,
-    "updated_at": "2026-11-17 17:00 KST"
+    "foreign": -14190,
+    "inst": 5134,
+    "retail": 4310,
+    "headline": "반도체 약세와 외국인 1조 원대 매도 집중으로 코스피 5000선 이탈",
+    "final": true,
+    "updated_at": "2026-11-18 11:01 KST"
   }
 ]

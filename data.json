@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-17 17:00 KST",
+  "updated_at": "2026-11-18 11:01 KST",
   "trade_date": "2026-11-17",
   "indices": {
     "kospi": {
@@ -181,9 +181,9 @@
       ]
     },
     "usdkrw": {
-      "price": 1337.27,
-      "daily_pct": 0.3,
-      "weekly_pct": -0.49,
+      "price": 1335.67,
+      "daily_pct": 0.18,
+      "weekly_pct": -0.61,
       "date": "2026-11-17",
       "stale": false,
       "series": [
@@ -265,7 +265,7 @@
         },
         {
           "d": "11-17",
-          "c": 1337.27
+          "c": 1335.67
         }
       ]
     },
@@ -361,22 +361,22 @@
   },
   "flow": {
     "kospi": {
-      "daily_foreign": -14270,
-      "weekly_foreign": -22138,
-      "daily_inst": 5296,
-      "weekly_inst": -10959,
-      "daily_retail": 4169,
-      "weekly_retail": 7374,
+      "daily_foreign": -14190,
+      "weekly_foreign": -22058,
+      "daily_inst": 5134,
+      "weekly_inst": -11121,
+      "daily_retail": 4310,
+      "weekly_retail": 7515,
       "date": "2026-11-17",
       "stale": false
     },
     "kosdaq": {
-      "daily_foreign": -877,
-      "weekly_foreign": -8593,
-      "daily_inst": -261,
-      "weekly_inst": 3067,
-      "daily_retail": 1154,
-      "weekly_retail": 5525,
+      "daily_foreign": -883,
+      "weekly_foreign": -8599,
+      "daily_inst": -263,
+      "weekly_inst": 3064,
+      "daily_retail": 1081,
+      "weekly_retail": 5452,
       "date": "2026-11-17",
       "stale": false
     }
@@ -401,224 +401,224 @@
         {
           "name": "섬유·의류",
           "pct": 1.07,
-          "value": 211
+          "value": 213
         },
         {
           "name": "의료·정밀기기",
           "pct": 1.06,
-          "value": 531
+          "value": 557
         },
         {
           "name": "부동산",
           "pct": -0.04,
-          "value": 64
+          "value": 67
         },
         {
           "name": "음식료·담배",
           "pct": -0.31,
-          "value": 1325
+          "value": 1338
         },
         {
           "name": "제약",
           "pct": -0.36,
-          "value": 2829
+          "value": 2916
         },
         {
           "name": "일반서비스",
           "pct": -0.62,
-          "value": 2385
+          "value": 2538
         },
         {
           "name": "통신",
           "pct": -0.81,
-          "value": 1135
+          "value": 1152
         },
         {
           "name": "오락·문화",
           "pct": -0.97,
-          "value": 330
+          "value": 342
         },
         {
           "name": "운송·창고",
           "pct": -1.53,
-          "value": 1351
+          "value": 1409
         },
         {
           "name": "증권",
           "pct": -1.82,
-          "value": 754
+          "value": 775
         },
         {
           "name": "IT 서비스",
           "pct": -1.93,
-          "value": 2874
+          "value": 3024
         },
         {
           "name": "유통",
           "pct": -2.25,
-          "value": 2203
+          "value": 2433
         },
         {
           "name": "화학",
           "pct": -2.47,
-          "value": 5395
+          "value": 5636
         },
         {
           "name": "종이·목재",
           "pct": -2.48,
-          "value": 46
+          "value": 48
         },
         {
           "name": "전기전자",
           "pct": -2.91,
-          "value": 95595
+          "value": 101542
         },
         {
           "name": "금속",
           "pct": -3.26,
-          "value": 1711
+          "value": 1820
         },
         {
           "name": "운송장비·부품",
           "pct": -3.61,
-          "value": 5130
+          "value": 5426
         },
         {
           "name": "기계·장비",
           "pct": -3.81,
-          "value": 2561
+          "value": 2681
         },
         {
           "name": "건설",
           "pct": -3.85,
-          "value": 1484
+          "value": 1566
         },
         {
           "name": "보험",
           "pct": -3.86,
-          "value": 1674
+          "value": 1763
         },
         {
           "name": "비금속",
           "pct": -3.97,
-          "value": 70
+          "value": 71
         },
         {
           "name": "전기·가스",
           "pct": -4.87,
-          "value": 545
+          "value": 586
         }
       ],
       "weekly": [
         {
           "name": "의료·정밀기기",
           "pct": 8.05,
-          "value": 2984
+          "value": 3011
         },
         {
           "name": "오락·문화",
           "pct": 4.29,
-          "value": 2775
+          "value": 2787
         },
         {
           "name": "일반서비스",
           "pct": 2.37,
-          "value": 13628
+          "value": 13781
         },
         {
           "name": "음식료·담배",
           "pct": 2.24,
-          "value": 8808
+          "value": 8822
         },
         {
           "name": "운송·창고",
           "pct": 1.91,
-          "value": 11952
+          "value": 12010
         },
         {
           "name": "부동산",
           "pct": 0.99,
-          "value": 603
+          "value": 606
         },
         {
           "name": "통신",
           "pct": 0.58,
-          "value": 5993
+          "value": 6010
         },
         {
           "name": "제약",
           "pct": -0.31,
-          "value": 16836
+          "value": 16922
         },
         {
           "name": "섬유·의류",
           "pct": -1.93,
-          "value": 803
+          "value": 805
         },
         {
           "name": "증권",
           "pct": -2.8,
-          "value": 5214
+          "value": 5235
         },
         {
           "name": "종이·목재",
           "pct": -2.84,
-          "value": 214
+          "value": 216
         },
         {
           "name": "유통",
           "pct": -3.35,
-          "value": 12010
+          "value": 12240
         },
         {
           "name": "운송장비·부품",
           "pct": -4.44,
-          "value": 35082
+          "value": 35378
         },
         {
           "name": "화학",
           "pct": -4.66,
-          "value": 31783
+          "value": 32024
         },
         {
           "name": "비금속",
           "pct": -4.93,
-          "value": 252
+          "value": 254
         },
         {
           "name": "보험",
           "pct": -5.16,
-          "value": 14007
+          "value": 14095
         },
         {
           "name": "건설",
           "pct": -6.46,
-          "value": 10771
+          "value": 10853
         },
         {
           "name": "전기전자",
           "pct": -6.59,
-          "value": 544387
+          "value": 550333
         },
         {
           "name": "기계·장비",
           "pct": -6.8,
-          "value": 17126
+          "value": 17246
         },
         {
           "name": "금속",
           "pct": -7.09,
-          "value": 10353
+          "value": 10462
         },
         {
           "name": "IT 서비스",
           "pct": -7.37,
-          "value": 29587
+          "value": 29738
         },
         {
           "name": "전기·가스",
           "pct": -13.45,
-          "value": 4303
+          "value": 4344
         }
       ],
       "stale": false
@@ -628,52 +628,52 @@
         {
           "name": "운송·창고",
           "pct": 1.71,
-          "value": 7
+          "value": 8
         },
         {
           "name": "섬유·의류",
           "pct": 1.7,
-          "value": 465
+          "value": 488
         },
         {
           "name": "오락·문화",
           "pct": -0.31,
-          "value": 372
+          "value": 385
         },
         {
           "name": "기타제조",
           "pct": -0.51,
-          "value": 40
+          "value": 45
         },
         {
           "name": "제약",
           "pct": -0.58,
-          "value": 2098
+          "value": 2181
         },
         {
           "name": "일반서비스",
           "pct": -0.74,
-          "value": 4852
+          "value": 5858
         },
         {
           "name": "건설",
           "pct": -1.45,
-          "value": 110
+          "value": 118
         },
         {
           "name": "종이·목재",
           "pct": -1.86,
-          "value": 13
+          "value": 14
         },
         {
           "name": "유통",
           "pct": -1.88,
-          "value": 706
+          "value": 735
         },
         {
           "name": "IT 서비스",
           "pct": -2.06,
-          "value": 4286
+          "value": 4623
         },
         {
           "name": "통신",
@@ -683,104 +683,104 @@
         {
           "name": "음식료·담배",
           "pct": -2.17,
-          "value": 113
+          "value": 118
         },
         {
           "name": "비금속",
           "pct": -2.68,
-          "value": 282
+          "value": 294
         },
         {
           "name": "화학",
           "pct": -2.76,
-          "value": 1719
+          "value": 1830
         },
         {
           "name": "금융",
           "pct": -2.78,
-          "value": 1016
+          "value": 1105
         },
         {
           "name": "전기전자",
           "pct": -2.79,
-          "value": 10698
+          "value": 11533
         },
         {
           "name": "운송장비·부품",
           "pct": -3.19,
-          "value": 543
+          "value": 575
         },
         {
           "name": "기계·장비",
           "pct": -3.45,
-          "value": 8476
+          "value": 9169
         },
         {
           "name": "의료·정밀기기",
           "pct": -4.19,
-          "value": 9482
+          "value": 10313
         },
         {
           "name": "금속",
           "pct": -4.23,
-          "value": 1555
+          "value": 1627
         },
         {
           "name": "출판·매체복제",
           "pct": -6.59,
-          "value": 20
+          "value": 22
         }
       ],
       "weekly": [
         {
           "name": "오락·문화",
           "pct": 2.89,
-          "value": 3621
+          "value": 3634
         },
         {
           "name": "비금속",
           "pct": 1.85,
-          "value": 2700
+          "value": 2712
         },
         {
           "name": "운송장비·부품",
           "pct": 1.0,
-          "value": 4561
+          "value": 4593
         },
         {
           "name": "금융",
           "pct": 0.12,
-          "value": 6999
+          "value": 7087
         },
         {
           "name": "화학",
           "pct": -0.77,
-          "value": 11776
+          "value": 11887
         },
         {
           "name": "기타제조",
           "pct": -1.25,
-          "value": 187
+          "value": 192
         },
         {
           "name": "운송·창고",
           "pct": -1.3,
-          "value": 40
+          "value": 41
         },
         {
           "name": "전기전자",
           "pct": -1.42,
-          "value": 66162
+          "value": 66997
         },
         {
           "name": "기계·장비",
           "pct": -1.57,
-          "value": 65898
+          "value": 66591
         },
         {
           "name": "섬유·의류",
           "pct": -1.61,
-          "value": 631
+          "value": 654
         },
         {
           "name": "통신",
@@ -790,52 +790,52 @@
         {
           "name": "종이·목재",
           "pct": -2.22,
-          "value": 50
+          "value": 51
         },
         {
           "name": "음식료·담배",
           "pct": -3.47,
-          "value": 453
+          "value": 458
         },
         {
           "name": "제약",
           "pct": -3.52,
-          "value": 11976
+          "value": 12059
         },
         {
           "name": "유통",
           "pct": -4.03,
-          "value": 4528
+          "value": 4556
         },
         {
           "name": "일반서비스",
           "pct": -4.25,
-          "value": 22866
+          "value": 23873
         },
         {
           "name": "건설",
           "pct": -4.5,
-          "value": 2249
+          "value": 2257
         },
         {
           "name": "IT 서비스",
           "pct": -6.09,
-          "value": 35803
+          "value": 36140
         },
         {
           "name": "의료·정밀기기",
           "pct": -6.76,
-          "value": 16625
+          "value": 17455
         },
         {
           "name": "금속",
           "pct": -7.72,
-          "value": 11000
+          "value": 11072
         },
         {
           "name": "출판·매체복제",
           "pct": -8.81,
-          "value": 205
+          "value": 206
         }
       ],
       "stale": false
@@ -846,66 +846,66 @@
       "kospi": [
         {
           "sector": "제약",
-          "foreign": -201,
-          "inst": 600,
-          "retail": -375,
-          "smart": 399
+          "foreign": -202,
+          "inst": 596,
+          "retail": -372,
+          "smart": 394
         },
         {
           "sector": "기타금융",
-          "foreign": -1195,
-          "inst": 1438,
-          "retail": -263,
+          "foreign": -1177,
+          "inst": 1420,
+          "retail": -260,
           "smart": 243
         },
         {
           "sector": "운송·창고",
           "foreign": 113,
-          "inst": 113,
-          "retail": -223,
-          "smart": 226
+          "inst": 115,
+          "retail": -225,
+          "smart": 228
         },
         {
           "sector": "유통",
-          "foreign": -206,
-          "inst": 359,
+          "foreign": -204,
+          "inst": 357,
           "retail": -146,
           "smart": 153
         },
         {
           "sector": "통신",
-          "foreign": 83,
-          "inst": 27,
+          "foreign": 86,
+          "inst": 25,
           "retail": -107,
-          "smart": 110
+          "smart": 111
         },
         {
           "sector": "은행",
           "foreign": 6,
-          "inst": 68,
-          "retail": -73,
-          "smart": 74
-        },
-        {
-          "sector": "의료·정밀기기",
-          "foreign": -31,
-          "inst": 58,
-          "retail": -29,
-          "smart": 27
+          "inst": 67,
+          "retail": -72,
+          "smart": 73
         },
         {
           "sector": "오락·문화",
-          "foreign": -41,
+          "foreign": -39,
           "inst": 63,
-          "retail": -24,
-          "smart": 22
+          "retail": -26,
+          "smart": 24
+        },
+        {
+          "sector": "의료·정밀기기",
+          "foreign": -35,
+          "inst": 58,
+          "retail": -25,
+          "smart": 23
         },
         {
           "sector": "부동산",
-          "foreign": 5,
+          "foreign": 6,
           "inst": -4,
-          "retail": 0,
-          "smart": 1
+          "retail": -1,
+          "smart": 2
         },
         {
           "sector": "기타제조",
@@ -930,10 +930,10 @@
         },
         {
           "sector": "섬유·의류",
-          "foreign": -12,
+          "foreign": -13,
           "inst": 5,
-          "retail": 1,
-          "smart": -7
+          "retail": 2,
+          "smart": -8
         },
         {
           "sector": "비금속",
@@ -945,109 +945,109 @@
         {
           "sector": "증권",
           "foreign": -184,
-          "inst": 135,
-          "retail": 38,
-          "smart": -49
+          "inst": 134,
+          "retail": 39,
+          "smart": -50
         },
         {
           "sector": "보험",
-          "foreign": -9,
-          "inst": -46,
-          "retail": 48,
-          "smart": -55
-        },
-        {
-          "sector": "금속",
-          "foreign": -4,
-          "inst": -77,
-          "retail": 77,
-          "smart": -81
+          "foreign": -11,
+          "inst": -50,
+          "retail": 53,
+          "smart": -61
         },
         {
           "sector": "건설",
-          "foreign": -24,
-          "inst": -60,
-          "retail": 86,
+          "foreign": -23,
+          "inst": -61,
+          "retail": 83,
           "smart": -84
+        },
+        {
+          "sector": "금속",
+          "foreign": -13,
+          "inst": -80,
+          "retail": 86,
+          "smart": -93
         },
         {
           "sector": "음식료·담배",
           "foreign": -187,
-          "inst": 74,
-          "retail": -50,
-          "smart": -113
+          "inst": 72,
+          "retail": -49,
+          "smart": -115
         },
         {
           "sector": "전기·가스",
-          "foreign": -89,
+          "foreign": -94,
           "inst": -24,
-          "retail": 111,
-          "smart": -113
+          "retail": 116,
+          "smart": -118
         },
         {
           "sector": "화학",
-          "foreign": -84,
-          "inst": -84,
-          "retail": 155,
-          "smart": -168
+          "foreign": -85,
+          "inst": -89,
+          "retail": 158,
+          "smart": -174
         },
         {
           "sector": "일반서비스",
-          "foreign": -454,
-          "inst": 243,
-          "retail": 12,
-          "smart": -211
+          "foreign": -444,
+          "inst": 239,
+          "retail": 6,
+          "smart": -205
         },
         {
           "sector": "IT 서비스",
-          "foreign": -324,
-          "inst": 105,
-          "retail": 51,
-          "smart": -219
+          "foreign": -333,
+          "inst": 98,
+          "retail": 66,
+          "smart": -235
         },
         {
           "sector": "기계·장비",
-          "foreign": -272,
-          "inst": -30,
-          "retail": 294,
-          "smart": -302
+          "foreign": -273,
+          "inst": -33,
+          "retail": 295,
+          "smart": -306
         },
         {
           "sector": "운송장비·부품",
-          "foreign": -567,
-          "inst": 256,
-          "retail": 141,
-          "smart": -311
+          "foreign": -570,
+          "inst": 247,
+          "retail": 152,
+          "smart": -323
         },
         {
           "sector": "전기·전자",
-          "foreign": -10535,
-          "inst": 2079,
-          "retail": 4426,
-          "smart": -8456
+          "foreign": -10423,
+          "inst": 1985,
+          "retail": 4510,
+          "smart": -8438
         }
       ],
       "kosdaq": [
         {
           "sector": "제약",
-          "foreign": 36,
+          "foreign": 38,
           "inst": 177,
-          "retail": -211,
-          "smart": 213
+          "retail": -212,
+          "smart": 215
         },
         {
           "sector": "IT 서비스",
-          "foreign": -9,
-          "inst": 152,
-          "retail": -144,
+          "foreign": -10,
+          "inst": 153,
+          "retail": -143,
           "smart": 143
         },
         {
           "sector": "오락·문화",
-          "foreign": -4,
-          "inst": 34,
-          "retail": -33,
-          "smart": 30
+          "foreign": -2,
+          "inst": 33,
+          "retail": -35,
+          "smart": 31
         },
         {
           "sector": "유통",
@@ -1058,24 +1058,24 @@
         },
         {
           "sector": "일반서비스",
-          "foreign": 23,
-          "inst": -9,
-          "retail": -16,
-          "smart": 14
+          "foreign": 20,
+          "inst": -8,
+          "retail": -91,
+          "smart": 12
         },
         {
           "sector": "건설",
-          "foreign": 2,
+          "foreign": 4,
           "inst": 4,
-          "retail": -7,
-          "smart": 6
+          "retail": -8,
+          "smart": 8
         },
         {
           "sector": "운송장비·부품",
-          "foreign": -15,
+          "foreign": -14,
           "inst": 20,
           "retail": -2,
-          "smart": 5
+          "smart": 6
         },
         {
           "sector": "운송·창고",
@@ -1108,9 +1108,9 @@
         {
           "sector": "부동산",
           "foreign": 0,
-          "inst": 0.0,
+          "inst": 0,
           "retail": 0,
-          "smart": 0.0
+          "smart": 0
         },
         {
           "sector": "비금속",
@@ -1158,43 +1158,43 @@
           "sector": "화학",
           "foreign": -203,
           "inst": 146,
-          "retail": 46,
+          "retail": 48,
           "smart": -57
         },
         {
           "sector": "금융",
-          "foreign": -88,
-          "inst": 22,
+          "foreign": -89,
+          "inst": 23,
           "retail": 63,
           "smart": -66
         },
         {
           "sector": "금속",
           "foreign": -1,
-          "inst": -68,
+          "inst": -67,
           "retail": 60,
-          "smart": -69
+          "smart": -68
         },
         {
           "sector": "의료·정밀기기",
-          "foreign": -76,
-          "inst": -114,
-          "retail": 272,
-          "smart": -190
+          "foreign": -77,
+          "inst": -120,
+          "retail": 279,
+          "smart": -197
         },
         {
           "sector": "전기·전자",
-          "foreign": -343,
+          "foreign": -340,
           "inst": -165,
-          "retail": 485,
-          "smart": -508
+          "retail": 482,
+          "smart": -505
         },
         {
           "sector": "기계·장비",
-          "foreign": -239,
-          "inst": -424,
-          "retail": 634,
-          "smart": -663
+          "foreign": -249,
+          "inst": -423,
+          "retail": 637,
+          "smart": -672
         }
       ]
     },
@@ -1202,59 +1202,59 @@
       "kospi": [
         {
           "sector": "제약",
-          "foreign": 64,
-          "inst": 1518,
-          "retail": -1588,
-          "smart": 1582
+          "foreign": 62,
+          "inst": 1514,
+          "retail": -1585,
+          "smart": 1576
         },
         {
           "sector": "운송·창고",
           "foreign": 1125,
-          "inst": -12,
-          "retail": -1106,
-          "smart": 1113
+          "inst": -11,
+          "retail": -1108,
+          "smart": 1114
         },
         {
           "sector": "통신",
-          "foreign": 210,
-          "inst": 371,
-          "retail": -582,
-          "smart": 581
+          "foreign": 213,
+          "inst": 369,
+          "retail": -583,
+          "smart": 582
         },
         {
           "sector": "오락·문화",
-          "foreign": -67,
+          "foreign": -65,
           "inst": 345,
-          "retail": -281,
-          "smart": 278
+          "retail": -283,
+          "smart": 280
         },
         {
           "sector": "은행",
-          "foreign": 138,
-          "inst": 46,
+          "foreign": 139,
+          "inst": 45,
           "retail": -185,
           "smart": 184
         },
         {
           "sector": "유통",
-          "foreign": -381,
-          "inst": 508,
+          "foreign": -380,
+          "inst": 506,
           "retail": -128,
-          "smart": 127
+          "smart": 126
         },
         {
           "sector": "의료·정밀기기",
-          "foreign": -329,
+          "foreign": -332,
           "inst": 359,
-          "retail": -36,
-          "smart": 30
+          "retail": -32,
+          "smart": 27
         },
         {
           "sector": "보험",
-          "foreign": 120,
-          "inst": -98,
-          "retail": -54,
-          "smart": 22
+          "foreign": 119,
+          "inst": -102,
+          "retail": -49,
+          "smart": 17
         },
         {
           "sector": "농업 임업 및 어업",
@@ -1281,7 +1281,7 @@
           "sector": "부동산",
           "foreign": -9,
           "inst": -12,
-          "retail": 31,
+          "retail": 30,
           "smart": -21
         },
         {
@@ -1300,117 +1300,117 @@
         },
         {
           "sector": "건설",
-          "foreign": 8,
-          "inst": -104,
-          "retail": 93,
-          "smart": -96
+          "foreign": 10,
+          "inst": -105,
+          "retail": 89,
+          "smart": -95
         },
         {
           "sector": "증권",
           "foreign": -717,
-          "inst": 595,
-          "retail": 100,
-          "smart": -122
+          "inst": 594,
+          "retail": 102,
+          "smart": -123
         },
         {
           "sector": "기타금융",
-          "foreign": 3084,
-          "inst": -3362,
-          "retail": 137,
-          "smart": -278
+          "foreign": 3103,
+          "inst": -3379,
+          "retail": 140,
+          "smart": -276
         },
         {
           "sector": "금속",
-          "foreign": 52,
-          "inst": -393,
-          "retail": 157,
-          "smart": -341
+          "foreign": 43,
+          "inst": -396,
+          "retail": 167,
+          "smart": -353
         },
         {
           "sector": "일반서비스",
-          "foreign": -967,
-          "inst": 474,
-          "retail": -586,
-          "smart": -493
+          "foreign": -958,
+          "inst": 470,
+          "retail": -591,
+          "smart": -488
         },
         {
           "sector": "음식료·담배",
           "foreign": -513,
-          "inst": -210,
-          "retail": -40,
-          "smart": -723
+          "inst": -212,
+          "retail": -39,
+          "smart": -725
         },
         {
           "sector": "전기·가스",
-          "foreign": -557,
-          "inst": -331,
-          "retail": 890,
-          "smart": -888
+          "foreign": -561,
+          "inst": -332,
+          "retail": 895,
+          "smart": -893
         },
         {
           "sector": "기계·장비",
           "foreign": -757,
-          "inst": -216,
+          "inst": -219,
           "retail": 957,
-          "smart": -973
+          "smart": -976
         },
         {
           "sector": "운송장비·부품",
-          "foreign": -915,
-          "inst": -754,
-          "retail": 410,
-          "smart": -1669
+          "foreign": -918,
+          "inst": -763,
+          "retail": 421,
+          "smart": -1681
         },
         {
           "sector": "IT 서비스",
-          "foreign": -480,
-          "inst": -1324,
-          "retail": 905,
-          "smart": -1804
+          "foreign": -488,
+          "inst": -1331,
+          "retail": 920,
+          "smart": -1819
         },
         {
           "sector": "화학",
-          "foreign": -563,
-          "inst": -1346,
-          "retail": 1729,
-          "smart": -1909
+          "foreign": -564,
+          "inst": -1351,
+          "retail": 1732,
+          "smart": -1915
         },
         {
           "sector": "전기·전자",
-          "foreign": -20570,
-          "inst": -7004,
-          "retail": 6501,
-          "smart": -27574
+          "foreign": -20458,
+          "inst": -7098,
+          "retail": 6585,
+          "smart": -27556
         }
       ],
       "kosdaq": [
         {
           "sector": "운송장비·부품",
-          "foreign": 3,
+          "foreign": 4,
           "inst": 146,
-          "retail": -146,
-          "smart": 149
+          "retail": -147,
+          "smart": 150
         },
         {
           "sector": "오락·문화",
-          "foreign": 73,
+          "foreign": 74,
           "inst": 24,
-          "retail": -104,
-          "smart": 97
+          "retail": -106,
+          "smart": 98
         },
         {
           "sector": "화학",
           "foreign": -393,
           "inst": 468,
-          "retail": -112,
+          "retail": -109,
           "smart": 75
         },
         {
           "sector": "제약",
-          "foreign": -258,
+          "foreign": -256,
           "inst": 292,
-          "retail": -73,
-          "smart": 34
+          "retail": -75,
+          "smart": 36
         },
         {
           "sector": "운송·창고",
@@ -1470,17 +1470,17 @@
         },
         {
           "sector": "섬유·의류",
-          "foreign": -28,
+          "foreign": -27,
           "inst": 4,
-          "retail": 24,
-          "smart": -24
+          "retail": 23,
+          "smart": -23
         },
         {
           "sector": "건설",
-          "foreign": -27,
+          "foreign": -25,
           "inst": -2,
-          "retail": 24,
-          "smart": -29
+          "retail": 23,
+          "smart": -27
         },
         {
           "sector": "비금속",
@@ -1498,24 +1498,24 @@
         },
         {
           "sector": "일반서비스",
-          "foreign": 248,
-          "inst": -487,
-          "retail": 279,
-          "smart": -239
+          "foreign": 245,
+          "inst": -486,
+          "retail": 205,
+          "smart": -241
         },
         {
           "sector": "금융",
-          "foreign": -353,
-          "inst": 89,
+          "foreign": -355,
+          "inst": 90,
           "retail": 254,
-          "smart": -264
+          "smart": -265
         },
         {
           "sector": "금속",
-          "foreign": -259,
+          "foreign": -260,
           "inst": -102,
           "retail": 553,
-          "smart": -361
+          "smart": -362
         },
         {
           "sector": "유통",
@@ -1526,31 +1526,31 @@
         },
         {
           "sector": "의료·정밀기기",
-          "foreign": -811,
-          "inst": 156,
-          "retail": 709,
-          "smart": -655
+          "foreign": -812,
+          "inst": 150,
+          "retail": 717,
+          "smart": -662
         },
         {
           "sector": "전기·전자",
-          "foreign": -2981,
+          "foreign": -2979,
           "inst": 2055,
-          "retail": 815,
-          "smart": -926
+          "retail": 812,
+          "smart": -924
         },
         {
           "sector": "IT 서비스",
-          "foreign": -687,
+          "foreign": -689,
           "inst": -361,
           "retail": 1076,
-          "smart": -1048
+          "smart": -1050
         },
         {
           "sector": "기계·장비",
-          "foreign": -2857,
-          "inst": 975,
-          "retail": 1811,
-          "smart": -1882
+          "foreign": -2867,
+          "inst": 976,
+          "retail": 1814,
+          "smart": -1891
         }
       ]
     },
@@ -1565,42 +1565,42 @@
             "name": "LG전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 138
+            "value": 136
           },
           {
             "code": "278470",
             "name": "에이피알",
             "sector": "화학",
             "market": "KOSPI",
-            "value": 103
+            "value": 105
           },
           {
             "code": "017670",
             "name": "SK텔레콤",
             "sector": "통신",
             "market": "KOSPI",
-            "value": 99
-          },
-          {
-            "code": "079550",
-            "name": "LIG디펜스앤에어로스페이스",
-            "sector": "금속",
-            "market": "KOSPI",
-            "value": 78
+            "value": 101
           },
           {
             "code": "003490",
             "name": "대한항공",
             "sector": "운송·창고",
             "market": "KOSPI",
-            "value": 78
+            "value": 77
+          },
+          {
+            "code": "079550",
+            "name": "LIG디펜스앤에어로스페이스",
+            "sector": "금속",
+            "market": "KOSPI",
+            "value": 73
           },
           {
             "code": "000990",
             "name": "DB하이텍",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 67
+            "value": 69
           },
           {
             "code": "005830",
@@ -1616,14 +1616,14 @@
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -4821
+            "value": -4740
           },
           {
             "code": "000660",
             "name": "SK하이닉스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -4402
+            "value": -4379
           },
           {
             "code": "005935",
@@ -1637,28 +1637,28 @@
             "name": "KB금융",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": -346
+            "value": -342
           },
           {
             "code": "006400",
             "name": "삼성SDI",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -282
+            "value": -281
           },
           {
             "code": "028050",
             "name": "삼성E&A",
             "sector": "일반서비스",
             "market": "KOSPI",
-            "value": -280
+            "value": -272
           },
           {
             "code": "007660",
             "name": "이수페타시스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -241
+            "value": -238
           }
         ]
       },
@@ -1669,28 +1669,28 @@
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 1738
+            "value": 1691
           },
           {
             "code": "000660",
             "name": "SK하이닉스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 1488
+            "value": 1453
           },
           {
             "code": "402340",
             "name": "SK스퀘어",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": 363
+            "value": 359
           },
           {
             "code": "105560",
             "name": "KB금융",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": 291
+            "value": 288
           },
           {
             "code": "007660",
@@ -1704,14 +1704,14 @@
             "name": "우리금융지주",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": 191
+            "value": 189
           },
           {
             "code": "207940",
             "name": "삼성바이오로직스",
             "sector": "제약",
             "market": "KOSPI",
-            "value": 171
+            "value": 170
           }
         ],
         "sell": [
@@ -1720,7 +1720,7 @@
             "name": "삼성전기",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -263
+            "value": -266
           },
           {
             "code": "005935",
@@ -1734,7 +1734,7 @@
             "name": "삼성SDI",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -177
+            "value": -179
           },
           {
             "code": "062040",
@@ -1755,14 +1755,14 @@
             "name": "OCI홀딩스",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": -120
+            "value": -121
           },
           {
             "code": "131290",
             "name": "티에스이",
             "sector": "의료·정밀기기",
             "market": "KOSDAQ",
-            "value": -110
+            "value": -113
           }
         ]
       },
@@ -1773,7 +1773,7 @@
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 2944
+            "value": 2990
           },
           {
             "code": "005935",
@@ -1787,21 +1787,21 @@
             "name": "삼성SDI",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 457
+            "value": 460
           },
           {
             "code": "009150",
             "name": "삼성전기",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 321
+            "value": 315
           },
           {
             "code": "036930",
             "name": "주성엔지니어링",
             "sector": "기계·장비",
             "market": "KOSDAQ",
-            "value": 220
+            "value": 216
           },
           {
             "code": "493260",
@@ -1824,7 +1824,7 @@
             "name": "SK하이닉스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -886
+            "value": -867
           },
           {
             "code": "402340",
@@ -1838,35 +1838,35 @@
             "name": "대한항공",
             "sector": "운송·창고",
             "market": "KOSPI",
-            "value": -184
+            "value": -181
           },
           {
             "code": "196170",
             "name": "알테오젠",
             "sector": "일반서비스",
             "market": "KOSDAQ",
-            "value": -108
+            "value": -109
           },
           {
             "code": "017670",
             "name": "SK텔레콤",
             "sector": "통신",
             "market": "KOSPI",
-            "value": -103
+            "value": -104
+          },
+          {
+            "code": "328130",
+            "name": "루닛",
+            "sector": "IT 서비스",
+            "market": "KOSDAQ",
+            "value": -91
           },
           {
             "code": "068270",
             "name": "셀트리온",
             "sector": "제약",
             "market": "KOSPI",
-            "value": -91
-          },
-          {
-            "code": "000100",
-            "name": "유한양행",
-            "sector": "제약",
-            "market": "KOSPI",
-            "value": -91
+            "value": -89
           }
         ]
       }
@@ -1879,49 +1879,49 @@
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 2060
+            "value": 2140
           },
           {
             "code": "402340",
             "name": "SK스퀘어",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": 2034
+            "value": 2038
           },
           {
             "code": "105560",
             "name": "KB금융",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": 845
+            "value": 850
           },
           {
             "code": "278470",
             "name": "에이피알",
             "sector": "화학",
             "market": "KOSPI",
-            "value": 705
+            "value": 708
           },
           {
             "code": "010140",
             "name": "삼성중공업",
             "sector": "운송장비·부품",
             "market": "KOSPI",
-            "value": 566
+            "value": 564
           },
           {
             "code": "003490",
             "name": "대한항공",
             "sector": "운송·창고",
             "market": "KOSPI",
-            "value": 524
+            "value": 522
           },
           {
             "code": "196170",
             "name": "알테오젠",
             "sector": "일반서비스",
             "market": "KOSDAQ",
-            "value": 492
+            "value": 493
           }
         ],
         "sell": [
@@ -1930,49 +1930,49 @@
             "name": "SK하이닉스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -18317
+            "value": -18295
           },
           {
             "code": "009150",
             "name": "삼성전기",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -1309
+            "value": -1290
           },
           {
             "code": "007660",
             "name": "이수페타시스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -1085
+            "value": -1083
           },
           {
             "code": "222800",
             "name": "심텍",
             "sector": "전기·전자",
             "market": "KOSDAQ",
-            "value": -897
+            "value": -893
           },
           {
             "code": "028050",
             "name": "삼성E&A",
             "sector": "일반서비스",
             "market": "KOSPI",
-            "value": -881
+            "value": -873
           },
           {
             "code": "036930",
             "name": "주성엔지니어링",
             "sector": "기계·장비",
             "market": "KOSDAQ",
-            "value": -855
+            "value": -858
           },
           {
             "code": "005935",
             "name": "삼성전자우",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -840
+            "value": -841
           }
         ]
       },
@@ -1990,14 +1990,14 @@
             "name": "셀트리온",
             "sector": "제약",
             "market": "KOSPI",
-            "value": 689
+            "value": 687
           },
           {
             "code": "032830",
             "name": "삼성생명",
             "sector": "보험",
             "market": "KOSPI",
-            "value": 585
+            "value": 583
           },
           {
             "code": "222800",
@@ -2025,7 +2025,7 @@
             "name": "삼성E&A",
             "sector": "일반서비스",
             "market": "KOSPI",
-            "value": 458
+            "value": 455
           }
         ],
         "sell": [
@@ -2034,42 +2034,42 @@
             "name": "SK스퀘어",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": -3355
+            "value": -3358
           },
           {
             "code": "000660",
             "name": "SK하이닉스",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -3082
+            "value": -3117
           },
           {
             "code": "009150",
             "name": "삼성전기",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -2591
+            "value": -2594
           },
           {
             "code": "005930",
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -1187
+            "value": -1234
           },
           {
             "code": "035420",
             "name": "NAVER",
             "sector": "IT 서비스",
             "market": "KOSPI",
-            "value": -1132
+            "value": -1134
           },
           {
             "code": "105560",
             "name": "KB금융",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": -713
+            "value": -715
           },
           {
             "code": "278470",
@@ -2087,7 +2087,7 @@
             "name": "삼성전기",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 3785
+            "value": 3778
           },
           {
             "code": "402340",
@@ -2101,14 +2101,14 @@
             "name": "NAVER",
             "sector": "IT 서비스",
             "market": "KOSPI",
-            "value": 1259
+            "value": 1271
           },
           {
             "code": "015760",
             "name": "한국전력",
             "sector": "전기·가스",
             "market": "KOSPI",
-            "value": 1023
+            "value": 1028
           },
           {
             "code": "005935",
@@ -2122,14 +2122,14 @@
             "name": "주성엔지니어링",
             "sector": "기계·장비",
             "market": "KOSDAQ",
-            "value": 960
+            "value": 957
           },
           {
             "code": "000990",
             "name": "DB하이텍",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": 669
+            "value": 667
           }
         ],
         "sell": [
@@ -2138,35 +2138,35 @@
             "name": "삼성전자",
             "sector": "전기·전자",
             "market": "KOSPI",
-            "value": -994
+            "value": -948
           },
           {
             "code": "068270",
             "name": "셀트리온",
             "sector": "제약",
             "market": "KOSPI",
-            "value": -937
+            "value": -935
           },
           {
             "code": "003490",
             "name": "대한항공",
             "sector": "운송·창고",
             "market": "KOSPI",
-            "value": -606
+            "value": -603
           },
           {
             "code": "180640",
             "name": "한진칼",
             "sector": "기타금융",
             "market": "KOSPI",
-            "value": -586
+            "value": -592
           },
           {
             "code": "017670",
             "name": "SK텔레콤",
             "sector": "통신",
             "market": "KOSPI",
-            "value": -533
+            "value": -534
           },
           {
             "code": "032830",
@@ -2180,85 +2180,14 @@
             "name": "삼성E&A",
             "sector": "일반서비스",
             "market": "KOSPI",
-            "value": -433
+            "value": -438
           }
         ]
       }
     },
     "stale": false
   },
-  "sectors": [
-    {
-      "ticker": "069500",
-      "name": "KODEX 200",
-      "sector": "시장대표",
-      "price": 77780.0,
-      "daily_pct": -2.65,
-      "weekly_pct": -5.15,
-      "date": "2026-11-17",
-      "stale": false
-    },
-    {
-      "ticker": "396500",
-      "name": "TIGER 반도체TOP10",
-      "sector": "반도체·AI",
-      "price": 24705.0,
-      "daily_pct": -1.96,
-      "weekly_pct": -6.62,
-      "date": "2026-11-17",
-      "stale": false
-    },
-    {
-      "ticker": "466920",
-      "name": "SOL 조선TOP3플러스",
-      "sector": "조선·방산",
-      "price": 17495.0,
-      "daily_pct": -4.32,
-      "weekly_pct": -4.43,
-      "date": "2026-11-17",
-      "stale": false
-    },
-    {
-      "ticker": "466940",
-      "name": "TIGER 은행고배당플러스TOP10",
-      "sector": "금융·밸류업",
-      "price": 23685.0,
-      "daily_pct": -1.29,
-      "weekly_pct": 2.51,
-      "date": "2026-11-17",
-      "stale": false
-    },
-    {
-      "ticker": "305720",
-      "name": "KODEX 2차전지산업",
-      "sector": "2차전지",
-      "price": 11960.0,
-      "daily_pct": -3.86,
-      "weekly_pct": -4.05,
-      "date": "2026-11-17",
-      "stale": false
-    },
-    {
-      "ticker": "244580",
-      "name": "KODEX 바이오",
-      "sector": "바이오",
-      "price": 6975.0,
-      "daily_pct": 0.5,
-      "weekly_pct": -3.73,
-      "date": "2026-11-17",
-      "stale": false
-    },
-    {
-      "ticker": "459580",
-      "name": "KODEX CD금리액티브(합성)",
-      "sector": "파킹·현금성",
-      "price": 1075050.0,
-      "daily_pct": 0.01,
-      "weekly_pct": 0.06,
-      "date": "2026-11-17",
-      "stale": false
-    }
-  ],
+  "sectors": [],
   "ace": {
     "count": 112,
     "daily": {
@@ -2623,62 +2552,2173 @@
     },
     "stale": false
   },
+  "themes": {
+    "daily": [
+      {
+        "theme": "인도·신흥국",
+        "median": 1.73,
+        "count": 14,
+        "ace_count": 5,
+        "ace_median": 2.0,
+        "ace": [
+          {
+            "code": "245710",
+            "name": "ACE 베트남VN30(합성)",
+            "pct": -0.83,
+            "price": 26415,
+            "value": 7
+          },
+          {
+            "code": "256440",
+            "name": "ACE MSCI인도네시아(합성)",
+            "pct": 3.43,
+            "price": 4370,
+            "value": 4
+          },
+          {
+            "code": "487920",
+            "name": "ACE 인도시장대표BIG5그룹액티브",
+            "pct": 2.0,
+            "price": 7910,
+            "value": 1
+          },
+          {
+            "code": "487910",
+            "name": "ACE 인도컨슈머파워액티브",
+            "pct": 1.73,
+            "price": 8250,
+            "value": 1
+          },
+          {
+            "code": "291130",
+            "name": "ACE MSCI멕시코(합성)",
+            "pct": 2.27,
+            "price": 17795,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "453810",
+            "name": "KODEX 인도Nifty50",
+            "pct": 2.01,
+            "price": 12205,
+            "value": 14
+          },
+          {
+            "code": "453870",
+            "name": "TIGER 인도니프티50",
+            "pct": 2.05,
+            "price": 11950,
+            "value": 9
+          },
+          {
+            "code": "200250",
+            "name": "KIWOOM 인도Nifty50(합성)",
+            "pct": 1.71,
+            "price": 22300,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "theme": "채권·금리·파킹",
+        "median": 0.02,
+        "count": 154,
+        "ace_count": 19,
+        "ace_median": 0.01,
+        "ace": [
+          {
+            "code": "476760",
+            "name": "ACE 미국30년국채액티브",
+            "pct": 0.06,
+            "price": 8375,
+            "value": 42
+          },
+          {
+            "code": "0085P0",
+            "name": "ACE 미국10년국채액티브",
+            "pct": 0.27,
+            "price": 9305,
+            "value": 27
+          },
+          {
+            "code": "453850",
+            "name": "ACE 미국30년국채액티브(H)",
+            "pct": -0.29,
+            "price": 6930,
+            "value": 26
+          },
+          {
+            "code": "190620",
+            "name": "ACE 단기통안채",
+            "pct": 0.02,
+            "price": 102680,
+            "value": 19
+          },
+          {
+            "code": "0254W0",
+            "name": "ACE 29-11 회사채(AA-이상)액티브",
+            "pct": 0.05,
+            "price": 10095,
+            "value": 16
+          },
+          {
+            "code": "487340",
+            "name": "ACE 머니마켓액티브",
+            "pct": 0.01,
+            "price": 106695,
+            "value": 9
+          }
+        ],
+        "others": [
+          {
+            "code": "459580",
+            "name": "KODEX CD금리액티브(합성)",
+            "pct": 0.01,
+            "price": 1075050,
+            "value": 4586
+          },
+          {
+            "code": "488770",
+            "name": "KODEX 머니마켓액티브",
+            "pct": 0.0,
+            "price": 106190,
+            "value": 676
+          },
+          {
+            "code": "475630",
+            "name": "TIGER CD1년금리액티브(합성)",
+            "pct": 0.01,
+            "price": 1083855,
+            "value": 654
+          }
+        ]
+      },
+      {
+        "theme": "금·원자재",
+        "median": -0.07,
+        "count": 15,
+        "ace_count": 1,
+        "ace_median": 0.58,
+        "ace": [
+          {
+            "code": "411060",
+            "name": "ACE KRX금현물",
+            "pct": 0.58,
+            "price": 23235,
+            "value": 94
+          }
+        ],
+        "others": [
+          {
+            "code": "0072R0",
+            "name": "TIGER KRX금현물",
+            "pct": 0.45,
+            "price": 11090,
+            "value": 99
+          },
+          {
+            "code": "144600",
+            "name": "KODEX 은선물(H)",
+            "pct": 0.26,
+            "price": 7650,
+            "value": 22
+          },
+          {
+            "code": "474800",
+            "name": "KIWOOM 미국원유에너지기업",
+            "pct": -2.41,
+            "price": 15195,
+            "value": 14
+          }
+        ]
+      },
+      {
+        "theme": "리츠·부동산",
+        "median": -0.22,
+        "count": 13,
+        "ace_count": 3,
+        "ace_median": -0.28,
+        "ace": [
+          {
+            "code": "0153P0",
+            "name": "ACE 리츠부동산인프라액티브",
+            "pct": -0.28,
+            "price": 8810,
+            "value": 0
+          },
+          {
+            "code": "181480",
+            "name": "ACE 미국부동산리츠(합성 H)",
+            "pct": 0.3,
+            "price": 83885,
+            "value": 0
+          },
+          {
+            "code": "316300",
+            "name": "ACE 싱가포르리츠",
+            "pct": -0.94,
+            "price": 11650,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "329200",
+            "name": "TIGER 리츠부동산인프라",
+            "pct": -0.13,
+            "price": 3715,
+            "value": 71
+          },
+          {
+            "code": "476800",
+            "name": "KODEX 한국부동산리츠인프라",
+            "pct": -0.13,
+            "price": 3825,
+            "value": 16
+          },
+          {
+            "code": "352560",
+            "name": "KODEX 미국부동산리츠(H)",
+            "pct": -0.45,
+            "price": 12060,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "theme": "바이오·헬스케어",
+        "median": -0.35,
+        "count": 32,
+        "ace_count": 3,
+        "ace_median": -0.36,
+        "ace": [
+          {
+            "code": "0221Z0",
+            "name": "ACE K바이오코스닥액티브",
+            "pct": -2.18,
+            "price": 7395,
+            "value": 3
+          },
+          {
+            "code": "497520",
+            "name": "ACE 일라이릴리밸류체인",
+            "pct": 0.1,
+            "price": 14425,
+            "value": 2
+          },
+          {
+            "code": "497510",
+            "name": "ACE 글로벌빅파마",
+            "pct": -0.36,
+            "price": 13750,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "364970",
+            "name": "TIGER 바이오TOP10",
+            "pct": 0.08,
+            "price": 6505,
+            "value": 56
+          },
+          {
+            "code": "244580",
+            "name": "KODEX 바이오",
+            "pct": 0.5,
+            "price": 6975,
+            "value": 40
+          },
+          {
+            "code": "462900",
+            "name": "KoAct 바이오헬스케어액티브",
+            "pct": 0.37,
+            "price": 10780,
+            "value": 37
+          }
+        ]
+      },
+      {
+        "theme": "채권혼합",
+        "median": -0.71,
+        "count": 78,
+        "ace_count": 6,
+        "ace_median": -0.57,
+        "ace": [
+          {
+            "code": "0259R0",
+            "name": "ACE 글로벌메모리반도체TOP3채권혼합액티브",
+            "pct": -1.65,
+            "price": 8965,
+            "value": 30
+          },
+          {
+            "code": "438080",
+            "name": "ACE 미국S&P500미국채혼합50액티브",
+            "pct": -0.59,
+            "price": 13435,
+            "value": 23
+          },
+          {
+            "code": "438100",
+            "name": "ACE 미국나스닥100미국채혼합50액티브",
+            "pct": -0.28,
+            "price": 14220,
+            "value": 15
+          },
+          {
+            "code": "448540",
+            "name": "ACE 엔비디아채권혼합",
+            "pct": -0.44,
+            "price": 24005,
+            "value": 12
+          },
+          {
+            "code": "0233A0",
+            "name": "ACE 삼성전자SK하이닉스플러스채권혼합50",
+            "pct": -1.27,
+            "price": 8570,
+            "value": 4
+          },
+          {
+            "code": "0049K0",
+            "name": "ACE 미국배당퀄리티채권혼합50",
+            "pct": -0.55,
+            "price": 10820,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "0162Z0",
+            "name": "RISE 삼성전자SK하이닉스채권혼합50",
+            "pct": -1.14,
+            "price": 11250,
+            "value": 718
+          },
+          {
+            "code": "0177N0",
+            "name": "KODEX 삼성전자SK하이닉스채권혼합50",
+            "pct": -1.21,
+            "price": 11865,
+            "value": 313
+          },
+          {
+            "code": "448330",
+            "name": "KODEX 삼성전자채권혼합",
+            "pct": -1.05,
+            "price": 15955,
+            "value": 68
+          }
+        ]
+      },
+      {
+        "theme": "K컬처·소비",
+        "median": -0.76,
+        "count": 21,
+        "ace_count": 2,
+        "ace_median": 0.07,
+        "ace": [
+          {
+            "code": "475050",
+            "name": "ACE KPOP포커스",
+            "pct": 0.14,
+            "price": 6950,
+            "value": 91
+          },
+          {
+            "code": "226380",
+            "name": "ACE Fn성장소비주도주",
+            "pct": 0.0,
+            "price": 5260,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "228790",
+            "name": "TIGER 화장품",
+            "pct": 0.44,
+            "price": 3435,
+            "value": 95
+          },
+          {
+            "code": "0008T0",
+            "name": "SOL 화장품TOP3플러스",
+            "pct": 0.23,
+            "price": 13305,
+            "value": 63
+          },
+          {
+            "code": "228810",
+            "name": "TIGER 미디어컨텐츠",
+            "pct": -2.48,
+            "price": 2955,
+            "value": 7
+          }
+        ]
+      },
+      {
+        "theme": "중국·일본·유럽",
+        "median": -0.95,
+        "count": 66,
+        "ace_count": 5,
+        "ace_median": 0.0,
+        "ace": [
+          {
+            "code": "414270",
+            "name": "ACE 글로벌자율주행액티브",
+            "pct": -1.93,
+            "price": 9635,
+            "value": 12
+          },
+          {
+            "code": "416090",
+            "name": "ACE 중국과창판STAR50",
+            "pct": 0.27,
+            "price": 9225,
+            "value": 1
+          },
+          {
+            "code": "435040",
+            "name": "ACE 글로벌브랜드TOP10",
+            "pct": 0.0,
+            "price": 18850,
+            "value": 0
+          },
+          {
+            "code": "238720",
+            "name": "ACE 일본Nikkei225(H)",
+            "pct": -1.59,
+            "price": 42885,
+            "value": 0
+          },
+          {
+            "code": "168580",
+            "name": "ACE 중국본토CSI300",
+            "pct": 0.33,
+            "price": 29160,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "192090",
+            "name": "TIGER 차이나CSI300",
+            "pct": 0.0,
+            "price": 10590,
+            "value": 19
+          },
+          {
+            "code": "414780",
+            "name": "TIGER 차이나과창판STAR50(합성)",
+            "pct": 0.66,
+            "price": 9925,
+            "value": 13
+          },
+          {
+            "code": "283580",
+            "name": "KODEX 차이나CSI300",
+            "pct": -0.12,
+            "price": 12790,
+            "value": 10
+          }
+        ]
+      },
+      {
+        "theme": "배당·인컴",
+        "median": -1.29,
+        "count": 88,
+        "ace_count": 8,
+        "ace_median": -1.29,
+        "ace": [
+          {
+            "code": "480020",
+            "name": "ACE 미국빅테크7+데일리타겟커버드콜(합성)",
+            "pct": -1.49,
+            "price": 8600,
+            "value": 33
+          },
+          {
+            "code": "402970",
+            "name": "ACE 미국배당다우존스",
+            "pct": -0.87,
+            "price": 15385,
+            "value": 30
+          },
+          {
+            "code": "0199C0",
+            "name": "ACE 고배당주Plus커버드콜액티브",
+            "pct": -0.61,
+            "price": 7320,
+            "value": 11
+          },
+          {
+            "code": "480030",
+            "name": "ACE 미국500데일리타겟커버드콜(합성)",
+            "pct": -1.2,
+            "price": 8650,
+            "value": 10
+          },
+          {
+            "code": "0139P0",
+            "name": "ACE 고배당주",
+            "pct": -2.51,
+            "price": 11480,
+            "value": 1
+          },
+          {
+            "code": "460960",
+            "name": "ACE 글로벌인컴TOP10",
+            "pct": -0.5,
+            "price": 10000,
+            "value": 1
+          }
+        ],
+        "others": [
+          {
+            "code": "498400",
+            "name": "KODEX 200타겟위클리커버드콜",
+            "pct": -2.18,
+            "price": 14160,
+            "value": 1495
+          },
+          {
+            "code": "472150",
+            "name": "TIGER 배당커버드콜액티브",
+            "pct": -2.62,
+            "price": 13955,
+            "value": 766
+          },
+          {
+            "code": "0219E0",
+            "name": "KODEX 200커버드콜액티브",
+            "pct": -2.47,
+            "price": 5725,
+            "value": 500
+          }
+        ]
+      },
+      {
+        "theme": "미국 대표지수",
+        "median": -1.4,
+        "count": 54,
+        "ace_count": 2,
+        "ace_median": -1.33,
+        "ace": [
+          {
+            "code": "360200",
+            "name": "ACE 미국S&P500",
+            "pct": -1.37,
+            "price": 24820,
+            "value": 281
+          },
+          {
+            "code": "367380",
+            "name": "ACE 미국나스닥100",
+            "pct": -1.3,
+            "price": 27675,
+            "value": 148
+          }
+        ],
+        "others": [
+          {
+            "code": "360750",
+            "name": "TIGER 미국S&P500",
+            "pct": -1.33,
+            "price": 24555,
+            "value": 8419
+          },
+          {
+            "code": "379800",
+            "name": "KODEX 미국S&P500",
+            "pct": -1.33,
+            "price": 22265,
+            "value": 6490
+          },
+          {
+            "code": "133690",
+            "name": "TIGER 미국나스닥100",
+            "pct": -1.33,
+            "price": 160885,
+            "value": 5820
+          }
+        ]
+      },
+      {
+        "theme": "금융·밸류업",
+        "median": -1.77,
+        "count": 35,
+        "ace_count": 1,
+        "ace_median": -2.09,
+        "ace": [
+          {
+            "code": "496120",
+            "name": "ACE 코리아밸류업",
+            "pct": -2.09,
+            "price": 24535,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "0094M0",
+            "name": "RISE 코리아밸류업위클리고정커버드콜",
+            "pct": -2.27,
+            "price": 12260,
+            "value": 158
+          },
+          {
+            "code": "091170",
+            "name": "KODEX 은행",
+            "pct": -1.3,
+            "price": 14805,
+            "value": 110
+          },
+          {
+            "code": "498410",
+            "name": "KODEX 금융고배당TOP10타겟위클리커버드콜",
+            "pct": -0.91,
+            "price": 10305,
+            "value": 95
+          }
+        ]
+      },
+      {
+        "theme": "미국 빅테크·성장",
+        "median": -1.83,
+        "count": 40,
+        "ace_count": 6,
+        "ace_median": -1.49,
+        "ace": [
+          {
+            "code": "465580",
+            "name": "ACE 미국빅테크TOP7 Plus",
+            "pct": -1.54,
+            "price": 22125,
+            "value": 257
+          },
+          {
+            "code": "483320",
+            "name": "ACE 엔비디아밸류체인액티브",
+            "pct": -2.29,
+            "price": 16825,
+            "value": 73
+          },
+          {
+            "code": "483340",
+            "name": "ACE 구글밸류체인액티브",
+            "pct": -1.95,
+            "price": 16370,
+            "value": 20
+          },
+          {
+            "code": "457480",
+            "name": "ACE 테슬라밸류체인액티브",
+            "pct": -1.44,
+            "price": 16070,
+            "value": 20
+          },
+          {
+            "code": "483330",
+            "name": "ACE 마이크로소프트밸류체인액티브",
+            "pct": -1.28,
+            "price": 13540,
+            "value": 1
+          },
+          {
+            "code": "371870",
+            "name": "ACE 차이나항셍테크",
+            "pct": -0.92,
+            "price": 5395,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "381170",
+            "name": "TIGER 미국테크TOP10 INDXX",
+            "pct": -1.35,
+            "price": 27765,
+            "value": 172
+          },
+          {
+            "code": "472160",
+            "name": "TIGER 미국테크TOP10 INDXX(H)",
+            "pct": -1.7,
+            "price": 17395,
+            "value": 61
+          },
+          {
+            "code": "314250",
+            "name": "KODEX 미국빅테크10(H)",
+            "pct": -2.11,
+            "price": 55965,
+            "value": 29
+          }
+        ]
+      },
+      {
+        "theme": "AI·소프트웨어",
+        "median": -1.94,
+        "count": 78,
+        "ace_count": 4,
+        "ace_median": -1.71,
+        "ace": [
+          {
+            "code": "380340",
+            "name": "ACE 코리아AI테크핵심산업",
+            "pct": -1.93,
+            "price": 20370,
+            "value": 32
+          },
+          {
+            "code": "0177X0",
+            "name": "ACE K휴머노이드로봇산업TOP2+",
+            "pct": -4.06,
+            "price": 7090,
+            "value": 13
+          },
+          {
+            "code": "0118Z0",
+            "name": "ACE 미국AI테크핵심산업액티브",
+            "pct": -1.49,
+            "price": 6935,
+            "value": 2
+          },
+          {
+            "code": "0087F0",
+            "name": "ACE 차이나AI빅테크TOP2+액티브",
+            "pct": -0.82,
+            "price": 9620,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "0148J0",
+            "name": "TIGER 코리아휴머노이드로봇산업",
+            "pct": -4.62,
+            "price": 6920,
+            "value": 289
+          },
+          {
+            "code": "0173Y0",
+            "name": "KODEX 미국AI광통신네트워크",
+            "pct": -2.83,
+            "price": 7040,
+            "value": 133
+          },
+          {
+            "code": "0256E0",
+            "name": "HANARO 삼성전기고정AI핵심기판",
+            "pct": -1.88,
+            "price": 8110,
+            "value": 107
+          }
+        ]
+      },
+      {
+        "theme": "반도체",
+        "median": -2.21,
+        "count": 62,
+        "ace_count": 8,
+        "ace_median": -2.22,
+        "ace": [
+          {
+            "code": "469150",
+            "name": "ACE AI반도체TOP3+",
+            "pct": -2.65,
+            "price": 40390,
+            "value": 283
+          },
+          {
+            "code": "0210A0",
+            "name": "ACE K반도체TOP2+",
+            "pct": -2.13,
+            "price": 4835,
+            "value": 141
+          },
+          {
+            "code": "446770",
+            "name": "ACE 글로벌반도체TOP4 Plus",
+            "pct": -2.37,
+            "price": 58690,
+            "value": 67
+          },
+          {
+            "code": "0252V0",
+            "name": "ACE 미국CPU반도체TOP3+",
+            "pct": -2.32,
+            "price": 7995,
+            "value": 37
+          },
+          {
+            "code": "480040",
+            "name": "ACE 미국반도체데일리타겟커버드콜(합성)",
+            "pct": -1.27,
+            "price": 10455,
+            "value": 31
+          },
+          {
+            "code": "0228G0",
+            "name": "ACE 반도체Plus전략산업",
+            "pct": -1.86,
+            "price": 6595,
+            "value": 7
+          }
+        ],
+        "others": [
+          {
+            "code": "091160",
+            "name": "KODEX 반도체",
+            "pct": -2.34,
+            "price": 87600,
+            "value": 3254
+          },
+          {
+            "code": "396500",
+            "name": "TIGER 반도체TOP10",
+            "pct": -1.96,
+            "price": 24705,
+            "value": 3220
+          },
+          {
+            "code": "0167A0",
+            "name": "SOL AI반도체TOP2플러스",
+            "pct": -2.22,
+            "price": 11655,
+            "value": 2034
+          }
+        ]
+      },
+      {
+        "theme": "국내 대표지수",
+        "median": -2.46,
+        "count": 90,
+        "ace_count": 5,
+        "ace_median": -2.54,
+        "ace": [
+          {
+            "code": "105190",
+            "name": "ACE 200",
+            "pct": -2.54,
+            "price": 77975,
+            "value": 163
+          },
+          {
+            "code": "354500",
+            "name": "ACE 코스닥150",
+            "pct": -2.33,
+            "price": 10685,
+            "value": 22
+          },
+          {
+            "code": "332500",
+            "name": "ACE 200TR",
+            "pct": -2.59,
+            "price": 52400,
+            "value": 12
+          },
+          {
+            "code": "305050",
+            "name": "ACE 코스피",
+            "pct": -1.86,
+            "price": 52120,
+            "value": 2
+          },
+          {
+            "code": "0008E0",
+            "name": "ACE 미국중심중소형제조업",
+            "pct": -2.86,
+            "price": 10375,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "069500",
+            "name": "KODEX 200",
+            "pct": -2.65,
+            "price": 77780,
+            "value": 17823
+          },
+          {
+            "code": "102110",
+            "name": "TIGER 200",
+            "pct": -2.7,
+            "price": 77490,
+            "value": 8400
+          },
+          {
+            "code": "229200",
+            "name": "KODEX 코스닥150",
+            "pct": -2.22,
+            "price": 10560,
+            "value": 6330
+          }
+        ]
+      },
+      {
+        "theme": "전력·원전·인프라",
+        "median": -2.56,
+        "count": 33,
+        "ace_count": 3,
+        "ace_median": -4.07,
+        "ace": [
+          {
+            "code": "433500",
+            "name": "ACE 원자력TOP10",
+            "pct": -4.07,
+            "price": 33560,
+            "value": 9
+          },
+          {
+            "code": "0209Z0",
+            "name": "ACE 코리아AI전력TOP10",
+            "pct": -5.08,
+            "price": 4200,
+            "value": 7
+          },
+          {
+            "code": "0155M0",
+            "name": "ACE 미국SMR원자력TOP10",
+            "pct": -2.27,
+            "price": 4305,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "487240",
+            "name": "KODEX AI전력핵심설비",
+            "pct": -4.34,
+            "price": 21160,
+            "value": 942
+          },
+          {
+            "code": "0117V0",
+            "name": "TIGER 코리아AI전력기기TOP3플러스",
+            "pct": -4.97,
+            "price": 11095,
+            "value": 233
+          },
+          {
+            "code": "367760",
+            "name": "RISE 네트워크인프라",
+            "pct": -2.33,
+            "price": 38310,
+            "value": 132
+          }
+        ]
+      },
+      {
+        "theme": "2차전지",
+        "median": -3.21,
+        "count": 20,
+        "ace_count": 1,
+        "ace_median": -3.22,
+        "ace": [
+          {
+            "code": "385600",
+            "name": "ACE 2차전지&친환경차액티브",
+            "pct": -3.22,
+            "price": 9170,
+            "value": 1
+          }
+        ],
+        "others": [
+          {
+            "code": "305720",
+            "name": "KODEX 2차전지산업",
+            "pct": -3.86,
+            "price": 11960,
+            "value": 439
+          },
+          {
+            "code": "364980",
+            "name": "TIGER 2차전지TOP10",
+            "pct": -3.76,
+            "price": 8325,
+            "value": 328
+          },
+          {
+            "code": "0209D0",
+            "name": "KODEX 전고체배터리ESS TOP2플러스",
+            "pct": -3.68,
+            "price": 7065,
+            "value": 317
+          }
+        ]
+      },
+      {
+        "theme": "조선·방산·우주",
+        "median": -3.88,
+        "count": 28,
+        "ace_count": 3,
+        "ace_median": -2.93,
+        "ace": [
+          {
+            "code": "0180V0",
+            "name": "ACE 미국우주테크액티브",
+            "pct": -2.93,
+            "price": 6630,
+            "value": 11
+          },
+          {
+            "code": "0216Z0",
+            "name": "ACE K방산TOP5+",
+            "pct": -4.12,
+            "price": 5695,
+            "value": 7
+          },
+          {
+            "code": "0102X0",
+            "name": "ACE 유럽방산TOP10",
+            "pct": -0.25,
+            "price": 7950,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "0080G0",
+            "name": "KODEX 방산TOP10",
+            "pct": -4.5,
+            "price": 6260,
+            "value": 259
+          },
+          {
+            "code": "449450",
+            "name": "PLUS K방산",
+            "pct": -4.97,
+            "price": 30790,
+            "value": 182
+          },
+          {
+            "code": "466920",
+            "name": "SOL 조선TOP3플러스",
+            "pct": -4.32,
+            "price": 17495,
+            "value": 160
+          }
+        ]
+      }
+    ],
+    "weekly": [
+      {
+        "theme": "인도·신흥국",
+        "median": 0.48,
+        "count": 14,
+        "ace_count": 5,
+        "ace_median": 0.18,
+        "ace": [
+          {
+            "code": "245710",
+            "name": "ACE 베트남VN30(합성)",
+            "pct": -2.73,
+            "price": 26415,
+            "value": 20
+          },
+          {
+            "code": "256440",
+            "name": "ACE MSCI인도네시아(합성)",
+            "pct": 5.68,
+            "price": 4370,
+            "value": 9
+          },
+          {
+            "code": "487920",
+            "name": "ACE 인도시장대표BIG5그룹액티브",
+            "pct": -0.25,
+            "price": 7910,
+            "value": 3
+          },
+          {
+            "code": "487910",
+            "name": "ACE 인도컨슈머파워액티브",
+            "pct": 0.18,
+            "price": 8250,
+            "value": 2
+          },
+          {
+            "code": "291130",
+            "name": "ACE MSCI멕시코(합성)",
+            "pct": 0.25,
+            "price": 17795,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "453810",
+            "name": "KODEX 인도Nifty50",
+            "pct": 1.41,
+            "price": 12205,
+            "value": 59
+          },
+          {
+            "code": "453870",
+            "name": "TIGER 인도니프티50",
+            "pct": 0.89,
+            "price": 11950,
+            "value": 47
+          },
+          {
+            "code": "479730",
+            "name": "TIGER 인도빌리언컨슈머",
+            "pct": 0.3,
+            "price": 9950,
+            "value": 10
+          }
+        ]
+      },
+      {
+        "theme": "리츠·부동산",
+        "median": 0.43,
+        "count": 13,
+        "ace_count": 3,
+        "ace_median": -0.83,
+        "ace": [
+          {
+            "code": "0153P0",
+            "name": "ACE 리츠부동산인프라액티브",
+            "pct": 1.03,
+            "price": 8810,
+            "value": 1
+          },
+          {
+            "code": "316300",
+            "name": "ACE 싱가포르리츠",
+            "pct": -2.51,
+            "price": 11650,
+            "value": 1
+          },
+          {
+            "code": "181480",
+            "name": "ACE 미국부동산리츠(합성 H)",
+            "pct": -0.83,
+            "price": 83885,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "329200",
+            "name": "TIGER 리츠부동산인프라",
+            "pct": 1.78,
+            "price": 3715,
+            "value": 412
+          },
+          {
+            "code": "476800",
+            "name": "KODEX 한국부동산리츠인프라",
+            "pct": -0.65,
+            "price": 3825,
+            "value": 91
+          },
+          {
+            "code": "352560",
+            "name": "KODEX 미국부동산리츠(H)",
+            "pct": -1.35,
+            "price": 12060,
+            "value": 15
+          }
+        ]
+      },
+      {
+        "theme": "채권·금리·파킹",
+        "median": -0.1,
+        "count": 153,
+        "ace_count": 19,
+        "ace_median": 0.0,
+        "ace": [
+          {
+            "code": "453850",
+            "name": "ACE 미국30년국채액티브(H)",
+            "pct": -2.87,
+            "price": 6930,
+            "value": 263
+          },
+          {
+            "code": "476760",
+            "name": "ACE 미국30년국채액티브",
+            "pct": -2.9,
+            "price": 8375,
+            "value": 214
+          },
+          {
+            "code": "0085P0",
+            "name": "ACE 미국10년국채액티브",
+            "pct": -1.38,
+            "price": 9305,
+            "value": 121
+          },
+          {
+            "code": "190620",
+            "name": "ACE 단기통안채",
+            "pct": 0.02,
+            "price": 102680,
+            "value": 118
+          },
+          {
+            "code": "356540",
+            "name": "ACE 종합채권(AA-이상)액티브",
+            "pct": -0.39,
+            "price": 104090,
+            "value": 104
+          },
+          {
+            "code": "487340",
+            "name": "ACE 머니마켓액티브",
+            "pct": 0.08,
+            "price": 106695,
+            "value": 49
+          }
+        ],
+        "others": [
+          {
+            "code": "459580",
+            "name": "KODEX CD금리액티브(합성)",
+            "pct": 0.06,
+            "price": 1075050,
+            "value": 21938
+          },
+          {
+            "code": "488770",
+            "name": "KODEX 머니마켓액티브",
+            "pct": 0.07,
+            "price": 106190,
+            "value": 3559
+          },
+          {
+            "code": "475630",
+            "name": "TIGER CD1년금리액티브(합성)",
+            "pct": 0.07,
+            "price": 1083855,
+            "value": 3055
+          }
+        ]
+      },
+      {
+        "theme": "금융·밸류업",
+        "median": -1.75,
+        "count": 35,
+        "ace_count": 1,
+        "ace_median": -3.94,
+        "ace": [
+          {
+            "code": "496120",
+            "name": "ACE 코리아밸류업",
+            "pct": -3.94,
+            "price": 24535,
+            "value": 1
+          }
+        ],
+        "others": [
+          {
+            "code": "0094M0",
+            "name": "RISE 코리아밸류업위클리고정커버드콜",
+            "pct": -6.98,
+            "price": 12260,
+            "value": 1015
+          },
+          {
+            "code": "498410",
+            "name": "KODEX 금융고배당TOP10타겟위클리커버드콜",
+            "pct": 1.43,
+            "price": 10305,
+            "value": 631
+          },
+          {
+            "code": "102970",
+            "name": "KODEX 증권",
+            "pct": -1.36,
+            "price": 13095,
+            "value": 453
+          }
+        ]
+      },
+      {
+        "theme": "채권혼합",
+        "median": -1.99,
+        "count": 78,
+        "ace_count": 6,
+        "ace_median": -2.04,
+        "ace": [
+          {
+            "code": "448540",
+            "name": "ACE 엔비디아채권혼합",
+            "pct": -3.54,
+            "price": 24005,
+            "value": 184
+          },
+          {
+            "code": "0259R0",
+            "name": "ACE 글로벌메모리반도체TOP3채권혼합액티브",
+            "pct": -2.98,
+            "price": 8965,
+            "value": 169
+          },
+          {
+            "code": "438080",
+            "name": "ACE 미국S&P500미국채혼합50액티브",
+            "pct": -1.1,
+            "price": 13435,
+            "value": 147
+          },
+          {
+            "code": "438100",
+            "name": "ACE 미국나스닥100미국채혼합50액티브",
+            "pct": -0.97,
+            "price": 14220,
+            "value": 109
+          },
+          {
+            "code": "0233A0",
+            "name": "ACE 삼성전자SK하이닉스플러스채권혼합50",
+            "pct": -3.76,
+            "price": 8570,
+            "value": 17
+          },
+          {
+            "code": "0049K0",
+            "name": "ACE 미국배당퀄리티채권혼합50",
+            "pct": -0.96,
+            "price": 10820,
+            "value": 3
+          }
+        ],
+        "others": [
+          {
+            "code": "0162Z0",
+            "name": "RISE 삼성전자SK하이닉스채권혼합50",
+            "pct": -3.14,
+            "price": 11250,
+            "value": 3445
+          },
+          {
+            "code": "0177N0",
+            "name": "KODEX 삼성전자SK하이닉스채권혼합50",
+            "pct": -3.77,
+            "price": 11865,
+            "value": 1949
+          },
+          {
+            "code": "0183V0",
+            "name": "KIWOOM 삼성전자&SK하이닉스채권혼합50",
+            "pct": -4.99,
+            "price": 9520,
+            "value": 398
+          }
+        ]
+      },
+      {
+        "theme": "배당·인컴",
+        "median": -1.99,
+        "count": 88,
+        "ace_count": 8,
+        "ace_median": -2.09,
+        "ace": [
+          {
+            "code": "402970",
+            "name": "ACE 미국배당다우존스",
+            "pct": 0.07,
+            "price": 15385,
+            "value": 178
+          },
+          {
+            "code": "480020",
+            "name": "ACE 미국빅테크7+데일리타겟커버드콜(합성)",
+            "pct": -6.32,
+            "price": 8600,
+            "value": 169
+          },
+          {
+            "code": "0199C0",
+            "name": "ACE 고배당주Plus커버드콜액티브",
+            "pct": -2.07,
+            "price": 7320,
+            "value": 71
+          },
+          {
+            "code": "480030",
+            "name": "ACE 미국500데일리타겟커버드콜(합성)",
+            "pct": -4.58,
+            "price": 8650,
+            "value": 39
+          },
+          {
+            "code": "0139P0",
+            "name": "ACE 고배당주",
+            "pct": -4.57,
+            "price": 11480,
+            "value": 7
+          },
+          {
+            "code": "0046Y0",
+            "name": "ACE 미국배당퀄리티",
+            "pct": -1.98,
+            "price": 11895,
+            "value": 7
+          }
+        ],
+        "others": [
+          {
+            "code": "498400",
+            "name": "KODEX 200타겟위클리커버드콜",
+            "pct": -6.72,
+            "price": 14160,
+            "value": 6167
+          },
+          {
+            "code": "472150",
+            "name": "TIGER 배당커버드콜액티브",
+            "pct": -5.1,
+            "price": 13955,
+            "value": 3543
+          },
+          {
+            "code": "0219E0",
+            "name": "KODEX 200커버드콜액티브",
+            "pct": -5.29,
+            "price": 5725,
+            "value": 2276
+          }
+        ]
+      },
+      {
+        "theme": "미국 대표지수",
+        "median": -2.26,
+        "count": 54,
+        "ace_count": 2,
+        "ace_median": -2.29,
+        "ace": [
+          {
+            "code": "360200",
+            "name": "ACE 미국S&P500",
+            "pct": -2.15,
+            "price": 24820,
+            "value": 912
+          },
+          {
+            "code": "367380",
+            "name": "ACE 미국나스닥100",
+            "pct": -2.43,
+            "price": 27675,
+            "value": 842
+          }
+        ],
+        "others": [
+          {
+            "code": "360750",
+            "name": "TIGER 미국S&P500",
+            "pct": -2.11,
+            "price": 24555,
+            "value": 39094
+          },
+          {
+            "code": "379800",
+            "name": "KODEX 미국S&P500",
+            "pct": -2.05,
+            "price": 22265,
+            "value": 34081
+          },
+          {
+            "code": "133690",
+            "name": "TIGER 미국나스닥100",
+            "pct": -2.51,
+            "price": 160885,
+            "value": 28027
+          }
+        ]
+      },
+      {
+        "theme": "K컬처·소비",
+        "median": -2.33,
+        "count": 21,
+        "ace_count": 2,
+        "ace_median": 2.56,
+        "ace": [
+          {
+            "code": "475050",
+            "name": "ACE KPOP포커스",
+            "pct": 8.17,
+            "price": 6950,
+            "value": 673
+          },
+          {
+            "code": "226380",
+            "name": "ACE Fn성장소비주도주",
+            "pct": -3.04,
+            "price": 5260,
+            "value": 1
+          }
+        ],
+        "others": [
+          {
+            "code": "0008T0",
+            "name": "SOL 화장품TOP3플러스",
+            "pct": 1.26,
+            "price": 13305,
+            "value": 581
+          },
+          {
+            "code": "228790",
+            "name": "TIGER 화장품",
+            "pct": 0.73,
+            "price": 3435,
+            "value": 525
+          },
+          {
+            "code": "228810",
+            "name": "TIGER 미디어컨텐츠",
+            "pct": 0.17,
+            "price": 2955,
+            "value": 57
+          }
+        ]
+      },
+      {
+        "theme": "바이오·헬스케어",
+        "median": -2.45,
+        "count": 32,
+        "ace_count": 3,
+        "ace_median": -0.15,
+        "ace": [
+          {
+            "code": "0221Z0",
+            "name": "ACE K바이오코스닥액티브",
+            "pct": -6.57,
+            "price": 7395,
+            "value": 11
+          },
+          {
+            "code": "497520",
+            "name": "ACE 일라이릴리밸류체인",
+            "pct": 0.63,
+            "price": 14425,
+            "value": 9
+          },
+          {
+            "code": "497510",
+            "name": "ACE 글로벌빅파마",
+            "pct": -0.15,
+            "price": 13750,
+            "value": 8
+          }
+        ],
+        "others": [
+          {
+            "code": "462900",
+            "name": "KoAct 바이오헬스케어액티브",
+            "pct": -2.22,
+            "price": 10780,
+            "value": 261
+          },
+          {
+            "code": "244580",
+            "name": "KODEX 바이오",
+            "pct": -3.73,
+            "price": 6975,
+            "value": 247
+          },
+          {
+            "code": "364970",
+            "name": "TIGER 바이오TOP10",
+            "pct": -0.15,
+            "price": 6505,
+            "value": 242
+          }
+        ]
+      },
+      {
+        "theme": "중국·일본·유럽",
+        "median": -2.73,
+        "count": 66,
+        "ace_count": 5,
+        "ace_median": -2.67,
+        "ace": [
+          {
+            "code": "414270",
+            "name": "ACE 글로벌자율주행액티브",
+            "pct": -5.31,
+            "price": 9635,
+            "value": 63
+          },
+          {
+            "code": "168580",
+            "name": "ACE 중국본토CSI300",
+            "pct": -2.47,
+            "price": 29160,
+            "value": 7
+          },
+          {
+            "code": "416090",
+            "name": "ACE 중국과창판STAR50",
+            "pct": -4.75,
+            "price": 9225,
+            "value": 5
+          },
+          {
+            "code": "238720",
+            "name": "ACE 일본Nikkei225(H)",
+            "pct": -2.67,
+            "price": 42885,
+            "value": 2
+          },
+          {
+            "code": "435040",
+            "name": "ACE 글로벌브랜드TOP10",
+            "pct": -1.33,
+            "price": 18850,
+            "value": 1
+          }
+        ],
+        "others": [
+          {
+            "code": "241180",
+            "name": "TIGER 일본니케이225",
+            "pct": -3.08,
+            "price": 30045,
+            "value": 158
+          },
+          {
+            "code": "414780",
+            "name": "TIGER 차이나과창판STAR50(합성)",
+            "pct": -3.87,
+            "price": 9925,
+            "value": 75
+          },
+          {
+            "code": "192090",
+            "name": "TIGER 차이나CSI300",
+            "pct": -1.53,
+            "price": 10590,
+            "value": 52
+          }
+        ]
+      },
+      {
+        "theme": "미국 빅테크·성장",
+        "median": -3.99,
+        "count": 40,
+        "ace_count": 6,
+        "ace_median": -3.96,
+        "ace": [
+          {
+            "code": "465580",
+            "name": "ACE 미국빅테크TOP7 Plus",
+            "pct": -3.95,
+            "price": 22125,
+            "value": 730
+          },
+          {
+            "code": "483320",
+            "name": "ACE 엔비디아밸류체인액티브",
+            "pct": -8.26,
+            "price": 16825,
+            "value": 583
+          },
+          {
+            "code": "483340",
+            "name": "ACE 구글밸류체인액티브",
+            "pct": -2.56,
+            "price": 16370,
+            "value": 220
+          },
+          {
+            "code": "457480",
+            "name": "ACE 테슬라밸류체인액티브",
+            "pct": -3.34,
+            "price": 16070,
+            "value": 131
+          },
+          {
+            "code": "483330",
+            "name": "ACE 마이크로소프트밸류체인액티브",
+            "pct": -3.97,
+            "price": 13540,
+            "value": 11
+          },
+          {
+            "code": "371870",
+            "name": "ACE 차이나항셍테크",
+            "pct": -7.86,
+            "price": 5395,
+            "value": 1
+          }
+        ],
+        "others": [
+          {
+            "code": "381170",
+            "name": "TIGER 미국테크TOP10 INDXX",
+            "pct": -3.58,
+            "price": 27765,
+            "value": 1291
+          },
+          {
+            "code": "472160",
+            "name": "TIGER 미국테크TOP10 INDXX(H)",
+            "pct": -3.74,
+            "price": 17395,
+            "value": 217
+          },
+          {
+            "code": "314250",
+            "name": "KODEX 미국빅테크10(H)",
+            "pct": -3.57,
+            "price": 55965,
+            "value": 123
+          }
+        ]
+      },
+      {
+        "theme": "반도체",
+        "median": -4.17,
+        "count": 62,
+        "ace_count": 8,
+        "ace_median": -5.69,
+        "ace": [
+          {
+            "code": "469150",
+            "name": "ACE AI반도체TOP3+",
+            "pct": -5.49,
+            "price": 40390,
+            "value": 1002
+          },
+          {
+            "code": "0210A0",
+            "name": "ACE K반도체TOP2+",
+            "pct": -6.66,
+            "price": 4835,
+            "value": 671
+          },
+          {
+            "code": "446770",
+            "name": "ACE 글로벌반도체TOP4 Plus",
+            "pct": -5.89,
+            "price": 58690,
+            "value": 477
+          },
+          {
+            "code": "0252V0",
+            "name": "ACE 미국CPU반도체TOP3+",
+            "pct": -3.85,
+            "price": 7995,
+            "value": 137
+          },
+          {
+            "code": "480040",
+            "name": "ACE 미국반도체데일리타겟커버드콜(합성)",
+            "pct": -6.98,
+            "price": 10455,
+            "value": 118
+          },
+          {
+            "code": "0228G0",
+            "name": "ACE 반도체Plus전략산업",
+            "pct": -3.72,
+            "price": 6595,
+            "value": 32
+          }
+        ],
+        "others": [
+          {
+            "code": "396500",
+            "name": "TIGER 반도체TOP10",
+            "pct": -6.62,
+            "price": 24705,
+            "value": 15777
+          },
+          {
+            "code": "0167A0",
+            "name": "SOL AI반도체TOP2플러스",
+            "pct": -6.46,
+            "price": 11655,
+            "value": 11319
+          },
+          {
+            "code": "091160",
+            "name": "KODEX 반도체",
+            "pct": -5.38,
+            "price": 87600,
+            "value": 11062
+          }
+        ]
+      },
+      {
+        "theme": "2차전지",
+        "median": -4.18,
+        "count": 20,
+        "ace_count": 1,
+        "ace_median": -3.68,
+        "ace": [
+          {
+            "code": "385600",
+            "name": "ACE 2차전지&친환경차액티브",
+            "pct": -3.68,
+            "price": 9170,
+            "value": 4
+          }
+        ],
+        "others": [
+          {
+            "code": "305720",
+            "name": "KODEX 2차전지산업",
+            "pct": -4.05,
+            "price": 11960,
+            "value": 2427
+          },
+          {
+            "code": "0209D0",
+            "name": "KODEX 전고체배터리ESS TOP2플러스",
+            "pct": -2.62,
+            "price": 7065,
+            "value": 1654
+          },
+          {
+            "code": "364980",
+            "name": "TIGER 2차전지TOP10",
+            "pct": -4.97,
+            "price": 8325,
+            "value": 1609
+          }
+        ]
+      },
+      {
+        "theme": "조선·방산·우주",
+        "median": -4.25,
+        "count": 28,
+        "ace_count": 3,
+        "ace_median": -3.49,
+        "ace": [
+          {
+            "code": "0180V0",
+            "name": "ACE 미국우주테크액티브",
+            "pct": -3.49,
+            "price": 6630,
+            "value": 64
+          },
+          {
+            "code": "0216Z0",
+            "name": "ACE K방산TOP5+",
+            "pct": -2.73,
+            "price": 5695,
+            "value": 17
+          },
+          {
+            "code": "0102X0",
+            "name": "ACE 유럽방산TOP10",
+            "pct": -5.07,
+            "price": 7950,
+            "value": 0
+          }
+        ],
+        "others": [
+          {
+            "code": "0080G0",
+            "name": "KODEX 방산TOP10",
+            "pct": -4.06,
+            "price": 6260,
+            "value": 1245
+          },
+          {
+            "code": "466920",
+            "name": "SOL 조선TOP3플러스",
+            "pct": -4.43,
+            "price": 17495,
+            "value": 1058
+          },
+          {
+            "code": "449450",
+            "name": "PLUS K방산",
+            "pct": -4.54,
+            "price": 30790,
+            "value": 738
+          }
+        ]
+      },
+      {
+        "theme": "AI·소프트웨어",
+        "median": -4.31,
+        "count": 78,
+        "ace_count": 4,
+        "ace_median": -4.85,
+        "ace": [
+          {
+            "code": "0177X0",
+            "name": "ACE K휴머노이드로봇산업TOP2+",
+            "pct": -1.32,
+            "price": 7090,
+            "value": 74
+          },
+          {
+            "code": "380340",
+            "name": "ACE 코리아AI테크핵심산업",
+            "pct": -6.82,
+            "price": 20370,
+            "value": 39
+          },
+          {
+            "code": "0118Z0",
+            "name": "ACE 미국AI테크핵심산업액티브",
+            "pct": -4.01,
+            "price": 6935,
+            "value": 9
+          },
+          {
+            "code": "0087F0",
+            "name": "ACE 차이나AI빅테크TOP2+액티브",
+            "pct": -5.69,
+            "price": 9620,
+            "value": 1
+          }
+        ],
+        "others": [
+          {
+            "code": "0148J0",
+            "name": "TIGER 코리아휴머노이드로봇산업",
+            "pct": -2.05,
+            "price": 6920,
+            "value": 1730
+          },
+          {
+            "code": "0173Y0",
+            "name": "KODEX 미국AI광통신네트워크",
+            "pct": -7.67,
+            "price": 7040,
+            "value": 1001
+          },
+          {
+            "code": "490590",
+            "name": "RISE 미국AI밸류체인데일리고정커버드콜",
+            "pct": -4.3,
+            "price": 10670,
+            "value": 414
+          }
+        ]
+      },
+      {
+        "theme": "국내 대표지수",
+        "median": -5.01,
+        "count": 89,
+        "ace_count": 5,
+        "ace_median": -4.5,
+        "ace": [
+          {
+            "code": "105190",
+            "name": "ACE 200",
+            "pct": -5.16,
+            "price": 77975,
+            "value": 1202
+          },
+          {
+            "code": "332500",
+            "name": "ACE 200TR",
+            "pct": -5.3,
+            "price": 52400,
+            "value": 189
+          },
+          {
+            "code": "354500",
+            "name": "ACE 코스닥150",
+            "pct": -2.42,
+            "price": 10685,
+            "value": 143
+          },
+          {
+            "code": "305050",
+            "name": "ACE 코스피",
+            "pct": -4.5,
+            "price": 52120,
+            "value": 10
+          },
+          {
+            "code": "0008E0",
+            "name": "ACE 미국중심중소형제조업",
+            "pct": -3.62,
+            "price": 10375,
+            "value": 3
+          }
+        ],
+        "others": [
+          {
+            "code": "069500",
+            "name": "KODEX 200",
+            "pct": -5.15,
+            "price": 77780,
+            "value": 94863
+          },
+          {
+            "code": "102110",
+            "name": "TIGER 200",
+            "pct": -5.26,
+            "price": 77490,
+            "value": 35270
+          },
+          {
+            "code": "229200",
+            "name": "KODEX 코스닥150",
+            "pct": -2.31,
+            "price": 10560,
+            "value": 28940
+          }
+        ]
+      },
+      {
+        "theme": "금·원자재",
+        "median": -5.86,
+        "count": 15,
+        "ace_count": 1,
+        "ace_median": -6.12,
+        "ace": [
+          {
+            "code": "411060",
+            "name": "ACE KRX금현물",
+            "pct": -6.12,
+            "price": 23235,
+            "value": 644
+          }
+        ],
+        "others": [
+          {
+            "code": "0072R0",
+            "name": "TIGER KRX금현물",
+            "pct": -6.02,
+            "price": 11090,
+            "value": 578
+          },
+          {
+            "code": "144600",
+            "name": "KODEX 은선물(H)",
+            "pct": -10.79,
+            "price": 7650,
+            "value": 172
+          },
+          {
+            "code": "132030",
+            "name": "KODEX 골드선물(H)",
+            "pct": -6.13,
+            "price": 21610,
+            "value": 73
+          }
+        ]
+      },
+      {
+        "theme": "전력·원전·인프라",
+        "median": -6.3,
+        "count": 33,
+        "ace_count": 3,
+        "ace_median": -8.04,
+        "ace": [
+          {
+            "code": "433500",
+            "name": "ACE 원자력TOP10",
+            "pct": -8.04,
+            "price": 33560,
+            "value": 43
+          },
+          {
+            "code": "0209Z0",
+            "name": "ACE 코리아AI전력TOP10",
+            "pct": -7.28,
+            "price": 4200,
+            "value": 42
+          },
+          {
+            "code": "0155M0",
+            "name": "ACE 미국SMR원자력TOP10",
+            "pct": -12.14,
+            "price": 4305,
+            "value": 5
+          }
+        ],
+        "others": [
+          {
+            "code": "487240",
+            "name": "KODEX AI전력핵심설비",
+            "pct": -3.93,
+            "price": 21160,
+            "value": 4324
+          },
+          {
+            "code": "0117V0",
+            "name": "TIGER 코리아AI전력기기TOP3플러스",
+            "pct": -3.86,
+            "price": 11095,
+            "value": 1118
+          },
+          {
+            "code": "487230",
+            "name": "KODEX 미국AI전력핵심인프라",
+            "pct": -5.82,
+            "price": 14010,
+            "value": 859
+          }
+        ]
+      }
+    ],
+    "stale": false
+  },
   "news": {
     "items": [
       {
-        "title": "코스피 5000선 붕괴…외국인 1.4조원 매도에 4거래일 연속 하락",
-        "source": "https://www.theconnectmoney.com/",
-        "link": "https://www.theconnectmoney.com/ko-kr/articles/4724",
-        "published": "11-17 16:33",
+        "title": "[오늘 증시 전망] 코스피 5,000선 붕괴…외국인 1조4,000억원대 매도에 18일 증시 긴장",
+        "source": "업코리아",
+        "link": "https://www.upkoreanews.kr/news/articleView.html?idxno=101219",
+        "published": "11-18 07:05",
         "id": 1
       },
       {
-        "title": "(마감시황) 코스피, 외인 ‘팔자’에 5,000선 붕괴…9개월 만 최저",
-        "source": "뉴스투데이",
-        "link": "https://news.google.com/articles/CBMiXkFVX3lxTE1nNUVFSU1EdjlSVU5iUXRfWFJ1aUtlMUVkSmNfdXV0ZkY0elhTQnhHdXJBaGNjSXBtRFhzMklYUThMU2xhalhOaHlKTWJMVmJOc2twMTY1SThFSTBId1E?oc=5",
-        "published": "11-17 16:19",
+        "title": "코스피, 외국인 1.4조 매도에 '5천선' 내줘",
+        "source": "코리아리포트",
+        "link": "https://www.koreareport.co.kr/news/articleView.html?idxno=54835",
+        "published": "11-17 18:45",
         "id": 2
       },
       {
-        "title": "코스피 9개월 만에 최저…외국인 1.4조 '팔자' 5000선 붕괴[시황종합]",
-        "source": "뉴스1",
-        "link": "https://news.google.com/articles/CBMiX0FVX3lxTE9ueFlLX29MSVNOcVppZ1RaS0VGN1JpU2NyS0YxTkowR05ET2M3a0JtNjZDczZad2tGQlNlQVEtQU9ObFpnX29Oc05rR2ZCOE8wMEoydEFqa3NxeUhOb0pz?oc=5",
-        "published": "11-17 16:10",
+        "title": "코스피, 반도체주 약세에 4960선 하락 마감...외인 1.4조 순매도",
+        "source": "한국증권신문",
+        "link": "http://www.ksdaily.co.kr/news/articleView.html?idxno=111536",
+        "published": "11-17 18:10",
         "id": 3
       },
       {
-        "title": "젠슨황 여파에 코스피 2.6%↓…5000선 내줘 [MTN 마감시황]",
-        "source": "MTN 머니투데이방송",
-        "link": "https://news.mtn.co.kr/article/2026111716073431251",
-        "published": "11-17 16:07",
+        "title": "[마감시황] 11/17 5,000선 내준 코스피, 외국인 1조4,430억 매도",
+        "source": "네이버 프리미엄콘텐츠",
+        "link": "https://contents.premium.naver.com/ontimebrief/sihwangontime/contents/261117175329370yn",
+        "published": "11-17 17:53",
         "id": 4
       },
       {
-        "title": "연초로 '리셋'된 코스피…5000선 붕괴 마감 [시황]",
-        "source": "데일리안",
-        "link": "https://www.dailian.co.kr/news/view/1716255/%EC%97%B0%EC%B4%88%EB%A1%9C-%EB%A6%AC%EC%85%8B%EB%90%9C-%EC%BD%94%EC%8A%A4%ED%94%BC5000%EC%84%A0-%EB%B6%95%EA%B4%B4-2026",
-        "published": "11-17 16:05",
+        "title": "[마감시황] 코스피 ‘5천피’ 무너졌다…AI 불안에 외국인 매도·금리 부담 겹쳐",
+        "source": "한국면세뉴스",
+        "link": "https://www.kdfnews.com/news/articleView.html?idxno=191067",
+        "published": "11-17 17:40",
         "id": 5
       },
       {
-        "title": "외국인 1.4조 매도에 코스피 5000선 붕괴 마감…9개월 만에 최저",
-        "source": "파이낸셜포스트",
-        "link": "https://news.google.com/articles/CBMidEFVX3lxTE53NS11a05LYnRydzFIMDQ4MU5ZTVZoeHpWc3ppeHJPZDVMRWVZSlhxMXpMdmNEcUZNTHJRajdpXzJQNXRLZHhOakRaYjRqeUxXY1F6VVpnVnhHeEhIRm1nc2syMFZORVdlaG1NSElCckpGc3Rr?oc=5",
-        "published": "11-17 16:04",
+        "title": "[마감시황] 코스피, 9개월 만에 5000선 이탈",
+        "source": "한양경제",
+        "link": "https://www.hanyangeconomy.com/news/articleView.html?idxno=10664",
+        "published": "11-17 17:36",
         "id": 6
       },
       {
-        "title": "외국인 1.4조 매도에 코스피 5000선 붕괴···삼성전자 3%대 '뚝'",
-        "source": "뉴스웨이",
-        "link": "https://www.newsway.co.kr/news/view?ud=2026111715465046050",
-        "published": "11-17 16:00",
+        "title": "[마감시황] 외국인 1.4조 팔자…코스피 5000 붕괴",
+        "source": "자본시장뉴스",
+        "link": "https://www.jabon.co.kr/news/articleView.html?idxno=8862",
+        "published": "11-17 17:10",
         "id": 7
       },
       {
-        "title": "[마감시황] 코스피, 외인 ‘팔자’에 5000선 아래로…9개월 만에 최저",
-        "source": "블록미디어",
-        "link": "https://www.blockmedia.co.kr/archives/1166897",
-        "published": "11-17 15:58",
+        "title": "[마감시황] 코스피, 9개월 만에 5000선 붕괴...외국인 1.4조 '팔자'",
+        "source": "폴리뉴스 Polinews",
+        "link": "https://www.polinews.co.kr/news/articleView.html?idxno=748602",
+        "published": "11-17 17:10",
         "id": 8
       }
     ],
@@ -2688,275 +4728,319 @@
     "stale_items": [],
     "is_today": false,
     "news_post_close": 8,
-    "final": false
-  },
-  "ai_briefing": {
-    "daily": {
-      "headline": "외국인 1.4조 원대 투매 충격에 코스피 5,000선 하회 마감",
-      "summary": [
-        "미 기술주 급락 여파와 반도체 대형주 매도 확대로 코스피 4,968.48pt 급락",
-        "외국인 1조 4,270억 원 순매도 속 기관과 개인의 동반 저가 매수세 유입",
-        "대형 반도체주 수급 안정 여부와 환율 변동성 완화 확인 필요"
-      ],
-      "sections": [
-        {
-          "key": "market",
-          "title": "지수·매크로",
-          "gist": "코스피 5,000선 하회 및 하락 종목 압도",
-          "items": [
-            {
-              "k": "코스피",
-              "v": "-2.59% 내린 4,968.48pt로 5,000선 이탈"
-            },
-            {
-              "k": "코스닥",
-              "v": "-2.34% 하락한 650.06pt로 동반 약세"
-            },
-            {
-              "k": "원·달러 환율",
-              "v": "0.3% 상승한 1,337.27원 마감"
-            },
-            {
-              "k": "시장 폭",
-              "v": "코스피 하락 709종목, 코스닥 하락 1,319종목"
-            }
-          ]
-        },
-        {
-          "key": "flow",
-          "title": "수급",
-          "gist": "외국인의 대규모 매도 vs 기관·개인 방어",
-          "items": [
-            {
-              "k": "외국인",
-              "v": "코스피 -1조 4,270억 원 대규모 순매도"
-            },
-            {
-              "k": "기관·개인",
-              "v": "코스피서 각각 5,296억 원, 4,169억 원 순매수"
-            },
-            {
-              "k": "업종 쏠림",
-              "v": "전기·전자 외국인 -1조 535억 원 매도 집중"
-            }
-          ]
-        },
-        {
-          "key": "sector",
-          "title": "업종",
-          "gist": "전력·비금속 급락 속 방어 소비재 선방",
-          "items": [
-            {
-              "k": "강세 업종",
-              "v": "코스피 섬유·의류 +1.07%, 의료정밀 +1.06%"
-            },
-            {
-              "k": "약세 업종",
-              "v": "전기·가스 -4.87%, 비금속 -3.97% 급락"
-            },
-            {
-              "k": "수급 유입",
-              "v": "스마트머니 기준 제약(+399억 원) 순유입"
-            }
-          ]
-        },
-        {
-          "key": "stock",
-          "title": "종목",
-          "gist": "반도체 투톱에 집중된 외국인 매도 공세",
-          "items": [
-            {
-              "k": "외국인 매도",
-              "v": "삼성전자 -4,821억 원, SK하이닉스 -4,402억 원"
-            },
-            {
-              "k": "기관 매수",
-              "v": "삼성전자 1,738억 원, SK하이닉스 1,488억 원"
-            },
-            {
-              "k": "개인 매수",
-              "v": "삼성전자 2,944억 원 순매수로 물량 소화"
-            }
-          ]
-        },
-        {
-          "key": "issue",
-          "title": "이슈·뉴스",
-          "gist": "글로벌 AI 반도체 조정에 따른 투자심리 위축",
-          "items": [
-            {
-              "k": "글로벌 충격",
-              "v": "미국 AI 반도체 충격 여파로 지수 급락 [4]"
-            },
-            {
-              "k": "지수 레벨",
-              "v": "외국인 대규모 매도에 5,000선 하회 및 9개월 최저 [2][3]"
-            }
-          ]
-        },
-        {
-          "key": "ace",
-          "title": "ACE ETF",
-          "gist": "인버스·해외 분산 선방 속 반도체 레버리지 약세",
-          "items": [
-            {
-              "k": "상승 상위",
-              "v": "ACE MSCI인도네시아(합성) +3.43%, ACE 인버스 +2.25%"
-            },
-            {
-              "k": "하락 상위",
-              "v": "ACE 레버리지 -5.17%, ACE 코리아AI전력TOP10 -5.08%"
-            },
-            {
-              "k": "거래 대금",
-              "v": "ACE AI반도체TOP3+ 283억 원, ACE 미국S&P500 281억 원"
-            }
-          ]
-        }
-      ],
-      "strategy": [
-        "코스피 5,000선 재안착 여부 및 외국인 반도체 매도세 둔화 흐름 점검",
-        "변동성 확대 국면 속 제약 등 실적 방어 업종 중심의 선별적 대응"
-      ]
-    },
-    "weekly": {
-      "headline": "외국인 대형 반도체 매도세 확대 속 주간 지수 조정",
-      "summary": [
-        "반도체 및 유틸리티 업종 약세로 주간 코스피 -5.17% 하락 마감",
-        "외국인 주간 코스피 -2조 2,138억 원 순매도 속 기관 매도 동참",
-        "반도체 밸류체인 수급 진정 및 엔터·의료정밀 등 주도 섹터 차별화 점검"
-      ],
-      "sections": [
-        {
-          "key": "market",
-          "title": "지수·매크로",
-          "gist": "주간 지수 조정 지속 및 시장 전반 약세",
-          "items": [
-            {
-              "k": "코스피 주간",
-              "v": "최근 5거래일 -5.17% 하락하며 약세 지속"
-            },
-            {
-              "k": "코스닥 주간",
-              "v": "주간 -2.63% 하락으로 상대적 선방"
-            },
-            {
-              "k": "환율 추이",
-              "v": "원·달러 환율 주간 -0.49% 소폭 하향 안정"
-            }
-          ]
-        },
-        {
-          "key": "flow",
-          "title": "수급",
-          "gist": "외국인·기관 동반 매도 속 개인 순매수 대응",
-          "items": [
-            {
-              "k": "외국인",
-              "v": "코스피 -2조 2,138억 원, 코스닥 -8,593억 원 순매도"
-            },
-            {
-              "k": "기관",
-              "v": "코스피 -1조 959억 원 매도, 코스닥 3,067억 원 매수"
-            },
-            {
-              "k": "수급 이탈",
-              "v": "전기·전자 주간 스마트머니 -2조 7,574억 원 순유출"
-            }
-          ]
-        },
-        {
-          "key": "sector",
-          "title": "업종",
-          "gist": "의료정밀·오락문화 강세 vs 전력·IT서비스 부진",
-          "items": [
-            {
-              "k": "상승 주도",
-              "v": "의료·정밀기기 +8.05%, 오락·문화 +4.29% 강세"
-            },
-            {
-              "k": "낙폭 과대",
-              "v": "전기·가스 -13.45%, IT 서비스 -7.37% 부진"
-            },
-            {
-              "k": "수급 쏠림",
-              "v": "제약(+1,582억 원), 운송·창고(+1,113억 원) 유입"
-            }
-          ]
-        },
-        {
-          "key": "stock",
-          "title": "종목",
-          "gist": "SK하이닉스 집중 매도 속 반도체 수급 재편",
-          "items": [
-            {
-              "k": "외국인 순매도",
-              "v": "SK하이닉스 -1조 8,317억 원 순매도 집중"
-            },
-            {
-              "k": "외국인 순매수",
-              "v": "삼성전자 2,060억 원, SK스퀘어 2,034억 원 매수"
-            },
-            {
-              "k": "기관 순매수",
-              "v": "이수페타시스 950억 원, 셀트리온 689억 원 유입"
-            }
-          ]
-        },
-        {
-          "key": "issue",
-          "title": "이슈·뉴스",
-          "gist": "연초 수준으로 밀려난 지수와 대형 IT 차익실현",
-          "items": [
-            {
-              "k": "지수 되돌림",
-              "v": "연속 하락세로 연초 수준까지 조정 [1][5]"
-            },
-            {
-              "k": "외인 이탈",
-              "v": "외국인 지속 매도세에 9개월 만에 최저치 경신 [6][8]"
-            }
-          ]
-        },
-        {
-          "key": "ace",
-          "title": "ACE ETF",
-          "gist": "엔터·해외 자산 호조 속 반도체 레버리지 약세",
-          "items": [
-            {
-              "k": "주간 상승",
-              "v": "ACE KPOP포커스 +8.17%, ACE MSCI인도네시아(합성) +5.68%"
-            },
-            {
-              "k": "주간 하락",
-              "v": "ACE SK하이닉스단일종목레버리지 -17.97% 급락"
-            },
-            {
-              "k": "거래 집중",
-              "v": "ACE 200 1,202억 원, ACE AI반도체TOP3+ 1,002억 원"
-            }
-          ]
-        }
-      ],
-      "strategy": [
-        "주간 낙폭 과대 대형주의 밸류에이션 매력 점검 및 단기 지지선 확인",
-        "상대적 수익률 견조한 K-POP 엔터 및 헬스케어 섹터 비중 조절"
-      ]
-    },
-    "source": "gemini",
-    "model": "gemini-3.8-flash"
+    "final": true
   },
   "as_of": {
-    "collected": "2026-11-17 17:00 KST",
+    "collected": "2026-11-18 11:00 KST",
     "index": "한국거래소 2026-11-17 종가",
-    "flow": "한국거래소 투자자별 매매 · 17:00 수집 · 잠정치 (시간외 거래 미반영분 있음)",
+    "flow": "한국거래소 투자자별 매매 · 11:00 수집 · 시간외 거래 반영 확정치",
     "breadth": "한국거래소 2026-11-17 종가 기준 종목 등락",
-    "sector": "한국거래소 업종지수 2026-11-17 종가 · 업종 수급 17:00 수집",
-    "stock": "한국거래소 투자자별 순매수 · 17:00 수집 · 잠정치",
+    "sector": "한국거래소 업종지수 2026-11-17 종가 · 업종 수급 11:00 수집",
+    "stock": "한국거래소 투자자별 순매수 · 11:00 수집 · 시간외 거래 반영 확정치",
     "etf": "한국거래소 ETF 2026-11-17 종가 기준 등락률",
     "fx": "원/달러 2026-11-17 기준 (FinanceDataReader)",
     "sox": "필라델피아 반도체 2026-11-16 미국장 종가",
-    "news": "구글 뉴스 2026-11-17 08:00 ~ 17:00",
-    "briefing": "gemini-3.8-flash · 17:00 작성"
+    "news": "구글 뉴스 2026-11-17 08:00 ~ 11:00",
+    "briefing": "gemini-3.5-flash-lite · 11:00 작성"
+  },
+  "ai_briefing": {
+    "daily": {
+      "headline": "반도체 약세와 외국인 1조 원대 매도 집중으로 코스피 5000선 이탈",
+      "summary": [
+        "전일 미국 반도체 약세 충격이 국내로 확산되며 코스피 4,968.48pt로 하락 마감",
+        "외국인의 대규모 매도세 속에서 기관과 개인의 저가 매수 유입",
+        "환율 안정세 속 외국인 수급 이탈 진정 여부와 반도체 섹터 반등 탄력 주시"
+      ],
+      "sections": [
+        {
+          "key": "market",
+          "title": "지수·매크로",
+          "gist": "대형주 중심의 하락세로 코스피 5000선 하회",
+          "items": [
+            {
+              "k": "코스피",
+              "v": "4968.48pt로 -2.59% 하락 마감"
+            },
+            {
+              "k": "코스닥",
+              "v": "650.06pt로 -2.34% 하락 마감"
+            },
+            {
+              "k": "원달러환율",
+              "v": "1,335.67원으로 0.18% 소폭 상승"
+            },
+            {
+              "k": "시장폭",
+              "v": "코스피 상승 185종목 대 하락 709종목 기록"
+            }
+          ]
+        },
+        {
+          "key": "flow",
+          "title": "수급",
+          "gist": "외국인 매도 물량을 기관과 개인이 흡수",
+          "items": [
+            {
+              "k": "외국인",
+              "v": "코스피 -1조 4,190억 원 순매도 기록"
+            },
+            {
+              "k": "기관",
+              "v": "코스피 5,134억 원 순매수 우위"
+            },
+            {
+              "k": "개인",
+              "v": "코스피 4,310억 원 순매수 기록"
+            },
+            {
+              "k": "전기전자",
+              "v": "외국인 -1조 423억 원 순매도 집중 타격"
+            }
+          ]
+        },
+        {
+          "key": "sector",
+          "title": "업종",
+          "gist": "대부분 업종 하락 속 섬유의류와 의료정밀 선방",
+          "items": [
+            {
+              "k": "전기가스",
+              "v": "-4.87% 하락하며 코스피 하락 주도"
+            },
+            {
+              "k": "보험",
+              "v": "-3.86% 약세 기록"
+            },
+            {
+              "k": "섬유의류",
+              "v": "1.07% 상승하며 방어력 과시"
+            },
+            {
+              "k": "의료정밀기기",
+              "v": "1.06% 상승 마감"
+            }
+          ]
+        },
+        {
+          "key": "stock",
+          "title": "종목",
+          "gist": "반도체 대형주에 외국인 매도세 집중",
+          "items": [
+            {
+              "k": "외국인",
+              "v": "삼성전자 -4,740억 원 및 SK하이닉스 -4,379억 원 순매도"
+            },
+            {
+              "k": "기관",
+              "v": "삼성전자 1,691억 원 및 SK하이닉스 1,453억 원 순매수"
+            },
+            {
+              "k": "개인",
+              "v": "삼성전자 2,990억 원 순매수 집중"
+            },
+            {
+              "k": "LG전자",
+              "v": "외국인 136억 원 순매수 유입"
+            }
+          ]
+        },
+        {
+          "key": "issue",
+          "title": "이슈·뉴스",
+          "gist": "AI 불안감과 금리 부담으로 외국인 이탈 가속화",
+          "items": [
+            {
+              "k": "외국인매도",
+              "v": "1조 4,000억 원대 대규모 순매도로 지수 압박 [1]"
+            },
+            {
+              "k": "반도체약세",
+              "v": "글로벌 AI 관련 불안감과 맞물려 낙폭 확대 [5]"
+            },
+            {
+              "k": "지수이탈",
+              "v": "코스피 5000선 붕괴하며 투자심리 위축 [8]"
+            }
+          ]
+        },
+        {
+          "key": "ace",
+          "title": "ACE ETF",
+          "gist": "금현물과 일부 해외 자산 방어력 돋보임",
+          "items": [
+            {
+              "k": "ACE KRX금현물",
+              "v": "0.58% 상승하며 금·원자재 테마 선방"
+            },
+            {
+              "k": "ACE AI반도체TOP3+",
+              "v": "-2.65% 하락으로 반도체 테마 약세 동조"
+            },
+            {
+              "k": "ACE 코리아AI전력TOP10",
+              "v": "-5.08%로 전력·원전 테마 하락 주도"
+            },
+            {
+              "k": "ACE 200",
+              "v": "-2.54%로 국내 대표지수 흐름 반영"
+            }
+          ]
+        }
+      ],
+      "strategy": [
+        "지수 5000선 회복 여부와 외국인 현물 수급 방향성 점검",
+        "반도체 비중 조절 및 방어주 중심의 포트폴리오 대응"
+      ]
+    },
+    "weekly": {
+      "headline": "주간 단위 외국인 반도체 매도 지속으로 코스피 5000선 하향 이탈",
+      "summary": [
+        "글로벌 기술주 조정 여파로 주간 기준 코스피 -5.17% 하락",
+        "외국인의 전기전자 업종 중심 대규모 매물 출하",
+        "미국 대형 기술주 및 반도체 섹터의 바닥 다지기 확인 필요"
+      ],
+      "sections": [
+        {
+          "key": "market",
+          "title": "지수·매크로",
+          "gist": "지수 전반의 조정 압력 심화",
+          "items": [
+            {
+              "k": "코스피",
+              "v": "최근 5거래일간 -5.17% 하락 누적"
+            },
+            {
+              "k": "코스닥",
+              "v": "-2.63% 하락률 기록"
+            },
+            {
+              "k": "원달러환율",
+              "v": "-0.61% 하락하며 변동성 제한"
+            },
+            {
+              "k": "SOX",
+              "v": "필라델피아 반도체 주간 -4.22% 조정을 국내에 반영"
+            }
+          ]
+        },
+        {
+          "key": "flow",
+          "title": "수급",
+          "gist": "외국인 주도 매물 출하 지속",
+          "items": [
+            {
+              "k": "외국인",
+              "v": "코스피 누적 -2조 2,058억 원 순매도"
+            },
+            {
+              "k": "기관",
+              "v": "코스피 누적 -1조 1,121억 원 순매도"
+            },
+            {
+              "k": "개인",
+              "v": "코스피 누적 7,515억 원 순매수"
+            },
+            {
+              "k": "전기전자",
+              "v": "외국인 누적 -2조 458억 원 순매도 기록"
+            }
+          ]
+        },
+        {
+          "key": "sector",
+          "title": "업종",
+          "gist": "의료정밀과 오락문화 제외 전반적 약세",
+          "items": [
+            {
+              "k": "전기가스",
+              "v": "-13.45% 급락하며 주간 부진 선두"
+            },
+            {
+              "k": "전기전자",
+              "v": "-6.59% 하락하며 지수 끌어내림"
+            },
+            {
+              "k": "의료정밀기기",
+              "v": "8.05% 상승으로 주간 강세 1위"
+            },
+            {
+              "k": "오락문화",
+              "v": "4.29% 상승 마감"
+            }
+          ]
+        },
+        {
+          "key": "stock",
+          "title": "종목",
+          "gist": "하이닉스 중심 매도와 셀트리온·이수페타시스 수급 유입",
+          "items": [
+            {
+              "k": "외국인",
+              "v": "SK하이닉스 -1조 8,295억 원 주간 집중 매도"
+            },
+            {
+              "k": "기관",
+              "v": "이수페타시스 950억 원 및 셀트리온 687억 원 순매수"
+            },
+            {
+              "k": "삼성전기",
+              "v": "개인 3,778억 원 주간 순매수 유입"
+            },
+            {
+              "k": "SK스퀘어",
+              "v": "외국인 2,038억 원 순매수 기록"
+            }
+          ]
+        },
+        {
+          "key": "issue",
+          "title": "이슈·뉴스",
+          "gist": "글로벌 AI 밸류체인 변동성 확대 영향",
+          "items": [
+            {
+              "k": "외인매도",
+              "v": "주간 단위 2조 원 넘는 순매도로 하방 압력 가중"
+            },
+            {
+              "k": "반도체조정",
+              "v": "대형 반도체주 중심으로 수급 이탈 가속화"
+            },
+            {
+              "k": "지수붕괴",
+              "v": "9개월 만에 5000선 이탈하며 경계감 고조 [8]"
+            }
+          ]
+        },
+        {
+          "key": "ace",
+          "title": "ACE ETF",
+          "gist": "KPOP 포커스 등 일부 테마 제외하고 전반적 하락",
+          "items": [
+            {
+              "k": "ACE KPOP포커스",
+              "v": "주간 8.17% 급등하며 K컬처 테마 상승 견인"
+            },
+            {
+              "k": "ACE SK하이닉스단일종목레버리지",
+              "v": "주간 -17.97%로 낙폭 최상위 기록"
+            },
+            {
+              "k": "ACE 원자력TOP10",
+              "v": "주간 -8.04% 하락으로 전력인프라 약세 연동"
+            },
+            {
+              "k": "ACE 200",
+              "v": "주간 거래대금 1,202억 원으로 유동성 상위 기록"
+            }
+          ]
+        }
+      ],
+      "strategy": [
+        "주간 낙폭 과대주의 기술적 반등 가능성과 외국인 수급 변곡점 확인",
+        "변동성 장세 대비 방어적 자산 배분 비중 유지"
+      ]
+    },
+    "source": "gemini",
+    "model": "gemini-3.5-flash-lite"
   }
 }
