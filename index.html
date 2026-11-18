@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Korea Market Radar · 한국 증시 마감 레이더</title>
+<title>ACE 이브닝콜 · 한국 증시 장 마감 브리핑</title>
 <style>
   :root {
     --bg: #0f1218;
@@ -33,7 +33,7 @@
   .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 20px 48px; }
   header { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
   h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
-  h1 span { color: var(--accent); }
+  h1 .brand-ace { color: var(--ace-text); letter-spacing: .02em; }
   .meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
   .meta b { color: var(--text); font-weight: 600; }
   .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; vertical-align: middle; margin-left: 6px; }
@@ -293,7 +293,7 @@
 <div class="wrap">
   <header>
     <div>
-      <h1>🇰🇷 Korea Market <span>Radar</span></h1>
+      <h1><span class="brand-ace">ACE</span> 이브닝콜</h1>
       <div class="meta" id="meta">데이터 불러오는 중…</div>
     </div>
   </header>
@@ -835,7 +835,7 @@
     var br = (DATA.ai_briefing || {})[S.mode] || {};
     var I = DATA.indices || {}, F = DATA.flow || {}, k = pk(), p = S.mode;
     var L = [];
-    L.push("[시황 브리핑] " + modeLabel() + " · 기준 거래일 " + (DATA.trade_date || "-"));
+    L.push("[ACE 이브닝콜] " + modeLabel() + " · 기준 거래일 " + (DATA.trade_date || "-"));
     if (br.headline) L.push("■ " + br.headline.replace(/\s*\[[\d,\s]+\]/g, ""));
     L.push("");
     function clean(x) { return x.replace(/\s*\[[\d,\s]+\]/g, ""); }

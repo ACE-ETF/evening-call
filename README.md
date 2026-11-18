@@ -1,4 +1,4 @@
-# Korea Market Radar
+# ACE 이브닝콜 (Korea Market Radar)
 
 일간·주간 한국 증시 & 섹터 레이더 대시보드.
 평일 KST 16:30(1차) → 17:15(마감 기사 보강) → 18:05(수급 확정) GitHub Actions가 `fetch_market.py`를 실행해 `data.json`을 갱신하고, GitHub Pages가 `index.html`을 배포합니다.
