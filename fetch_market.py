@@ -759,8 +759,8 @@ THEME_BENCH = {
     "통화(달러)": [("usdkrw", None)],
     "미국 대표지수": [("fdr", ["US500", "^GSPC"])],
     "미국 빅테크·성장": [("fdr", ["^NDX", "IXIC"])],
-    "중국·홍콩": [("fdr", ["HK50", "^HSI", "HSI"])],
-    "일본·유럽": [("fdr", ["JP225", "^N225", "N225"])],
+    "중국·홍콩": [("fdr", ["^HSI", "HSI"])],
+    "일본·유럽": [("fdr", ["^N225", "N225"])],
     "인도·신흥국": [("fdr", ["^NSEI", "NIFTY50"])],
     "금·원자재": [("fdr", ["GC=F", "GC"])],
 }
@@ -1312,7 +1312,6 @@ SPOT_CANDS = [
     ("gold", "금", ["GC=F"], "pct", False),
     ("ndx", "나스닥 100", ["^NDX", "IXIC"], "pct", False),
     ("nikkei", "닛케이 225", ["^N225", "N225"], "pct", True),
-    ("vkospi", "VKOSPI", ["VKOSPI", "^VKOSPI"], "pct", True),
 ]
 
 
@@ -1778,7 +1777,7 @@ def main() -> int:
         "etf": f"한국거래소 ETF {trade_date} 종가 기준 등락률",
         "fx": f"원/달러 {fx.get('date') or '-'} 기준 (FinanceDataReader)",
         "sox": f"필라델피아 반도체 {sox.get('date') or '-'} 미국장 종가",
-        "spotlight": "오늘의 지표: 해외 지표는 국내 기준일 전날 종가, 닛케이·VKOSPI는 당일 · 평소(직전 20일 변동폭) 대비 가장 이례적인 지표 선정",
+        "spotlight": "오늘의 지표: 해외 지표는 국내 기준일 전날 종가, 닛케이는 당일 · 평소(직전 20일 변동폭) 대비 가장 이례적인 지표 선정",
         "news": f"구글 뉴스 {trade_date} 08:00 ~ {hm}",
     }
     prev_asof = prev.get("as_of") or {}
