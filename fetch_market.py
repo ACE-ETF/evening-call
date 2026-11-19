@@ -368,6 +368,78 @@ def fetch_indices(start_date: str, prev: dict):
     return out, kospi_df
 
 
+INDEX_NEWS_KW = {"kospi": "코스피", "kosdaq": "코스닥"}
+CLOSE_WORDS = re.compile(r"마감|종가|마쳤|마쳐|마치|끝냈|끝내|끝마|거래를 마")
+NUM_RE = re.compile(r"(?<![\d.])(\d{1,2},?\d{3}\.\d{2}|\d{3}\.\d{2})(?![\d])")
+
+
+def verify_indices_with_news(indices: dict, trade_date: str):
+    """마감 기사 제목의 지수 종가로 교차검증. KRX 일별 지수 표가 마감 직후 최종값이 아닐 때가 있어,
+    같은 종가를 적은 기사가 2건 이상이면 그 값을 우선 사용 (KRX 호출 없음, 구글 뉴스 1회)."""
+    try:
+        res = requests.get("https://news.google.com/rss/search",
+                           params={"q": "코스피 코스닥 마감 when:1d", "hl": "ko", "gl": "KR", "ceid": "KR:ko"},
+                           headers={"User-Agent": "Mozilla/5.0 (compatible; KoreaMarketRadar/1.0)"}, timeout=15)
+        if res.status_code != 200:
+            log(f"지수 기사 교차검증: 뉴스 HTTP {res.status_code} → 건너뜀")
+            return
+        root = ET.fromstring(res.content)
+    except Exception as e:
+        log(f"지수 기사 교차검증: 뉴스 조회 실패 ({e}) → 건너뜀")
+        return
+    since = datetime.strptime(trade_date, "%Y-%m-%d").replace(hour=15, minute=30, tzinfo=KST)
+    until = since + timedelta(hours=17, minutes=30)
+    titles = []
+    for it in root.iter("item"):
+        try:
+            pub = parsedate_to_datetime(it.findtext("pubDate")).astimezone(KST)
+        except Exception:
+            continue
+        t = (it.findtext("title") or "").strip()
+        if since <= pub <= until and CLOSE_WORDS.search(t):
+            titles.append(t)
+    for key, kw in INDEX_NEWS_KW.items():
+        o = indices.get(key) or {}
+        krx = float(o.get("price") or 0)
+        if not krx or o.get("date") != trade_date:
+            continue
+        votes = {}
+        for t in titles:
+            pos = [m.start() for m in re.finditer("코스피|코스닥", t)]
+            for i, st in enumerate(pos):
+                if not t.startswith(kw, st):
+                    continue
+                seg = t[st: pos[i + 1] if i + 1 < len(pos) else len(t)]
+                for m in NUM_RE.finditer(seg):
+                    v = float(m.group(1).replace(",", ""))
+                    if abs(v / krx - 1) <= 0.08:
+                        votes[v] = votes.get(v, 0) + 1
+                        break
+        if not votes:
+            log(f"{key}: 기사 교차검증 - 마감 기사 없음 (KRX {krx:,.2f} 사용)")
+            continue
+        best, n = max(votes.items(), key=lambda x: x[1])
+        if abs(best - krx) < 0.005:
+            log(f"{key}: 기사 교차검증 일치 ({krx:,.2f}, 기사 {n}건)")
+            o["verified"] = "news"
+            continue
+        if n < 2:
+            log(f"{key}: 기사 값 {best:,.2f} 1건뿐 → KRX {krx:,.2f} 유지")
+            continue
+        series = o.get("series") or []
+        closes = [x["c"] for x in series]
+        if len(closes) < 2:
+            continue
+        prev1 = closes[-2]
+        prev5 = closes[-6] if len(closes) >= 6 else closes[0]
+        o["price"] = round(best, 2)
+        o["daily_pct"] = round((best - prev1) / prev1 * 100, 2)
+        o["weekly_pct"] = round((best - prev5) / prev5 * 100, 2)
+        series[-1]["c"] = round(best, 2)
+        o["verified"] = "news"
+        log(f"{key}: KRX 지수 {krx:,.2f}가 마감 기사({n}건) {best:,.2f}와 달라 기사 값 반영 → {o['daily_pct']:+.2f}%")
+
+
 def fetch_sectors(start_date: str, prev: dict, cutoff: str) -> list:
     prev_map = {s.get("ticker"): s for s in (prev.get("sectors") or []) if isinstance(s, dict)}
     default = {"price": 0, "daily_pct": 0.0, "weekly_pct": 0.0, "date": None}
@@ -1686,7 +1758,8 @@ def main() -> int:
     if light:
         log("실행 범위: 기사·브리핑 보강만 (KRX 데이터 재사용)")
     elif flows_only:
-        log("실행 범위: 수급 확정치만 재수집 (ETF·테마·지수 재사용)")
+        log("실행 범위: 수급·지수 확정치만 재수집 (ETF·테마 재사용)")
+    guarded("지수 기사 교차검증", lambda: verify_indices_with_news(indices, trade_date), lambda: None)
 
     if light:
         flow = prev.get("flow")
@@ -1769,7 +1842,7 @@ def main() -> int:
     flow_basis = "시간외 거래 반영 확정치" if is_final_time else "잠정치 (시간외 거래 18:00까지 변동, 18:05 확정)"
     payload["as_of"] = {
         "collected": f"{today} {hm} KST",
-        "index": f"한국거래소 {trade_date} 종가",
+        "index": f"한국거래소 {trade_date} 종가" + (" · 마감 기사 교차검증" if any((v or {}).get("verified") == "news" for v in indices.values()) else ""),
         "flow": f"한국거래소 투자자별 매매 · {hm} 수집 · {flow_basis}",
         "breadth": f"한국거래소 {trade_date} 종가 기준 종목 등락",
         "sector": f"한국거래소 업종지수 {trade_date} 종가 · 업종 수급 {hm} 수집",
