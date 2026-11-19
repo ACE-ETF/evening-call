@@ -1678,7 +1678,7 @@ def main() -> int:
 
     # 실행 단계별 수집 범위 (KRX 호출 최소화)
     #  - 1차(거래일 첫 실행) 또는 이전값 보충: 전부 수집
-    #  - 17:15 보강(기사·브리핑만): KRX 재호출 없이 기존 데이터 재사용
+    #  - 17:15 보강(기사·브리핑 + 지수 종가 재확인): 지수 2회 외 KRX 재호출 없음
     #  - 18:05 확정: 시간외 거래로 바뀌는 수급(시장·업종·종목)만 재수집, ETF·테마·지수는 재사용
     same_day = prev_trade_date == trade_date and not prev_stale and not FORCE_UPDATE
     light = same_day and news_refresh and not final_refresh
@@ -1707,7 +1707,7 @@ def main() -> int:
         sector_indices, sector_flow, top_stocks, breadth = guarded("업종", lambda: fetch_sector_block(dates, prev), sector_fallback)
     if light or flows_only:
         ace, themes = prev.get("ace") or {"count": 0}, prev.get("themes") or {"daily": [], "weekly": []}
-        indices = {k: (prev.get("indices") or {}).get(k, v) for k, v in indices.items()} if light else indices
+        # 지수는 매 실행마다 새로 읽은 값 사용 (16:30대 KRX 지수가 최종 종가와 다른 경우가 있어 보강·확정 때 바로잡음)
     else:
         first_run_today = prev_trade_date != trade_date  # 구성종목(PDF) 조회는 거래일당 첫 실행에서만
         ace, themes = guarded("ETF", lambda: fetch_etf_block(dates, indices, start_date, allow_pdf=first_run_today), lambda: (None, None))
@@ -1782,7 +1782,7 @@ def main() -> int:
     }
     prev_asof = prev.get("as_of") or {}
     if light:  # 재사용한 블록은 원래 수집 시각 유지
-        for k in ("index", "flow", "breadth", "sector", "stock", "etf", "fx", "sox", "spotlight"):
+        for k in ("flow", "breadth", "sector", "stock", "etf", "fx", "sox", "spotlight"):
             if prev_asof.get(k):
                 payload["as_of"][k] = prev_asof[k]
     elif flows_only:
