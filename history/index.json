@@ -1,5 +1,18 @@
 [
   {
+    "date": "2026-11-19",
+    "kospi": 5118.96,
+    "kospi_pct": 1.02,
+    "kosdaq": 683.27,
+    "kosdaq_pct": 3.09,
+    "foreign": -4053,
+    "inst": 193,
+    "retail": -655,
+    "headline": "외국인 매도 속 기관 매수 유입으로 코스피 5100선 안착",
+    "final": false,
+    "updated_at": "2026-11-19 16:53 KST"
+  },
+  {
     "date": "2026-11-18",
     "kospi": 5067.44,
     "kospi_pct": 1.99,
