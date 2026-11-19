@@ -140,7 +140,13 @@
   .track i.pos { left: 50%; border-radius: 0 4px 4px 0; background: var(--up); }
   .track i.neg { right: 50%; border-radius: 4px 0 0 4px; background: var(--down); }
   .hbar.cols-2 { column-count: 2; column-gap: 18px; }
-  .hbar.cols-2 .hrow { break-inside: avoid; }
+  .hbar.cols-2 .hrow, .hbar.cols-2 .hgrp { break-inside: avoid; }
+  .hgrp { margin-bottom: 2px; }
+  .hsub { font-size: 11px; color: var(--muted); padding: 0 4px 4px; margin-top: -2px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+  .hsub small { margin-left: 2px; font-size: 10px; }
+  .hsub small::before { content: "("; } .hsub small::after { content: ")"; }
+  .hsub em { font-style: normal; color: var(--text-2); font-weight: 600; }
+  @media (max-width: 640px) { .hsub { white-space: normal; } }
   @media (max-width: 960px) { .hbar.cols-2 { column-count: 1; } }
 
   /* 업종 수급 리스트 */
@@ -575,17 +581,25 @@
       var v = num(r.v); var w = Math.abs(v) / maxAbs * 50;
       var bar = v >= 0 ? '<i class="pos" style="width:' + w + '%"></i>' : '<i class="neg" style="width:' + w + '%"></i>';
       var label = opts.unit === "%" ? pct(v) : eok(v);
-      return '<div class="hrow" data-tip="' + esc(r.tip || ("<b>" + esc(r.name) + "</b><br>" + label)) + '"><span class="nm">' + esc(r.name) + '</span>' +
+      var row = '<div class="hrow" data-tip="' + esc(r.tip || ("<b>" + esc(r.name) + "</b><br>" + label)) + '"><span class="nm">' + esc(r.name) + '</span>' +
         '<div class="track"><span class="axis"></span>' + bar + '</div><span class="vl ' + cls(v) + '">' + label + '</span></div>';
+      return r.sub ? '<div class="hgrp">' + row + '<div class="hsub">' + r.sub + '</div></div>' : row;
     }).join("") + '</div>';
   }
 
   function sectorIndexCard() {
     var si = (DATA.sector_indices || {})[S.siMkt] || {};
     var rows = (si[S.mode] || []).map(function (r) {
-      return { name: r.name, v: r.pct, tip: "<b>" + esc(r.name) + "</b><br>" + modeLabel() + " " + pct(r.pct) + (r.value ? "<br>거래대금 " + Math.round(r.value).toLocaleString("ko-KR") + "억 원" : "") };
+      var dv = r.drivers || [];
+      var sub = dv.length ? (r.drivers_basis ? '<em>오늘</em> ' : "") + dv.map(function (x) {
+        return esc(x.name) + ' <span class="' + (x.ret > 0 ? "nu" : x.ret < 0 ? "nd" : "") + '">' + pct(x.ret) + '</span><small>' + x.w + '%</small>';
+      }).join(" · ") : "";
+      var dtip = dv.length ? "<br><br><b>" + (r.drivers_basis ? "오늘 " : "") + "지수를 움직인 종목</b> (업종 내 시총 비중 × 등락률)<br>" + dv.map(function (x) {
+        return esc(x.name) + " " + pct(x.ret) + " · 비중 " + x.w + "% · 기여 " + (x.c > 0 ? "+" : "") + x.c.toFixed(2) + "%p";
+      }).join("<br>") : "";
+      return { name: r.name, v: r.pct, sub: sub, tip: "<b>" + esc(r.name) + "</b><br>" + modeLabel() + " " + pct(r.pct) + (r.value ? "<br>거래대금 " + Math.round(r.value).toLocaleString("ko-KR") + "억 원" : "") + dtip };
     });
-    return '<div class="card"><div class="card-h"><h2>업종지수 수익률<span class="sub">' + modeLabel() + ' · 높은 순</span>' + staleBadge(si) + '</h2>' +
+    return '<div class="card"><div class="card-h"><h2>업종지수 수익률<span class="sub">' + modeLabel() + ' · 높은 순 · 아래 줄: 지수를 움직인 종목(괄호 업종 내 시총 비중)</span>' + staleBadge(si) + '</h2>' +
       seg("siMkt", [["kospi", "코스피"], ["kosdaq", "코스닥"]], S.siMkt, true) + '</div>' + asOf("sector") + siBody(rows) + '</div>';
   }
   function siBody(rows) {
@@ -606,7 +620,11 @@
     var key = S.sfInv;
     var sorted = list.slice().sort(function (a, b) { return num(b[key]) - num(a[key]); });
     function mk(r) {
-      return { name: r.sector, v: r[key], tip: "<b>" + esc(r.sector) + "</b> (" + modeLabel() + ", 억 원)<br>외국인 " + eok(r.foreign) + " · 기관 " + eok(r.inst) + " · 개인 " + eok(r.retail) };
+      var dv = ((r.drivers || {})[key]) || [];
+      var sub = dv.map(function (x) { return esc(x.name) + ' <span class="' + (x.v > 0 ? "nu" : "nd") + '">' + eok(x.v) + '</span>'; }).join(" · ");
+      return { name: r.sector, v: r[key], sub: sub,
+        tip: "<b>" + esc(r.sector) + "</b> (" + modeLabel() + ", 억 원)<br>외국인 " + eok(r.foreign) + " · 기관 " + eok(r.inst) + " · 개인 " + eok(r.retail) +
+          (dv.length ? "<br><br><b>주도 종목 (" + INV_LABEL[key] + ")</b><br>" + dv.map(function (x) { return esc(x.name) + " " + eok(x.v) + "억"; }).join("<br>") : "") };
     }
     var nn = isM() ? 5 : 6;
     var buy = sorted.slice(0, nn).filter(function (r) { return num(r[key]) > 0; }).map(mk);

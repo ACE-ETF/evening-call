@@ -471,6 +471,44 @@ def get_sector_indices(market: str, dates: list, sector_names: set):
     return out
 
 
+SECTOR_DRIVERS_N = 3  # 업종별 표시할 기여 종목 수
+
+
+def attach_sector_drivers(si: dict, cls_df):
+    """업종별 '오늘 지수를 움직인 종목': 업종 내 시총 비중 × 일간 등락률(=지수 기여도, %p) 상위.
+    업종이 올랐으면 플러스 기여 상위, 내렸으면 마이너스 기여 상위. 추가 KRX 호출 없음."""
+    if not si or cls_df is None or not {"업종명", "등락률", "시가총액"} <= set(cls_df.columns):
+        return
+    df = cls_df.copy()
+    df["등락률"] = pd.to_numeric(df["등락률"], errors="coerce")
+    df["시가총액"] = pd.to_numeric(df["시가총액"], errors="coerce")
+    df = df.dropna(subset=["등락률", "시가총액"])
+    df = df[df["시가총액"] > 0]
+    nm = "종목명" if "종목명" in df.columns else None
+    by_sector = {}
+    for sec, g in df.groupby("업종명"):
+        tot = g["시가총액"].sum()
+        if tot <= 0:
+            continue
+        g = g.assign(w=g["시가총액"] / tot * 100, c=g["시가총액"] / tot * g["등락률"])
+        by_sector[norm(sec)] = g
+    for row in si.get("daily", []):
+        g = by_sector.get(norm(row["name"]))
+        if g is None:
+            continue
+        g = g.sort_values("c", ascending=row["pct"] < 0)
+        g = g[g["c"] > 0] if row["pct"] >= 0 else g[g["c"] < 0]
+        row["drivers"] = [{"name": str(r[nm]) if nm else str(code), "ret": round(float(r["등락률"]), 2),
+                           "w": round(float(r["w"]), 1), "c": round(float(r["c"]), 2)}
+                          for code, r in g.head(SECTOR_DRIVERS_N).iterrows()]
+    # 주간 목록에도 같은 업종의 '오늘 기여' 종목을 붙여 둠(주간 종목 수익률은 없음)
+    dmap = {r["name"]: r.get("drivers") for r in si.get("daily", [])}
+    for row in si.get("weekly", []):
+        if dmap.get(row["name"]):
+            row["drivers"] = dmap[row["name"]]
+            row["drivers_basis"] = "1D"
+
+
 def get_net_purchases(market: str, start: str, end: str, investor: str):
     df = krx_call(
         f"{market} {investor} 순매수({start}~{end})",
@@ -507,9 +545,14 @@ def fetch_sector_block(dates: list, prev: dict):
                     STOCK_RET[str(code)] = {"name": str(r[nm_col]) if nm_col else str(code), "ret": round(v, 2)}
         sector_names = set(norm(x) for x in cls_df["업종명"].unique()) if cls_df is not None and "업종명" in cls_df.columns else set()
         sector_indices[key] = get_sector_indices(market, dates, sector_names)
+        try:
+            attach_sector_drivers(sector_indices[key], cls_df)
+        except Exception as e:
+            log(f"{market} 업종 기여 종목 계산 실패(무시): {type(e).__name__}: {e}")
 
         for period, (s, e) in periods.items():
             agg = {}
+            per_stock = {}  # 업종 → 종목 → 투자자별 순매수(억)
             for inv_key, inv_name in INVESTORS:
                 df = get_net_purchases(market, s, e, inv_name)
                 if df is None:
@@ -526,6 +569,9 @@ def fetch_sector_block(dates: list, prev: dict):
                 for code, r in df.iterrows():
                     if r["순매수거래대금"] == 0:
                         continue
+                    ps = per_stock.setdefault(str(r["업종명"]), {}).setdefault(code, {"name": str(r[name_col]) if name_col else code,
+                                                                                      "foreign": 0, "inst": 0, "retail": 0})
+                    ps[inv_key] = eok(r["순매수거래대금"])
                     stock_rows[period][inv_key].append({
                         "code": code,
                         "name": str(r[name_col]) if name_col else code,
@@ -536,6 +582,15 @@ def fetch_sector_block(dates: list, prev: dict):
             rows = list(agg.values())
             for r in rows:
                 r["smart"] = r["foreign"] + r["inst"]  # 외국인+기관
+                stocks = list((per_stock.get(r["sector"]) or {}).values())
+                for st in stocks:
+                    st["smart"] = st["foreign"] + st["inst"]
+                tops = {}
+                for k in ("smart", "foreign", "inst", "retail"):
+                    sign = 1 if r[k] >= 0 else -1  # 업종이 순매수면 순매수 상위, 순매도면 순매도 상위
+                    cand = sorted([x for x in stocks if x[k] * sign > 0], key=lambda x: x[k] * sign, reverse=True)[:SECTOR_DRIVERS_N]
+                    tops[k] = [{"name": x["name"], "v": x[k]} for x in cand]
+                r["drivers"] = tops
             sector_flow[period][key] = sorted(rows, key=lambda x: x["smart"], reverse=True)
 
     top_stocks = {}
