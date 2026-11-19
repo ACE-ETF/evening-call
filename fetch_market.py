@@ -1341,6 +1341,46 @@ def briefing_input(p: dict) -> dict:
     }
 
 
+# '~함/~됨/~보임/~해야 함' 등 서술형 어미 → 명사형 종결로 보정 (모델이 문체 지시를 어길 때 대비)
+ENDING_RULES = [
+    (r"(을|를)\s*보임$", ""),               # 순매도 우위를 보임 → 순매도 우위
+    (r"(을|를)\s+(\S.*?)\s*(으로|로)\s*삼아야\s*함$", r", \2"),  # A를 다음 점검 포인트로 삼아야 함 → A, 다음 점검 포인트
+    (r"(으로|로)\s*삼아야\s*함$", ""),
+    (r"(해야|되어야|돼야)\s*함$", " 필요"),   # 확인해야 함 → 확인 필요
+    (r"할\s*필요가\s*있음$", " 필요"),
+    (r"필요함$", "필요"),
+    (r"(이|가)\s*있음$", ""),                # 부담이 있음 → 부담
+    (r"\s*(하였|했|되었|됐)음$", ""),          # 반등했음 → 반등
+    (r"([가-힣A-Za-z0-9%)])\s*(함|됨)$", r"\1"),  # 탈환함 → 탈환, 확대됨 → 확대
+    (r"\s*(했|하였|됐|되었)다$", ""),
+    (r"([가-힣])(한다|된다|이다)$", r"\1"),
+]
+
+
+def noun_ending(text: str) -> str:
+    t = str(text).strip()
+    cite = re.search(r"(\s*\[[\d,\s]+\])+$", t)  # 끝의 [1] 인용은 떼었다가 다시 붙임
+    tail = cite.group(0) if cite else ""
+    t = t[: len(t) - len(tail)].rstrip(" .。")
+    for rx, sub in ENDING_RULES:
+        new = re.sub(rx, sub, t)
+        if new != t:
+            t = new.rstrip(" ,")
+            break
+    return t + tail
+
+
+def polish_brief(blk: dict) -> dict:
+    blk["headline"] = noun_ending(blk.get("headline", ""))
+    blk["summary"] = [noun_ending(x) for x in blk.get("summary", [])]
+    blk["strategy"] = [noun_ending(x) for x in blk.get("strategy", [])]
+    for sc in blk.get("sections", []):
+        sc["gist"] = noun_ending(sc.get("gist", ""))
+        for it in sc.get("items", []):
+            it["v"] = noun_ending(it.get("v", ""))
+    return blk
+
+
 def to_kv(text: str) -> dict:
     t = str(text).strip()
     m = re.match(r"^([^:：]{1,16})[:：]\s*(.+)$", t)
@@ -1385,7 +1425,7 @@ def generate_briefing(p: dict) -> dict:
         "당신은 한국 증시 시니어 리서치 애널리스트입니다. 아래 장 마감 데이터와 기사 헤드라인으로 '시황 브리핑'을 작성하세요.\n"
         "작성 원칙 (읽는 사람이 30초 안에 오늘 시장을 이해하도록):\n"
         "1) headline: 오늘 시장의 결론 한 문장(40자 내외). '무엇 때문에 어떻게 됐다'가 드러나게.\n"
-        "2) summary(총평): 핵심 메시지 3개. 각 1문장. ①시장 방향과 원인 ②돈의 흐름(누가 사고 팔았나) ③다음에 볼 것. 수치는 꼭 필요한 것만.\n"
+        "2) summary(총평): 핵심 메시지 3개. 각 1문장, 반드시 명사로 끝맺음(예: '기관 매수에 코스피 1.99% 반등, 5,000선 탈환' O / '…탈환함' X). ①시장 방향과 원인 ②돈의 흐름(누가 사고 팔았나) ③다음에 볼 것. 수치는 꼭 필요한 것만.\n"
         "3) sections: 파트별 근거. 각 파트는 {\"gist\": 요지, \"items\": [{\"k\": 항목명, \"v\": 내용}]} 형태.\n"
         "   - gist: 그 파트의 결론 한 줄(25자 내외, 숫자 없이 의미 위주). 예) '외국인 매도 vs 기관·개인 매수', '방어 업종만 선방', '반도체 대형주에 매도 집중'\n"
         "   - items 2~4개. k는 2~8자 명사(예: 코스피, 외국인, 전기전자, 삼성전자, 시장 폭), v는 수치 포함 핵심 내용 35자 내외.\n"
@@ -1485,13 +1525,13 @@ def generate_briefing(p: dict) -> dict:
                     strategy = clean_list(blk.get("strategy"), 4)
                     if not headline or len(summary) < 2 or len(sections) < 3:
                         raise ValueError(f"{per} 형식 불충분")
-                    out[per] = {"headline": headline, "summary": summary, "sections": sections,
-                                "strategy": strategy or fallback[per]["strategy"]}
+                    out[per] = polish_brief({"headline": headline, "summary": summary, "sections": sections,
+                                             "strategy": strategy or fallback[per]["strategy"]})
                 pool = {x["code"]: x for x in picks_pool(p)}
                 gp = []
                 for it in (parsed.get("ace_picks") or []):
                     if isinstance(it, dict) and str(it.get("code")) in pool and str(it.get("code")) not in {y["code"] for y in gp}:
-                        point = str(it.get("point", "")).strip()
+                        point = noun_ending(it.get("point", ""))
                         if not OTHER_BRANDS.search(point):
                             gp.append(dict(pool[str(it["code"])], point=point))
                 out["ace_picks"] = gp[:6] if len(gp) >= 4 else fallback.get("ace_picks", [])
