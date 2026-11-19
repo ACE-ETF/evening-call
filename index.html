@@ -184,6 +184,12 @@
   .asof-kpi { color: var(--muted); font-size: 11.5px; margin-top: 8px; line-height: 1.6; }
   .bsec .blk.ace-blk { border: 1px solid rgba(85,126,170,.6); }
   .bsec .blk.ace-blk h4 { color: var(--ace-text); }
+  .spot-tag { display: inline-block; font-size: 10.5px; font-weight: 800; color: #1a1406; background: var(--accent); border-radius: 4px; padding: 0 5px; margin-right: 6px; vertical-align: 1px; }
+  .spot-why { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
+  .spot-strip { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .spot-strip .sp { font-size: 12px; color: var(--text-2); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-variant-numeric: tabular-nums; }
+  .spot-strip .sp b { font-weight: 600; margin-left: 2px; }
+  .spot-strip .sp i { font-style: normal; font-weight: 800; color: var(--accent); margin-left: 4px; }
   .gist { font-size: 14.5px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1.4; }
   .bsec .blk h4 { font-size: 11.5px; color: var(--accent); letter-spacing: .04em; }
   .kv { margin-top: 8px; border-top: 1px solid var(--line); }
@@ -387,7 +393,8 @@
     h += part("01", "오늘 시장 요약", "지수 → 결론 → 총평 → 파트별 근거 → 대응");
     h += '<div class="grid g-kpi">' + kpiCards() + '</div>';
     var ao = DATA.as_of || {};
-    if (ao.index) h += '<div class="asof-kpi">기준 · 지수: ' + esc(ao.index) + ' · 환율: ' + esc(ao.fx || "-") + ' · ' + esc(ao.sox || "") + '</div>';
+    h += spotStrip();
+    if (ao.index) h += '<div class="asof-kpi">기준 · 지수: ' + esc(ao.index) + ' · 환율: ' + esc(ao.fx || "-") + ' · ' + esc(DATA.spotlight ? (ao.spotlight || "") : (ao.sox || "")) + '</div>';
     h += '<div class="grid g-brief section">' + briefCard() + newsCard() + '</div>';
     h += part("02", "수급", "투자자별 매매와 시장 체감");
     h += '<div class="grid g-flow">' + flowCard() + breadthCard() + '</div>';
@@ -526,12 +533,38 @@
       '<circle cx="' + pts[pts.length - 1].split(",")[0] + '" cy="' + pts[pts.length - 1].split(",")[1] + '" r="2.5" fill="' + color + '"/></svg>';
   }
 
+  // 오늘의 지표: 평소 대비 가장 이례적으로 움직인 해외·변동성 지표
+  function spotChg(x) { return x.unit === "bp" ? (x.chg > 0 ? "+" : "") + x.chg.toFixed(1) + "bp" : pct(x.chg); }
+  function spotValue(x) { return x.unit === "bp" ? num(x.value).toFixed(2) + "%" : fmt(x.value, 2); }
+  function spotCard() {
+    var SP = DATA.spotlight || {};
+    var x = (SP.items || []).filter(function (i) { return i.key === SP.pick; })[0];
+    if (!x) return null;
+    var reason = x.z >= 1.5 ? "평소 대비 " + x.z.toFixed(1) + "배 변동" : "오늘은 이례적 움직임 없음 · 상대적으로 가장 큰 변동";
+    var when = x.key === "nikkei" || x.key === "vkospi" ? "당일" : "전일 " + (x.date || "").slice(5);
+    return '<div class="card kpi spot"><div class="label"><span class="spot-tag">오늘의 지표</span>' + esc(x.label) + staleBadge(SP) + '</div>' +
+      '<div class="value num">' + spotValue(x) + '</div>' +
+      '<div class="chg num ' + cls(x.chg) + '">' + spotChg(x) + ' <span>' + esc(when) + '</span></div>' +
+      '<div class="spot-why">' + esc(reason) + '</div>' + spark(x.series || [], x.chg >= 0) + '</div>';
+  }
+  function spotStrip() {
+    var SP = DATA.spotlight || {};
+    var others = (SP.items || []).filter(function (i) { return i.key !== SP.pick; });
+    if (!others.length) return "";
+    return '<div class="spot-strip">' + others.map(function (x) {
+      return '<span class="sp" data-tip="' + esc("<b>" + esc(x.label) + "</b> " + spotValue(x) + "<br>" + spotChg(x) + " · 평소 대비 " + x.z.toFixed(1) + "배 · " + (x.date || "")) + '">' +
+        esc(x.label) + ' <b class="' + (x.chg > 0 ? "nu" : x.chg < 0 ? "nd" : "") + '">' + spotChg(x) + '</b>' + (x.z >= 2 ? '<i>!</i>' : "") + '</span>';
+    }).join("") + '</div>';
+  }
+
   function kpiCards() {
     var I = DATA.indices || {};
+    var sc = spotCard();
     return [
       ["kospi", "KOSPI", 2, "pt"], ["kosdaq", "KOSDAQ", 2, "pt"],
       ["usdkrw", "원/달러 환율", 1, "원"], ["sox", "필라델피아 반도체 · 전일 미국장", 2, ""]
     ].map(function (k) {
+      if (k[0] === "sox" && sc) return sc;
       var o = I[k[0]] || {}; var v = num(o[pk()]);
       var series = o.series || [];
       var trendUp = v >= 0;  // 미니 차트 색 = 카드에 표시된 등락률(1D/1W) 방향

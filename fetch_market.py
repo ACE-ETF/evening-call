@@ -1300,6 +1300,65 @@ def build_rule_briefing(p: dict) -> dict:
     return out
 
 
+# ---------------------------------------------------------------------------
+# 오늘의 지표: 후보 중 '평소 대비' 가장 이례적으로 움직인 지표 선정 (FinanceDataReader, KRX 호출 없음)
+# ---------------------------------------------------------------------------
+SPOT_CANDS = [
+    # key, 표시명, FDR 심볼 후보, 단위(pct=등락률 / bp=금리 변화), 같은날 마감 여부
+    ("sox", "필라델피아 반도체", ["^SOX", "SOX"], "pct", False),
+    ("us10y", "미국 10년물 금리", ["^TNX", "US10YT"], "bp", False),
+    ("dxy", "달러인덱스", ["DX-Y.NYB", "DXY"], "pct", False),
+    ("wti", "WTI 유가", ["CL=F"], "pct", False),
+    ("gold", "금", ["GC=F"], "pct", False),
+    ("ndx", "나스닥 100", ["^NDX", "IXIC"], "pct", False),
+    ("nikkei", "닛케이 225", ["^N225", "N225"], "pct", True),
+    ("vkospi", "VKOSPI", ["VKOSPI", "^VKOSPI"], "pct", True),
+]
+
+
+def spot_metrics(key, label, syms, unit, same_day, trade_date, start_date):
+    for sym in syms:
+        df = safe_read(sym, start_date, retries=1)
+        if df is None:
+            continue
+        cutoff = trade_date if same_day else (pd.Timestamp(trade_date) - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+        df = cut(df, cutoff)
+        if df is None or len(df) < 12:
+            continue
+        c = df["Close"].astype(float)
+        if unit == "bp" and c.iloc[-1] > 20:  # 일부 소스는 금리 ×10 (예: 42.5 = 4.25%)
+            c = c / 10
+        ch = (c.diff() * 100) if unit == "bp" else (c.pct_change() * 100)
+        ch = ch.dropna()
+        today, hist = float(ch.iloc[-1]), ch.iloc[-21:-1]
+        sd = float(hist.std()) if len(hist) >= 5 else 0.0
+        z = abs(today) / sd if sd > 0 else 0.0
+        return {"key": key, "label": label, "symbol": sym, "unit": unit,
+                "value": round(float(c.iloc[-1]), 3 if unit == "bp" else 2),
+                "chg": round(today, 1 if unit == "bp" else 2), "z": round(z, 1),
+                "date": df.index[-1].strftime("%Y-%m-%d"),
+                "series": [{"d": i.strftime("%m-%d"), "c": round(float(v), 3)} for i, v in c.tail(20).items()]}
+    return None
+
+
+def fetch_spotlight(trade_date: str, start_date: str, prev: dict):
+    items = []
+    for cand in SPOT_CANDS:
+        try:
+            m = spot_metrics(*cand, trade_date, start_date)
+            if m:
+                items.append(m)
+        except Exception as e:
+            log(f"오늘의 지표 {cand[1]} 실패(무시): {type(e).__name__}")
+    if not items:
+        old = prev.get("spotlight")
+        return dict(old, stale=True) if old else None
+    items.sort(key=lambda x: x["z"], reverse=True)
+    pick = items[0]
+    log("오늘의 지표: " + ", ".join(f"{x['label']} {x['chg']:+}{'bp' if x['unit'] == 'bp' else '%'}(z{x['z']})" for x in items))
+    return {"pick": pick["key"], "items": items, "stale": False}
+
+
 def briefing_input(p: dict) -> dict:
     def slim_si(m):
         si = (p.get("sector_indices") or {}).get(m) or {}
@@ -1324,6 +1383,8 @@ def briefing_input(p: dict) -> dict:
     return {
         "trade_date": p.get("trade_date"),
         "indices": idx,
+        "spotlight_overnight": [{k: x.get(k) for k in ("label", "chg", "unit", "z", "date")}
+                                for x in ((p.get("spotlight") or {}).get("items") or [])],
         "flow_eok": p["flow"],
         "breadth": p.get("breadth"),
         "sector_index_kospi": slim_si("kospi"),
@@ -1446,6 +1507,7 @@ def generate_briefing(p: dict) -> dict:
         "- 이 브리핑은 아침 'ACE 모닝콜'에 이어지는 장 마감 피드백임. indices.sox(필라델피아 반도체)와 전일 밤 미국장 소식은 모닝콜에서 이미 다룸.\n"
         "  → '전일 미 반도체 급락 영향 반영'처럼 원인 배경으로 한 번만 짧게 언급하고, SOX 수치를 독립 항목으로 반복하지 말 것.\n"
         "  → 대신 국내 장에서 그 영향이 어떻게 나타났는지(어느 업종·종목·수급으로 번졌는지, 예상보다 강했는지 약했는지)에 집중.\n"
+        "- spotlight_overnight는 해외·변동성 지표의 전일(또는 당일) 변화와 평소 대비 배수(z). z≥2인 지표만 '배경'으로 짧게 언급 가능, 나머지는 언급 금지.\n"
         "- 지수 레벨 표현은 실제 수치와 일치시킬 것(예: 5,100.50pt면 '5100선 붕괴'가 아니라 '5100선 턱걸이'). 기사 제목의 표현보다 데이터를 우선.\n"
         "- 수치 우선순위: 지수·수급·업종·종목 수치와 방향(순매수/순매도)은 반드시 [데이터]의 값만 사용. 기사 제목의 수치(예: '1.5조')와 다르면 데이터를 따를 것.\n"
         f"  오늘 코스피 수급(억 원): 외국인 {p['flow']['kospi'].get('daily_foreign')}, 기관 {p['flow']['kospi'].get('daily_inst')}, 개인 {p['flow']['kospi'].get('daily_retail')} (음수=순매도, 양수=순매수)\n"
@@ -1652,6 +1714,10 @@ def main() -> int:
         ace, themes = guarded("ETF", lambda: fetch_etf_block(dates, indices, start_date, allow_pdf=first_run_today), lambda: (None, None))
         ace = keep_previous(ace, prev.get("ace"), {"count": 0})
         themes = keep_previous(themes, prev.get("themes"), {"daily": [], "weekly": []})
+    if light or flows_only:
+        spotlight = prev.get("spotlight")
+    else:
+        spotlight = guarded("오늘의 지표", lambda: fetch_spotlight(trade_date, start_date, prev), lambda: prev.get("spotlight"))
     news = guarded("뉴스", lambda: fetch_news(prev, trade_date),
                    lambda: {"items": (prev.get("news") or {}).get("items", []) if isinstance(prev.get("news"), dict) else [], "stale": True})
 
@@ -1668,6 +1734,7 @@ def main() -> int:
         "ace": ace,
         "themes": themes,
         "news": news,
+        "spotlight": spotlight,
     }
 
     stale = [k for k, v in indices.items() if v.get("stale")]
@@ -1711,11 +1778,12 @@ def main() -> int:
         "etf": f"한국거래소 ETF {trade_date} 종가 기준 등락률",
         "fx": f"원/달러 {fx.get('date') or '-'} 기준 (FinanceDataReader)",
         "sox": f"필라델피아 반도체 {sox.get('date') or '-'} 미국장 종가",
+        "spotlight": "오늘의 지표: 해외 지표는 국내 기준일 전날 종가, 닛케이·VKOSPI는 당일 · 평소(직전 20일 변동폭) 대비 가장 이례적인 지표 선정",
         "news": f"구글 뉴스 {trade_date} 08:00 ~ {hm}",
     }
     prev_asof = prev.get("as_of") or {}
     if light:  # 재사용한 블록은 원래 수집 시각 유지
-        for k in ("index", "flow", "breadth", "sector", "stock", "etf", "fx", "sox"):
+        for k in ("index", "flow", "breadth", "sector", "stock", "etf", "fx", "sox", "spotlight"):
             if prev_asof.get(k):
                 payload["as_of"][k] = prev_asof[k]
     elif flows_only:
