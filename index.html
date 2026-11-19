@@ -746,8 +746,8 @@
         esc(x.name) + ' <span class="' + (x.ret > 0 ? "nu" : x.ret < 0 ? "nd" : "") + '">' + pct(x.ret) + '</span><small>' + x.w + '%</small></span>';
     }
     return '<div class="drivers"><div class="dh">움직인 종목 <small>' + (d.common ? "대표 ETF 공통 편입" : "대표 ETF 편입") + ' · 1D 기여 순 · 괄호 비중</small></div>' +
-      (d.up.length ? '<div class="dl"><span class="dk up">끌어올림</span>' + d.up.map(li).join("") + '</div>' : "") +
-      (d.down.length ? '<div class="dl"><span class="dk down">끌어내림</span>' + d.down.map(li).join("") + '</div>' : "") + '</div>';
+      (d.up.length ? '<div class="dl"><span class="dk up">상승 견인</span>' + d.up.map(li).join("") + '</div>' : "") +
+      (d.down.length ? '<div class="dl"><span class="dk down">하락 주도</span>' + d.down.map(li).join("") + '</div>' : "") + '</div>';
   }
 
   function themeCard() {
