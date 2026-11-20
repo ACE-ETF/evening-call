@@ -723,7 +723,8 @@ THEMES = [
     # 1) 자산 성격이 분명한 것
     ("채권혼합", r"채권혼합|채혼합|국채혼합|TDF|TRF|자산배분|주식혼합|멀티에셋"),
     ("채권·금리·파킹", r"국고채|국채|특수채|금융채|은행채|여전채|공사채|전단채|물가채|스트립|채권|회사채|크레딧|금리|CD(?!MO)|KOFR|SOFR|머니마켓|단기|통안|하이일드|국공채|미국채|T-?Bill"),
-    ("통화(달러)", r"달러선물|미국달러|엔선물"),
+    ("통화(달러)", r"달러선물|미국달러"),
+    ("통화(엔)", r"엔선물|엔화"),
     ("리츠·부동산", r"리츠|부동산|REIT"),
     ("금·원자재", r"금현물|골드|금선물|금액티브|국제금|은액티브|은선물|팔라듐|원유|WTI|구리|원자재|금속|천연가스|농산물|콩선물|금채굴|자원생산|희토류|전략자원|탄소배출권|농업"),
     # 2) 지역 (이름에 지역이 있으면 지역 우선: 차이나테크 → 중국)
@@ -808,6 +809,7 @@ def r2(v):
     return None if v != v else round(float(v), 2)  # NaN → None
 
 
+COMPARE_MIN_VALUE = 1  # 비교군은 당일 거래대금 1억 원 이상만
 COMPARE_MIN_AUM = 100  # 비교군(타사)은 순자산 100억 원 이상만 (초소형 상품 노이즈 방지)
 
 
@@ -821,7 +823,7 @@ THEME_BENCH = {
     "전력·원전·인프라": [("idx", r"원자력|원전"), ("idx", r"전력|유틸리티")],
     "자동차·모빌리티": [("idx", r"^KRX 자동차$"), ("idx", r"자동차|모빌리티")],
     "AI·소프트웨어": [("idx", r"인터넷|소프트웨어"), ("idx", r"정보기술|(?<![A-Za-z])AI")],
-    "K컬처·소비": [("idx", r"미디어|엔터"), ("idx", r"화장품|경기소비재")],
+    "K컬처·소비": [("idx", r"K콘텐츠"), ("idx", r"미디어|엔터")],  # 경기소비재(자동차 등 포함)는 성격이 달라 제외
     "친환경·에너지전환": [("idx", r"기후변화 ?솔루션"), ("idx", r"기후변화|신재생|(?<!필)수소|탄소")],
     "배당·인컴": [("idx", r"고배당 ?50"), ("idx", r"고배당|배당")],
     "커버드콜(전략)": [("idx", r"커버드콜")],
@@ -1040,7 +1042,8 @@ def build_themes(rows: list, key: str, bench: dict = None, drivers: dict = None)
             b = {"name": top["name"], "code": top["code"], "src": "상위 ETF",
                  "d1": top.get("d1"), "w1": top.get("w1"), "m1": top.get("m1")}
         ace = [x for x in g if x["name"].startswith(ACE_PREFIX)]
-        others = [x for x in g if not x["name"].startswith(ACE_PREFIX) and x.get("aum", 0) >= COMPARE_MIN_AUM]
+        others = [x for x in g if not x["name"].startswith(ACE_PREFIX) and x.get("aum", 0) >= COMPARE_MIN_AUM
+                  and (x.get("value") or 0) >= COMPARE_MIN_VALUE]  # 거래가 거의 없는 상품은 종가가 기초자산과 어긋나 제외
         out.append({
             "theme": t,
             "bench": b,
