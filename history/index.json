@@ -1,5 +1,18 @@
 [
   {
+    "date": "2026-11-20",
+    "kospi": 4869.96,
+    "kospi_pct": -5.21,
+    "kosdaq": 645.68,
+    "kosdaq_pct": -5.71,
+    "foreign": -11380,
+    "inst": -9507,
+    "retail": 16018,
+    "headline": "외국인과 기관의 동반 대규모 매도세로 코스피 지수 5%대 급락 마감",
+    "final": false,
+    "updated_at": "2026-11-20 16:35 KST"
+  },
+  {
     "date": "2026-11-19",
     "kospi": 5118.96,
     "kospi_pct": 1.02,
