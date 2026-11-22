@@ -542,7 +542,7 @@
     if (!x) return null;
     var reason = x.z >= 1.5 ? "평소 대비 " + x.z.toFixed(1) + "배 변동" : "오늘은 이례적 움직임 없음 · 상대적으로 가장 큰 변동";
     var when = x.key === "nikkei" ? "당일" : "전일 " + (x.date || "").slice(5);
-    return '<div class="card kpi spot"><div class="label"><span class="spot-tag">오늘의 지표</span>' + esc(x.label) + staleBadge(SP) + '</div>' +
+    return '<div class="card kpi spot"><div class="label">' + esc(x.label) + staleBadge(SP) + '</div>' +
       '<div class="value num">' + spotValue(x) + '</div>' +
       '<div class="chg num ' + cls(x.chg) + '">' + spotChg(x) + ' <span>' + esc(when) + '</span></div>' +
       '<div class="spot-why">' + esc(reason) + '</div>' + spark(x.series || [], x.chg >= 0) + '</div>';
