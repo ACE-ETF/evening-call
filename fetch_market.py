@@ -337,7 +337,7 @@ def read_krx_index(key: str, start_date: str):
     return df if len(df) >= 2 else None
 
 
-def fetch_indices(start_date: str, prev: dict):
+def fetch_indices(start_date: str, prev: dict, intraday: bool = False):
     """지수 수집. KOSPI 원본 DataFrame도 함께 반환(거래일 목록 산출용)."""
     prev_indices = prev.get("indices", {}) or {}
     default = {"price": 0, "daily_pct": 0.0, "weekly_pct": 0.0, "date": None}
@@ -355,7 +355,7 @@ def fetch_indices(start_date: str, prev: dict):
                 if metrics is not None:
                     metrics["symbol_used"] = alt
                     break
-        if key == "kospi" and metrics is not None and df is not None:
+        if key == "kospi" and metrics is not None and df is not None and not intraday:
             # 장중(15:40 이전) 실행이면 오늘 잠정 시세 행은 제외하고 직전 거래일 종가 기준으로
             now = now_kst()
             if (now.hour, now.minute) < (15, 40):
@@ -508,13 +508,15 @@ def breadth_from(cls_df):
 SECTOR_EXCLUDE = re.compile(r"(코스피|코스닥|KRX|200|150|100|50|대형|중형|소형|배당|레버리지|인버스|선물|변동성|커버드|ESG|TR|동일가중|우량|프리미어|글로벌|밸류|성장|가치)")
 
 
-def get_sector_indices(market: str, dates: list, sector_names: set):
+def get_sector_indices(market: str, dates: list, sector_names: set, periods=("daily", "weekly")):
     """업종지수 등락률(일간·5일). dates: 오름차순 거래일 목록(YYYY-MM-DD)."""
     if len(dates) < 2:
         return None
     out = {}
     # KRX 기간등락률은 '시작일의 전일 종가' 대비 → 일간은 (당일~당일), 5일은 (5거래일 전~당일)
     for period, start in (("daily", dates[-1]), ("weekly", dates[-5] if len(dates) >= 5 else dates[0])):
+        if period not in periods:
+            continue
         df = krx_call(f"{market} 업종지수({period})", stock.get_index_price_change if stock else None, ymd(start), ymd(dates[-1]), market)
         if df is None or "등락률" not in df.columns:
             return None
@@ -597,10 +599,10 @@ def get_net_purchases(market: str, start: str, end: str, investor: str):
 STOCK_RET = {}  # 국내 종목 코드 → {name, ret(일간 등락률)}
 
 
-def fetch_sector_block(dates: list, prev: dict):
+def fetch_sector_block(dates: list, prev: dict, periods=("daily", "weekly")):
     """업종지수·업종별 수급·상위 종목·시장 폭을 한 번에 수집."""
     trade = dates[-1]
-    periods = {"daily": (trade, trade), "weekly": (dates[-5] if len(dates) >= 5 else dates[0], trade)}
+    periods = {k: v for k, v in {"daily": (trade, trade), "weekly": (dates[-5] if len(dates) >= 5 else dates[0], trade)}.items() if k in periods}
 
     sector_indices, sector_flow, breadth = {}, {"daily": {}, "weekly": {}}, {}
     stock_rows = {"daily": {k: [] for k, _ in INVESTORS}, "weekly": {k: [] for k, _ in INVESTORS}}
@@ -616,7 +618,7 @@ def fetch_sector_block(dates: list, prev: dict):
                 if v == v:
                     STOCK_RET[str(code)] = {"name": str(r[nm_col]) if nm_col else str(code), "ret": round(v, 2)}
         sector_names = set(norm(x) for x in cls_df["업종명"].unique()) if cls_df is not None and "업종명" in cls_df.columns else set()
-        sector_indices[key] = get_sector_indices(market, dates, sector_names)
+        sector_indices[key] = get_sector_indices(market, dates, sector_names, tuple(periods))
         try:
             attach_sector_drivers(sector_indices[key], cls_df)
         except Exception as e:

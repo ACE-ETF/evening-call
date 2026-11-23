@@ -12,6 +12,10 @@ on:
         description: '같은 거래일이어도 강제로 다시 수집 (1=예)'
         required: false
         default: '0'
+      kind:
+        description: 'auto(시각으로 판단: 평일 09:30~15:20=장중, 그 외=마감) / intraday / close'
+        required: false
+        default: 'auto'
 
 permissions:
   contents: write
@@ -45,21 +49,24 @@ jobs:
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
           FORCE_UPDATE: ${{ github.event.inputs.force_update || '0' }}
-        run: python fetch_market.py
+          KIND: ${{ github.event.inputs.kind || 'auto' }}
+        run: |
+          if [ "$KIND" = "auto" ]; then
+            HM=$(date +%H%M); DOW=$(date +%u)
+            if [ "$DOW" -le 5 ] && [ "$HM" -ge 930 ] && [ "$HM" -lt 1520 ]; then KIND=intraday; else KIND=close; fi
+          fi
+          echo "실행 종류: $KIND ($(date +'%m-%d %H:%M'))"
+          if [ "$KIND" = "intraday" ]; then python intraday.py; else python fetch_market.py; fi
 
       - name: Commit & push data.json (변경이 있을 때만)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [ ! -f data.json ]; then
-            echo "data.json 없음 - 커밋 생략"
-            exit 0
-          fi
-          git add data.json history/ 2>/dev/null || git add data.json
+          for f in data.json intraday.json history; do if [ -e "$f" ]; then git add "$f"; fi; done
           if git diff --staged --quiet; then
             echo "변경 사항 없음(휴장일/중복 실행) - 커밋 생략"
             exit 0
           fi
-          git commit -m "chore: update daily/weekly market data ($(date +'%Y-%m-%d'))"
+          git commit -m "chore: update market data ($(date +'%Y-%m-%d %H:%M'))"
           git pull --rebase origin ${{ github.ref_name }}
           git push

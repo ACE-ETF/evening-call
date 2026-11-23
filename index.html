@@ -45,6 +45,12 @@
   .seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
   .seg button { border: 0; background: transparent; color: var(--muted); padding: 6px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13.5px; font-family: inherit; }
   .seg button.active { background: var(--accent); color: #1a1406; }
+  .seg.view button { padding: 6px 12px; font-size: 13px; }
+  .seg.view button.active { background: var(--ace); color: var(--ace-ink); }
+  body.intra .seg.view button.active { background: #c9a24a; color: #1a1406; }
+  body.intra #modeSeg, body.intra .close-only { display: none; }
+  .intra-banner { margin: 4px 0 14px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(201,162,74,.45); background: rgba(201,162,74,.08); color: var(--text-2); font-size: 13px; line-height: 1.55; }
+  .intra-banner b { color: #e3c27a; }
   .seg.small button { padding: 4px 10px; font-size: 12.5px; }
   .btn { border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13.5px; font-family: inherit; }
   .btn:hover { border-color: var(--accent); }
@@ -306,8 +312,12 @@
 <div class="wrap">
   <header>
     <div>
-      <h1><span class="brand-ace">ACE</span> 이브닝콜</h1>
+      <h1><span class="brand-ace">ACE</span> <span id="ttl">이브닝콜</span></h1>
       <div class="meta" id="meta">데이터 불러오는 중…</div>
+    </div>
+    <div class="seg view" id="viewSeg">
+      <button data-v="close" class="active">마감 리포트</button>
+      <button data-v="intra">장중 리포트</button>
     </div>
   </header>
   <div class="topbar">
@@ -317,7 +327,7 @@
         <button data-v="weekly">주간<span class="hide-m"> 5D</span></button>
       </div>
       <nav class="chips">
-        <a href="#p1">요약</a><a href="#p2">수급</a><a href="#p3">업종</a><a href="#p4">종목</a><a href="#p5">테마</a><a href="#p6">ACE</a>
+        <a href="#p1">요약</a><a href="#p2">수급</a><a href="#p3">업종</a><a href="#p4">종목</a><a href="#p5">테마</a><a href="#p6" class="close-only">ACE</a>
       </nav>
       <button class="btn" id="btnCopy" title="브리핑 요약 복사">📋<span class="hide-m"> 요약 복사</span></button>
     </div>
@@ -326,7 +336,7 @@
   <div id="app"><div class="state">데이터 불러오는 중…</div></div>
 
   <footer>
-    매 평일 16:30(KST) 1차 반영 · 17:15 마감 기사 보강 · 18:05 수급 확정 (GitHub 예약 실행 특성상 수 분~수십 분 지연될 수 있음) · 데이터: KRX(pykrx), FinanceDataReader, Google News · 투자 판단의 참고 자료이며 투자 권유가 아닙니다.
+    장중 리포트 평일 11:30 · 마감 리포트 매 평일 16:30(KST) 1차 반영 · 17:15 마감 기사 보강 · 18:05 수급 확정 (GitHub 예약 실행 특성상 수 분~수십 분 지연될 수 있음) · 데이터: KRX(pykrx), FinanceDataReader, Google News · 투자 판단의 참고 자료이며 투자 권유가 아닙니다.
   </footer>
 </div>
 <div class="tip" id="tip"></div>
@@ -336,7 +346,8 @@
 (function () {
   "use strict";
 
-  var DATA = null;
+  var DATA = null, CLOSE = null, INTRA = null, VIEW = "close";
+  function isIntra() { return VIEW === "intra"; }
   var S = { mode: "daily", siMkt: "kospi", sfMkt: "kospi", sfInv: "smart", tsInv: "foreign" };
   try {
     var saved = JSON.parse(localStorage.getItem("kmr_state") || "null");
@@ -359,7 +370,7 @@
     });
   }
   function pk() { return S.mode === "daily" ? "daily_pct" : "weekly_pct"; }
-  function modeLabel() { return S.mode === "daily" ? "일간" : "5거래일"; }
+  function modeLabel() { return isIntra() ? "장중" : S.mode === "daily" ? "일간" : "5거래일"; }
   function asOf(key) {
     var a = (DATA && DATA.as_of) || {};
     return a[key] ? '<div class="asof">기준 · ' + esc(a[key]) + '</div>' : "";
@@ -372,12 +383,23 @@
   }
 
   // ---------- 로드 ----------
+  function kstNow() { var d = new Date(Date.now() + 9 * 3600 * 1000); return { date: d.toISOString().slice(0, 10), hm: d.getUTCHours() * 100 + d.getUTCMinutes(), dow: d.getUTCDay() }; }
+  function getJSON(u) { return fetch(u + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }); }
   function load() {
-    fetch("./data.json?t=" + Date.now(), { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    var intraP = getJSON("./intraday.json").catch(function () { return null; });
+    getJSON("./data.json")
       .then(function (json) {
         if (!json || !json.indices) throw new Error("데이터 형식 오류");
-        DATA = json; render();
+        CLOSE = json;
+        return intraP.then(function (ij) {
+          INTRA = ij && ij.indices ? ij : null;
+          // 평일 장중~16:30 전이고 오늘 장중 리포트가 있으면 장중을 먼저 보여줌
+          var k = kstNow();
+          var hashV = location.hash === "#intra" ? "intra" : location.hash === "#close" ? "close" : null;
+          VIEW = hashV || (INTRA && INTRA.trade_date === k.date && k.dow >= 1 && k.dow <= 5 && k.hm < 1630 && CLOSE.trade_date !== k.date ? "intra" : "close");
+          if (!INTRA) VIEW = "close";
+          render();
+        });
       })
       .catch(function (err) {
         document.getElementById("meta").textContent = "데이터를 불러오지 못했습니다.";
@@ -387,7 +409,15 @@
 
   // ---------- 렌더 ----------
   function render() {
+    DATA = isIntra() ? INTRA : CLOSE;
     if (!DATA) return;
+    document.body.classList.toggle("intra", isIntra());
+    document.getElementById("ttl").textContent = isIntra() ? "장중 리포트" : "이브닝콜";
+    Array.prototype.forEach.call(document.querySelectorAll("#viewSeg button"), function (b) {
+      b.classList.toggle("active", b.getAttribute("data-v") === VIEW);
+      if (b.getAttribute("data-v") === "intra") b.disabled = !INTRA;
+    });
+    if (isIntra()) { S.mode = "daily"; syncMode(); return renderIntra(); }
     renderMeta();
     function part(no, title, desc) { return '<div class="part" id="p' + (+no) + '"><span class="no">' + no + '</span><h2>' + title + '</h2><span class="desc">' + desc + '</span></div>'; }
     var h = "";
@@ -414,6 +444,45 @@
     bindMore();
   }
 
+
+  // ---------- 장중 리포트 ----------
+  function renderIntra() {
+    renderMeta();
+    function part(no, title, desc) { return '<div class="part" id="p' + (+no) + '"><span class="no">' + no + '</span><h2>' + title + '</h2><span class="desc">' + desc + '</span></div>'; }
+    var h = '<div class="intra-banner"><b>장중 리포트 · ' + esc(DATA.as_of_time || "") + ' 기준</b> — 장 마감 전 잠정치입니다. 지수·수급·업종은 마감까지 계속 바뀌며, ' +
+      '마감 기준 정리는 평일 16:30 <a href="#close" data-view="close" style="color:inherit">마감 리포트</a>에서 확인하세요.</div>';
+    h += part("01", "장중 시장 요약", "지금까지의 흐름 → 오후장 체크포인트");
+    h += '<div class="grid g-kpi">' + kpiCards() + '</div>';
+    var ao = DATA.as_of || {};
+    if (ao.index) h += '<div class="asof-kpi">기준 · 지수: ' + esc(ao.index) + ' · 환율: ' + esc(ao.fx || "-") + '</div>';
+    h += '<div class="grid g-brief section">' + briefCard() + newsCard() + '</div>';
+    h += part("02", "수급", "장중 투자자별 매매 (잠정)");
+    h += '<div class="grid g-flow">' + flowCard() + breadthCard() + '</div>';
+    h += part("03", "업종", "지금 강한 업종과 돈의 흐름");
+    h += sectorIndexCard();
+    h += '<div class="section">' + sectorFlowCard() + '</div>';
+    h += part("04", "종목", "주체별 장중 순매수·순매도 상위");
+    h += topStocksCard();
+    h += part("05", "테마", "테마 대표 ETF 장중 등락");
+    h += themeHeatmap();
+    document.getElementById("app").innerHTML = h;
+    bindSegs();
+    bindMore();
+  }
+  document.getElementById("viewSeg").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || b.disabled) return;
+    VIEW = b.getAttribute("data-v"); MORE = {};
+    try { history.replaceState(null, "", "#" + VIEW); } catch (x) {}
+    render(); window.scrollTo(0, 0);
+  });
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("[data-view]");
+    if (!a) return;
+    e.preventDefault(); VIEW = a.getAttribute("data-view"); MORE = {};
+    try { history.replaceState(null, "", "#" + VIEW); } catch (x) {}
+    render(); window.scrollTo(0, 0);
+  });
+
   // ---------- 모바일: 접기·더보기 ----------
   var MQ = window.matchMedia("(max-width: 640px)");
   function isM() { return MQ.matches; }
@@ -433,6 +502,11 @@
     var q = DATA.data_quality || {};
     var stale = (q.stale_items || []).length;
     var badge = "";
+    if (q.intraday) {
+      document.getElementById("meta").innerHTML = '거래일 <b>' + esc(DATA.trade_date || "-") + '</b> · ' + esc(DATA.as_of_time || "") + ' 기준 · 업데이트 ' + esc(DATA.updated_at || "-") +
+        '<span class="badge warn" title="장 마감 전 수집 값입니다">장중 잠정</span>';
+      return;
+    }
     if (q.is_today === false) badge += '<span class="badge warn">직전 거래일 기준</span>';
     if (q.final === false) badge += '<span class="badge warn" title="수급은 시간외 거래 반영 후 18:05에 확정됩니다">수급 잠정</span>';
     else if (q.final === true) badge += '<span class="badge ok">수급 확정</span>';
@@ -487,7 +561,7 @@
           return '<details class="blk' + (sc.key === "ace" ? " ace-blk" : "") + '"' + (isM() ? "" : " open") + '><summary><div><h4>' + esc(sc.title) + '</h4>' +
             (sc.gist ? '<div class="gist">' + richText(sc.gist, true) + '</div>' : "") + '</div></summary><div class="kv">' + rows + '</div></details>';
         }).join("") +
-        ((b.strategy && b.strategy.length) ? '<div class="blk strat"><h4>대응 포인트</h4>' + lis(b.strategy) + '</div>' : "") + '</div>';
+        ((b.strategy && b.strategy.length) ? '<div class="blk strat"><h4>' + (isIntra() ? "오후장 체크포인트" : "대응 포인트") + '</h4>' + lis(b.strategy) + '</div>' : "") + '</div>';
     } else if (b && b.headline) {
       body = '<div class="headline">' + richText(b.headline) + '</div>' +
         '<ul>' + (b.points || []).map(function (p) { return '<li>' + richText(p) + '</li>'; }).join("") + '</ul>' +
@@ -496,7 +570,7 @@
       var legacy = S.mode === "daily" ? br.daily_comment : br.weekly_comment;
       body = '<div class="headline" style="font-size:16px;font-weight:600">' + esc(legacy || "브리핑 데이터가 없습니다.") + '</div>';
     }
-    return '<div class="card brief"><div class="card-h"><h2>시황 브리핑<span class="sub">' + modeLabel() + ' 기준</span></h2></div>' + asOf("briefing") + body +
+    return '<div class="card brief"><div class="card-h"><h2>' + (isIntra() ? "장중 브리핑" : "시황 브리핑") + '<span class="sub">' + modeLabel() + ' 기준</span></h2></div>' + asOf("briefing") + body +
       '<div class="src">' + (br.source === "gemini" ? esc(br.model || "Gemini") + " 작성" : "규칙 기반 자동 요약") +
       ' · 수치 기반 자동 생성 · 투자 권유 아님</div></div>';
   }
@@ -565,6 +639,7 @@
       ["kospi", "KOSPI", 2, "pt"], ["kosdaq", "KOSDAQ", 2, "pt"],
       ["usdkrw", "원/달러 환율", 1, "원"], ["sox", "필라델피아 반도체 · 전일 미국장", 2, ""]
     ].map(function (k) {
+      if (k[0] === "sox" && isIntra()) return "";  // 장중에는 전일 미국장 카드 생략
       if (k[0] === "sox" && sc) return sc;
       var o = I[k[0]] || {}; var v = num(o[pk()]);
       var series = o.series || [];
@@ -588,7 +663,7 @@
       }).join("") + '</tr>';
     }).join("");
     var q = DATA.data_quality || {};
-    var prov = q.final === false ? (q.is_today ? '<span class="badge warn" title="시간외 거래(~18:00)가 포함되어 18:05에 확정치로 갱신됩니다">잠정 · 18:05 확정</span>' : '<span class="badge warn" title="확정 갱신 전 수집된 값입니다">잠정치</span>') : (q.final === true ? '<span class="badge ok">확정</span>' : "");
+    var prov = isIntra() ? '<span class="badge warn" title="장 마감 전 수집 값, 마감까지 계속 바뀜">장중 잠정</span>' : q.final === false ? (q.is_today ? '<span class="badge warn" title="시간외 거래(~18:00)가 포함되어 18:05에 확정치로 갱신됩니다">잠정 · 18:05 확정</span>' : '<span class="badge warn" title="확정 갱신 전 수집된 값입니다">잠정치</span>') : (q.final === true ? '<span class="badge ok">확정</span>' : "");
     return '<div class="card"><div class="card-h"><h2>투자자별 순매수<span class="sub">' + modeLabel() + ' · 억 원</span>' + prov + '</h2></div>' + asOf("flow") +
       '<table><thead><tr><th>시장</th><th>외국인</th><th>기관</th><th>개인</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
@@ -767,12 +842,12 @@
     var rows = sorted.map(function (t, i) {
       var b = benchOf(t);
       return '<tr data-jump="th-' + i + '" data-theme="' + esc(t.theme) + '"><td class="hn"><b>' + esc(t.theme) + '</b>' + bundleTag(t) + '<span class="hb">' + esc(benchLabel(b)) + '</span></td>' +
-        heatCell(b.d1) + heatCell(b.w1) + heatCell(b.m1) +
+        heatCell(b.d1) + (isIntra() ? "" : heatCell(b.w1) + heatCell(b.m1)) +
         '<td class="ha">' + (t.ace_count ? '<span class="achip">ACE ' + t.ace_count + '</span>' : "") + '</td></tr>';
     }).join("");
-    return '<div class="card"><div class="card-h"><h2>전체 테마 흐름<span class="sub">테마 대표 ETF 수익률 · ' + (S.mode === "daily" ? "1D" : "1W") + ' 높은 순 · 행을 누르면 상세로 이동</span></h2></div>' +
-      '<div class="heat-wrap"><table class="heat"><thead><tr><th>테마 · 대표 ETF</th><th>1D</th><th>1W</th><th>1M</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<div class="src">기준: 테마 안 순자산 1위 ETF(당일 거래대금 1억 원 이상) 수익률 · 한국거래소 종가 · 묶음 = 여러 섹터가 모인 테마라 상세 목록 참고</div></div>';
+    return '<div class="card"><div class="card-h"><h2>전체 테마 흐름<span class="sub">테마 대표 ETF 수익률 · ' + (isIntra() ? "장중 등락 높은 순" : (S.mode === "daily" ? "1D" : "1W") + ' 높은 순 · 행을 누르면 상세로 이동') + '</span></h2></div>' +
+      '<div class="heat-wrap"><table class="heat"><thead><tr><th>테마 · 대표 ETF</th><th>' + (isIntra() ? "장중" : "1D") + '</th>' + (isIntra() ? "" : '<th>1W</th><th>1M</th>') + '<th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<div class="src">기준: 테마 안 순자산 1위 ETF(당일 거래대금 1억 원 이상) 수익률 · ' + (isIntra() ? "한국거래소 장중 시세(잠정)" : "한국거래소 종가") + ' · 묶음 = 여러 섹터가 모인 테마라 상세 목록 참고</div></div>';
   }
 
   function driversBlock(d) {
@@ -847,7 +922,7 @@
 
   document.addEventListener("click", function (e) {
     var tr = e.target.closest && e.target.closest("tr[data-theme]");
-    if (!tr) return;
+    if (!tr || isIntra()) return;
     var name = tr.getAttribute("data-theme");
     var el = document.querySelector('details.theme[data-theme="' + name.replace(/"/g, '\\"') + '"]');
     if (!el && !MORE.themes) { MORE.themes = true; render(); el = document.querySelector('details.theme[data-theme="' + name.replace(/"/g, '\\"') + '"]'); }
@@ -889,14 +964,14 @@
     var br = (DATA.ai_briefing || {})[S.mode] || {};
     var I = DATA.indices || {}, F = DATA.flow || {}, k = pk(), p = S.mode;
     var L = [];
-    L.push("[ACE 이브닝콜] " + modeLabel() + " · 기준 거래일 " + (DATA.trade_date || "-"));
+    L.push(isIntra() ? "[ACE 장중 리포트] " + (DATA.trade_date || "-") + " " + (DATA.as_of_time || "") + " 기준 (잠정)" : "[ACE 이브닝콜] " + modeLabel() + " · 기준 거래일 " + (DATA.trade_date || "-"));
     if (br.headline) L.push("■ " + br.headline.replace(/\s*\[[\d,\s]+\]/g, ""));
     L.push("");
     function clean(x) { return x.replace(/\s*\[[\d,\s]+\]/g, ""); }
     if (br.summary && br.summary.length) { L.push("[총평]"); br.summary.forEach(function (x, i) { L.push((i + 1) + ") " + clean(x)); }); }
     (br.sections || []).forEach(function (sc) { L.push(""); L.push("[" + sc.title + "]"); sc.points.forEach(function (x) { L.push("- " + clean(x)); }); });
     (br.points || []).forEach(function (x) { L.push("- " + clean(x)); });
-    if (br.strategy && br.strategy.length) { L.push(""); L.push("[대응 포인트]"); br.strategy.forEach(function (x) { L.push("- " + x.replace(/\s*\[[\d,\s]+\]/g, "")); }); }
+    if (br.strategy && br.strategy.length) { L.push(""); L.push(isIntra() ? "[오후장 체크포인트]" : "[대응 포인트]"); br.strategy.forEach(function (x) { L.push("- " + x.replace(/\s*\[[\d,\s]+\]/g, "")); }); }
     L.push("");
     L.push("[지수] KOSPI " + fmt((I.kospi || {}).price, 2) + "(" + pct((I.kospi || {})[k]) + ") / KOSDAQ " + fmt((I.kosdaq || {}).price, 2) + "(" + pct((I.kosdaq || {})[k]) + ") / 원달러 " + fmt((I.usdkrw || {}).price, 1) + "(" + pct((I.usdkrw || {})[k]) + ")");
     [["kospi", "코스피"], ["kosdaq", "코스닥"]].forEach(function (m) {
