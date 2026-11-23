@@ -1,5 +1,18 @@
 [
   {
+    "date": "2026-11-23",
+    "kospi": 4708.54,
+    "kospi_pct": -3.31,
+    "kosdaq": 635.45,
+    "kosdaq_pct": -1.58,
+    "foreign": -2466,
+    "inst": 1870,
+    "retail": -3674,
+    "headline": "미 반도체 충격과 AI 쇼크 여파로 코스피 4,700선 턱걸이 급락",
+    "final": false,
+    "updated_at": "2026-11-23 16:34 KST"
+  },
+  {
     "date": "2026-11-20",
     "kospi": 4869.96,
     "kospi_pct": -5.21,
