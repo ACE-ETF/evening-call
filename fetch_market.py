@@ -722,7 +722,8 @@ THEMES = [
     ("커버드콜(전략)", r"커버드콜"),
     # 1) 자산 성격이 분명한 것
     ("채권혼합", r"채권혼합|채혼합|국채혼합|TDF|TRF|자산배분|주식혼합|멀티에셋"),
-    ("채권·금리·파킹", r"국고채|국채|특수채|금융채|은행채|여전채|공사채|전단채|물가채|스트립|채권|회사채|크레딧|금리|CD(?!MO)|KOFR|SOFR|머니마켓|단기|통안|하이일드|국공채|미국채|T-?Bill"),
+    ("파킹·단기금리", r"^(?!.*하이일드).*(CD(?!MO)|KOFR|SOFR|머니마켓|MMF|(?<!중)단기|초단기|통안|전단채|T-?Bill|파킹|금리(?!인하)|머니)"),
+    ("채권", r"국고채|국채|특수채|금융채|은행채|여전채|공사채|물가채|스트립|채권|회사채|크레딧|하이일드|국공채|미국채|금리인하"),
     ("통화(달러)", r"달러선물|미국달러"),
     ("통화(엔)", r"엔선물|엔화"),
     ("리츠·부동산", r"리츠|부동산|REIT"),
@@ -744,7 +745,8 @@ THEMES = [
     ("미국 빅테크·성장", r"빅테크|FANG|엔비디아|테슬라|애플|마이크로소프트|구글|알파벳|아마존|메타(?!버스)|브로드컴|팔란티어|M7|매그니피센트|미국.*테크|테크.*미국"),
     ("AI·소프트웨어", r"(?<![A-Za-z])AI|인공지능|소프트웨어|클라우드|로봇|로보틱스|휴머노이드|양자|플랫폼|인터넷|자율주행|테크|5G|광통신|커머스|사이버보안|디지털"),
     ("배당·인컴", r"배당|인컴|월지급"),
-    ("K컬처·소비", r"KPOP|K-POP|미디어|엔터|게임|화장품|뷰티|소비|음식료|푸드|여행|K컬처|컨텐츠|콘텐츠|럭셔리|웹툰|골프|저작권"),
+    ("K콘텐츠", r"KPOP|K-POP|미디어|엔터|게임|K컬처|컨텐츠|콘텐츠|웹툰|저작권"),
+    ("K뷰티·소비", r"화장품|뷰티|소비|음식료|푸드|여행|럭셔리|골프"),
     ("그룹주", r"^(?!.*(미국|(?<!코스닥)글로벌|아시아|선진국|월드)).*그룹"),
     ("국내 업종", r"^(?!.*(미국|(?<!코스닥)글로벌|아시아|선진국|월드)).*(200 ?(IT|건설|산업재|에너지화학|철강소재|중공업)|150IT|(?<![A-Za-z])IT(?![A-Za-z])|철강|건설|운송|에너지화학|경기방어|내수|수출|우선주|BBIG|제조업|소부장|CAPEX|뉴딜)"),
     ("미국 대표지수", r"S&P500|S&P 500|나스닥|NASDAQ|다우존스|러셀|미국\s?MSCI|미국대표|미국 대표|미국S&P"),
@@ -809,11 +811,12 @@ def r2(v):
     return None if v != v else round(float(v), 2)  # NaN → None
 
 
+BUNDLE_THEMES = {"미국 섹터", "국내 업종", "미국 스타일·기타", "글로벌 분산·기타"}
 COMPARE_MIN_VALUE = 1  # 비교군은 당일 거래대금 1억 원 이상만
 COMPARE_MIN_AUM = 100  # 비교군(타사)은 순자산 100억 원 이상만 (초소형 상품 노이즈 방지)
 
 
-# 테마 기준지수: 국내는 KRX 지수(KRX·테마 시리즈), 해외는 대표 지수, 없으면 ETF 순자산 가중평균
+# 테마 참고 지수 (화면에는 참고로만 표시, 테마 대표 수익률은 순자산 1위 ETF)
 THEME_BENCH = {
     "반도체": [("idx", r"^KRX 반도체$"), ("idx", r"반도체")],
     "2차전지": [("idx", r"2차전지 TOP ?10"), ("idx", r"2차전지")],
@@ -823,7 +826,7 @@ THEME_BENCH = {
     "전력·원전·인프라": [("idx", r"원자력|원전"), ("idx", r"전력|유틸리티")],
     "자동차·모빌리티": [("idx", r"^KRX 자동차$"), ("idx", r"자동차|모빌리티")],
     "AI·소프트웨어": [("idx", r"인터넷|소프트웨어"), ("idx", r"정보기술|(?<![A-Za-z])AI")],
-    "K컬처·소비": [("idx", r"K콘텐츠"), ("idx", r"미디어|엔터")],  # 경기소비재(자동차 등 포함)는 성격이 달라 제외
+    "K콘텐츠": [("idx", r"K콘텐츠"), ("idx", r"미디어|엔터")],
     "친환경·에너지전환": [("idx", r"기후변화 ?솔루션"), ("idx", r"기후변화|신재생|(?<!필)수소|탄소")],
     "배당·인컴": [("idx", r"고배당 ?50"), ("idx", r"고배당|배당")],
     "커버드콜(전략)": [("idx", r"커버드콜")],
@@ -932,7 +935,7 @@ def aum_weighted(g: list, key: str):
 
 # ---- 테마를 움직인 종목 (국내 주식 테마, 대표 ETF 구성종목 기반) ----
 DOMESTIC_THEMES = {"반도체", "2차전지", "바이오·헬스케어", "조선·방산·우주", "금융·밸류업", "전력·원전·인프라",
-                   "자동차·모빌리티", "AI·소프트웨어", "K컬처·소비", "친환경·에너지전환", "그룹주", "국내 업종",
+                   "자동차·모빌리티", "AI·소프트웨어", "K콘텐츠", "K뷰티·소비", "친환경·에너지전환", "그룹주", "국내 업종",
                    "국내 대표지수", "배당·인컴", "국내 스타일·팩터"}
 FOREIGN_NAME = re.compile(r"미국|글로벌|차이나|중국|일본|인도|S&P|나스닥|채권|커버드콜|국채|선진국|아시아|유럽|대만|베트남")
 PDF_PATH = "history/pdf_cache.json"
@@ -1034,20 +1037,22 @@ def build_themes(rows: list, key: str, bench: dict = None, drivers: dict = None)
         g = groups.get(t) or []
         if len(g) < 2:
             continue
-        b = bench.get(t)
-        if not b or b.get(key) is None:
-            # 맞는 지수가 없는 테마: 테마 안 수익률 1위 ETF (AUM 100억 이상, 없으면 전체 중)
-            pool = [x for x in g if (x.get("aum") or 0) >= COMPARE_MIN_AUM] or g
-            top = max(pool, key=lambda x: x[key])
-            b = {"name": top["name"], "code": top["code"], "src": "상위 ETF",
-                 "d1": top.get("d1"), "w1": top.get("w1"), "m1": top.get("m1")}
+        # 테마 대표 수익률 = 테마 안 순자산 1위 ETF (당일 거래대금 1억 이상, 없으면 순자산 1위)
+        pool = [x for x in g if (x.get("value") or 0) >= COMPARE_MIN_VALUE] or g
+        top = max(pool, key=lambda x: x.get("aum") or 0)
+        b = {"name": top["name"], "code": top["code"], "src": "대표 ETF", "aum": top.get("aum"),
+             "d1": top.get("d1"), "w1": top.get("w1"), "m1": top.get("m1")}
+        ref = bench.get(t)  # 기초지수는 참고로만
+        if ref and ref.get(key) is not None:
+            b["ref"] = {"name": ref["name"], "d1": ref.get("d1"), "w1": ref.get("w1"), "m1": ref.get("m1")}
         ace = [x for x in g if x["name"].startswith(ACE_PREFIX)]
-        others = [x for x in g if not x["name"].startswith(ACE_PREFIX) and x.get("aum", 0) >= COMPARE_MIN_AUM
+        others = [x for x in g if not x["name"].startswith(ACE_PREFIX) and x["code"] != top["code"] and x.get("aum", 0) >= COMPARE_MIN_AUM
                   and (x.get("value") or 0) >= COMPARE_MIN_VALUE]  # 거래가 거의 없는 상품은 종가가 기초자산과 어긋나 제외
         out.append({
             "theme": t,
             "bench": b,
-            "median": b.get(key),  # (호환) 테마 대표 수익률 = 기준지수
+            "bundle": t in BUNDLE_THEMES,  # 여러 섹터 묶음: 대표 ETF 하나로 대표하기 어려움
+            "median": b.get(key),  # (호환) 테마 대표 수익률 = 순자산 1위 ETF
             "count": len(g),
             "ace_count": len(ace),
             "ace_median": round(float(pd.Series([x[key] for x in ace]).median()), 2) if ace else None,
@@ -1247,7 +1252,7 @@ BRIEF_SECTIONS = [
 ]
 
 
-PICK_SKIP_THEMES = {"채권혼합", "기타", "커버드콜(전략)"}
+PICK_SKIP_THEMES = {"채권혼합", "기타", "커버드콜(전략)", "파킹·단기금리"}
 
 
 def picks_pool(p: dict) -> list:
@@ -1271,15 +1276,15 @@ def rule_picks(p: dict, n: int = 6) -> list:
             picks.append(dict(x, point=point))
             used.add(x["theme"])
 
-    for t in themes:  # 기준지수 강세 순
+    for t in themes:  # 대표 ETF 강세 순
         if len(picks) >= 3:
             break
         if t["theme"] in PICK_SKIP_THEMES or t["theme"] not in by_theme:
             continue
         b = t.get("bench") or {}
-        basis = f"테마 1위 {b.get('name', '-')}" if b.get("src") == "상위 ETF" else b.get("name", "-")
+        basis = f"대표 {b.get('name', '-')}"
         add(by_theme[t["theme"]], f"{t['theme']} 상대 강세 ({basis} {b.get('d1') or 0:+.2f}%)")
-    defensive = ["채권·금리·파킹", "금·원자재", "배당·인컴"] if kospi < 0 else ["국내 대표지수", "미국 대표지수", "반도체"]
+    defensive = ["채권", "금·원자재", "배당·인컴"] if kospi < 0 else ["국내 대표지수", "미국 대표지수", "반도체"]
     for th in defensive + ["미국 대표지수", "미국 빅테크·성장", "국내 대표지수", "배당·인컴", "금·원자재"]:
         if len(picks) >= n:
             break
@@ -1590,7 +1595,7 @@ def generate_briefing(p: dict) -> dict:
         "- 숫자 표기: 수급 단위는 억 원. 1만억 이상은 조 단위로 환산(예: -13300 → -1조 3,300억 원), 그 미만은 천 단위 콤마(예: -4,635억 원). 지수는 5,100.50pt 형식.\n"
         "5) ace_picks(오늘의 ACE ETF): [ACE 후보]에서 오늘 시장 흐름과 연결해 살펴볼 만한 ACE ETF 6개를 고르고 각각 point(35자 내외)를 작성.\n"
         "   - 반드시 후보의 code만 사용. 가능한 한 서로 다른 테마로 구성(강세 테마 2~3개 + 시장 상황에 맞는 방어/분산 상품 등).\n"
-        "   - point는 오늘 데이터와의 연결(예: '반도체 기준지수 -2.2% 속 상대적 선방', '변동성 확대 구간 파킹 수요')을 명사형으로. 추천·매수·유망·수익 보장 표현 금지.\n"
+        "   - point는 오늘 데이터와의 연결(예: '반도체 대표 ETF -2.2% 속 상대적 선방', '변동성 확대 구간 파킹 수요')을 명사형으로. 추천·매수·유망·수익 보장 표현 금지.\n"
         "반드시 아래 JSON 형식으로만 응답:\n"
         '{"ace_picks":[{"code":"...","point":"..."}],"daily":{"headline":"...","summary":["...","...","..."],'
         '"sections":{"market":{"gist":"...","items":[{"k":"...","v":"..."}]},"flow":{...},"sector":{...},"stock":{...},"issue":{...},"ace":{...}},'

@@ -185,6 +185,7 @@
   .bsec .blk.ace-blk { border: 1px solid rgba(85,126,170,.6); }
   .bsec .blk.ace-blk h4 { color: var(--ace-text); }
   .spot-tag { display: inline-block; font-size: 10.5px; font-weight: 800; color: #1a1406; background: var(--accent); border-radius: 4px; padding: 0 5px; margin-right: 6px; vertical-align: 1px; }
+  .bdl { display: inline-block; font-size: 10px; font-weight: 600; color: var(--text-2); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 5px; vertical-align: 1px; }
   .spot-why { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
   .spot-strip { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .spot-strip .sp { font-size: 12px; color: var(--text-2); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-variant-numeric: tabular-nums; }
@@ -747,7 +748,9 @@
   // ---------- 테마별 ETF (ACE 우선) ----------
   function themeKey() { return S.mode === "daily" ? "d1" : "w1"; }
   function benchOf(t) { return t.bench || { name: "테마 ETF 중간값", src: "ETF", d1: t.median, w1: t.median, m1: null }; }
-  function benchLabel(b) { return b.src === "상위 ETF" ? "1위 " + b.name : b.src === "ETF 가중" ? "ETF AUM 가중" : b.name; }
+  function benchLabel(b) { return b.name; }
+  function bundleTag(t) { return t.bundle ? '<span class="bdl" title="여러 섹터가 묶인 테마라 대표 ETF 하나로 대표하기 어려움 · 상세 목록 참고">묶음</span>' : ""; }
+  function refLine(b, k) { var r = b.ref; return r && r[k] != null ? ' · 지수 ' + esc(r.name) + ' ' + pct(r[k]) : ""; }
 
   // 전체 테마 흐름: 테마 × 1D/1W/1M 히트맵
   function heatCell(v) {
@@ -763,13 +766,13 @@
     var sorted = list.slice().sort(function (a, b) { return num(benchOf(b)[k], -99) - num(benchOf(a)[k], -99); });
     var rows = sorted.map(function (t, i) {
       var b = benchOf(t);
-      return '<tr data-jump="th-' + i + '" data-theme="' + esc(t.theme) + '"><td class="hn"><b>' + esc(t.theme) + '</b><span class="hb">' + esc(benchLabel(b)) + '</span></td>' +
+      return '<tr data-jump="th-' + i + '" data-theme="' + esc(t.theme) + '"><td class="hn"><b>' + esc(t.theme) + '</b>' + bundleTag(t) + '<span class="hb">' + esc(benchLabel(b)) + '</span></td>' +
         heatCell(b.d1) + heatCell(b.w1) + heatCell(b.m1) +
         '<td class="ha">' + (t.ace_count ? '<span class="achip">ACE ' + t.ace_count + '</span>' : "") + '</td></tr>';
     }).join("");
-    return '<div class="card"><div class="card-h"><h2>전체 테마 흐름<span class="sub">기준지수 수익률 · ' + (S.mode === "daily" ? "1D" : "1W") + ' 높은 순 · 행을 누르면 상세로 이동</span></h2></div>' +
-      '<div class="heat-wrap"><table class="heat"><thead><tr><th>테마 · 기준</th><th>1D</th><th>1W</th><th>1M</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<div class="src">기준: 국내 테마는 한국거래소 KRX·테마 지수, 해외 테마는 대표 지수(미국·홍콩·인도 등은 국내 기준일 전날 종가), 맞는 지수가 없는 테마는 테마 안 수익률 1위 ETF(AUM 100억 이상)</div></div>';
+    return '<div class="card"><div class="card-h"><h2>전체 테마 흐름<span class="sub">테마 대표 ETF 수익률 · ' + (S.mode === "daily" ? "1D" : "1W") + ' 높은 순 · 행을 누르면 상세로 이동</span></h2></div>' +
+      '<div class="heat-wrap"><table class="heat"><thead><tr><th>테마 · 대표 ETF</th><th>1D</th><th>1W</th><th>1M</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<div class="src">기준: 테마 안 순자산 1위 ETF(당일 거래대금 1억 원 이상) 수익률 · 한국거래소 종가 · 묶음 = 여러 섹터가 모인 테마라 상세 목록 참고</div></div>';
   }
 
   function driversBlock(d) {
@@ -796,8 +799,8 @@
       var rows = (t.ace || []).map(function (x) { return etfLine(x, "ace"); }).join("") +
         (t.others || []).map(function (x) { return etfLine(x, "cmp"); }).join("");
       return '<details class="theme" id="th-' + i + '" data-theme="' + esc(t.theme) + '"' + (isM() ? "" : " open") + '><summary>' +
-        '<div class="th"><span class="tname">' + esc(t.theme) + '</span><span class="tmed ' + cls(v) + '">' + (v == null ? "-" : pct(v)) + '</span></div>' +
-        '<div class="tsub"><span class="tbn">' + esc(benchLabel(b)) + ' · 1W ' + softPct(b.w1 == null ? null : num(b.w1)) + ' · 1M ' + softPct(b.m1 == null ? null : num(b.m1)) + '</span>' + aceInfo + '</div></summary>' +
+        '<div class="th"><span class="tname">' + esc(t.theme) + bundleTag(t) + '</span><span class="tmed ' + cls(v) + '">' + (v == null ? "-" : pct(v)) + '</span></div>' +
+        '<div class="tsub"><span class="tbn">대표 ' + esc(benchLabel(b)) + (b.aum ? ' (' + aumFmt(b.aum) + ')' : "") + refLine(b, k) + ' · 1W ' + softPct(b.w1 == null ? null : num(b.w1)) + ' · 1M ' + softPct(b.m1 == null ? null : num(b.m1)) + '</span>' + aceInfo + '</div></summary>' +
         driversBlock(t.drivers) + '<div class="tlist">' + rows + '</div></details>';
     }).join("");
     return '<div class="card"><div class="card-h"><h2>테마별 상세<span class="sub">' + modeLabel() + ' · ACE 라인업 우선 · 타사 비교</span>' + staleBadge(T) + '</h2></div>' + asOf("etf") +
