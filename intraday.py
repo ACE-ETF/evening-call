@@ -2,7 +2,8 @@
 
 장 마감 리포트(data.json · history/)와 완전히 분리된 가벼운 장중 스냅샷.
 - 실행: 평일 09:30~15:20 사이에만 (그 외 시간은 아무것도 하지 않음)
-- KRX 호출 약 15회: 지수 2 + 시장 수급 2 + 업종(분류·업종지수·투자자별 순매수, 일간만) 10 + ETF 시세 1
+- KRX 호출 약 9회: 지수 2 + 시장 수급 2 + 업종(분류·업종지수, 일간만) 4 + ETF 시세 1
+  (업종별·종목별 투자자 순매수는 KRX가 장중에 제공하지 않아 생략)
 - 구글 뉴스 3회, Gemini 1회
 - 기록(history/)에는 저장하지 않음. 장중 값은 모두 잠정치.
 """
@@ -106,13 +107,13 @@ def gemini_brief(p: dict) -> dict:
     body = {"contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {"responseMimeType": "application/json", "responseSchema": schema, "temperature": 0.3, "maxOutputTokens": 8192}}
     headers = {"x-goog-api-key": key, "Content-Type": "application/json"}
-    for model in fm.GEMINI_MODELS:
+    for model in list(fm.GEMINI_MODELS) * 2:  # 503(과부하)이 잦아 한 바퀴 더
         try:
             res = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-                                headers=headers, json=body, timeout=90)
+                                headers=headers, json=body, timeout=60)
             if res.status_code != 200:
                 log(f"Gemini {model} HTTP {res.status_code} → 다음 모델")
-                time.sleep(2)
+                time.sleep(15 if res.status_code == 503 else 2)
                 continue
             parsed = json.loads(res.json()["candidates"][0]["content"]["parts"][0]["text"])
             sections = []
@@ -158,7 +159,7 @@ def main() -> int:
             return default
 
     flow = guarded("시장 수급", lambda: {key: fm.get_market_flow(mk, today) for key, mk in fm.MARKETS}, {})
-    si, sf, ts, br = guarded("업종", lambda: fm.fetch_sector_block(dates, {}, periods=("daily",)), ({}, {}, {}, {}))
+    si, sf, ts, br = guarded("업종", lambda: fm.fetch_sector_block(dates, {}, periods=("daily",), with_flows=False), ({}, {}, {}, {}))
     rows = guarded("ETF", lambda: etf_rows(today), [])
     themes = guarded("테마", lambda: fm.build_themes(rows, "d1"), []) if rows else []
     fm.NEWS_QUERIES = INTRA_NEWS_QUERIES

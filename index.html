@@ -460,12 +460,14 @@
     h += '<div class="grid g-brief section">' + briefCard() + newsCard() + '</div>';
     h += part("02", "수급", "장중 투자자별 매매 (잠정)");
     h += '<div class="grid g-flow">' + flowCard() + breadthCard() + '</div>';
-    h += part("03", "업종", "지금 강한 업종과 돈의 흐름");
+    h += part("03", "업종", "지금 강한 업종 (업종·종목별 수급은 마감 후 제공)");
     h += sectorIndexCard();
-    h += '<div class="section">' + sectorFlowCard() + '</div>';
-    h += part("04", "종목", "주체별 장중 순매수·순매도 상위");
-    h += topStocksCard();
-    h += part("05", "테마", "테마 대표 ETF 장중 등락");
+    var sfd = (DATA.sector_flow || {}).daily || {};
+    if (Object.keys(sfd).some(function (k) { return (sfd[k] || []).length; })) h += '<div class="section">' + sectorFlowCard() + '</div>';
+    var tsd = (DATA.top_stocks || {}).daily || {};
+    var hasTs = Object.keys(tsd).some(function (k) { return ((tsd[k] || {}).buy || []).length; });
+    if (hasTs) { h += part("04", "종목", "주체별 장중 순매수·순매도 상위"); h += topStocksCard(); }
+    h += part(hasTs ? "05" : "04", "테마", "테마 대표 ETF 장중 등락");
     h += themeHeatmap();
     document.getElementById("app").innerHTML = h;
     bindSegs();

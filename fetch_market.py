@@ -620,7 +620,7 @@ def get_net_purchases(market: str, start: str, end: str, investor: str):
 STOCK_RET = {}  # 국내 종목 코드 → {name, ret(일간 등락률)}
 
 
-def fetch_sector_block(dates: list, prev: dict, periods=("daily", "weekly")):
+def fetch_sector_block(dates: list, prev: dict, periods=("daily", "weekly"), with_flows: bool = True):
     """업종지수·업종별 수급·상위 종목·시장 폭을 한 번에 수집."""
     trade = dates[-1]
     periods = {k: v for k, v in {"daily": (trade, trade), "weekly": (dates[-5] if len(dates) >= 5 else dates[0], trade)}.items() if k in periods}
@@ -645,7 +645,7 @@ def fetch_sector_block(dates: list, prev: dict, periods=("daily", "weekly")):
         except Exception as e:
             log(f"{market} 업종 기여 종목 계산 실패(무시): {type(e).__name__}: {e}")
 
-        for period, (s, e) in periods.items():
+        for period, (s, e) in (periods.items() if with_flows else ()):  # 장중엔 종목별 투자자 순매수가 제공되지 않아 생략
             agg = {}
             per_stock = {}  # 업종 → 종목 → 투자자별 순매수(억)
             for inv_key, inv_name in INVESTORS:
