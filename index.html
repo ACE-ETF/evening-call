@@ -48,7 +48,7 @@
   .seg.view button { padding: 6px 12px; font-size: 13px; }
   .seg.view button.active { background: var(--ace); color: var(--ace-ink); }
   body.intra .seg.view button.active { background: #c9a24a; color: #1a1406; }
-  body.intra #modeSeg, body.intra .close-only { display: none; }
+  body.intra #modeSeg, body.intra .close-only, body.hist #viewSeg { display: none; }
   .intra-banner { margin: 4px 0 14px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(201,162,74,.45); background: rgba(201,162,74,.08); color: var(--text-2); font-size: 13px; line-height: 1.55; }
   .intra-banner b { color: #e3c27a; }
   .seg.small button { padding: 4px 10px; font-size: 12.5px; }
@@ -385,9 +385,10 @@
   // ---------- 로드 ----------
   function kstNow() { var d = new Date(Date.now() + 9 * 3600 * 1000); return { date: d.toISOString().slice(0, 10), hm: d.getUTCHours() * 100 + d.getUTCMinutes(), dow: d.getUTCDay() }; }
   function getJSON(u) { return fetch(u + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }); }
+  var HIST = (location.search.match(/[?&]d=(\d{4}-\d{2}-\d{2})/) || [])[1] || null;  // 관리자: 과거 기록 보기
   function load() {
-    var intraP = getJSON("./intraday.json").catch(function () { return null; });
-    getJSON("./data.json")
+    var intraP = HIST ? Promise.resolve(null) : getJSON("./intraday.json").catch(function () { return null; });
+    getJSON(HIST ? "./history/" + HIST + ".json" : "./data.json")
       .then(function (json) {
         if (!json || !json.indices) throw new Error("데이터 형식 오류");
         CLOSE = json;
@@ -418,9 +419,10 @@
       if (b.getAttribute("data-v") === "intra") b.disabled = !INTRA;
     });
     if (isIntra()) { S.mode = "daily"; syncMode(); return renderIntra(); }
+    document.body.classList.toggle("hist", !!HIST);
     renderMeta();
     function part(no, title, desc) { return '<div class="part" id="p' + (+no) + '"><span class="no">' + no + '</span><h2>' + title + '</h2><span class="desc">' + desc + '</span></div>'; }
-    var h = "";
+    var h = HIST ? '<div class="intra-banner hist-banner"><b>과거 기록 · ' + esc(HIST) + '</b> — 그날 마지막 저장본입니다. <a href="./admin.html" style="color:inherit">관리자 페이지로</a> · <a href="./" style="color:inherit">최신 리포트</a></div>' : "";
     h += part("01", "오늘 시장 요약", "지수 → 결론 → 총평 → 파트별 근거 → 대응");
     h += '<div class="grid g-kpi">' + kpiCards() + '</div>';
     var ao = DATA.as_of || {};

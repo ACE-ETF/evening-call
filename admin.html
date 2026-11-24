@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>ACE 이브닝콜 · 관리자</title>
+<style>
+  :root {
+    --bg: #0f1218; --panel: #171b23; --panel-2: #1e232d; --line: #2a303c; --grid: #232833;
+    --text: #e7eaf0; --text-2: #b9c0cd; --muted: #8b93a5;
+    --up: #ef4f4f; --down: #3d8bfd; --accent: #f5b942; --ok: #3ccf91;
+    --ace: #557eaa; --ace-text: #9dbbe0;
+    --s-foreign: #d95926; --s-inst: #199e70; --s-retail: #9d7be0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 18px 16px 48px; }
+  h1 { font-size: 21px; margin: 0; letter-spacing: -.01em; }
+  h1 .ace { color: var(--ace-text); }
+  h1 .tag { font-size: 12px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; margin-left: 8px; vertical-align: 3px; }
+  .meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  a { color: var(--ace-text); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 14px; }
+  .card h2 { font-size: 15.5px; margin: 0 0 4px; }
+  .card .sub { color: var(--muted); font-size: 12.5px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .kpi .l { color: var(--muted); font-size: 12.5px; }
+  .kpi .v { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .kpi .v small { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .tbl-wrap { overflow-x: auto; margin-top: 10px; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; font-size: 13px; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; position: sticky; top: 0; background: var(--panel); }
+  td.l, th.l { text-align: left; }
+  td.hl { white-space: normal; min-width: 260px; max-width: 420px; color: var(--text-2); text-align: left; }
+  .up { color: #f3a3a3; } .down { color: #9cc0fb; } .flat { color: var(--muted); }
+  .pill { display: inline-block; font-size: 11.5px; font-weight: 600; border-radius: 5px; padding: 1px 6px; }
+  .pill.ok { color: var(--ok); background: rgba(60,207,145,.12); }
+  .pill.warn { color: var(--accent); background: rgba(245,185,66,.14); }
+  .pill.bad { color: #f3a3a3; background: rgba(239,79,79,.14); }
+  .pill.mute { color: var(--muted); background: rgba(139,147,165,.14); }
+  .alerts { margin: 10px 0 0; padding: 0; list-style: none; }
+  .alerts li { padding: 7px 0; border-bottom: 1px solid var(--grid); color: var(--text-2); font-size: 13.5px; }
+  .alerts li b { color: var(--text); }
+  .seg { display: inline-flex; background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 3px; margin-top: 10px; }
+  .seg button { border: 0; background: transparent; color: var(--muted); padding: 5px 11px; border-radius: 7px; font-weight: 600; cursor: pointer; font-size: 12.5px; font-family: inherit; }
+  .seg button.active { background: var(--accent); color: #1a1406; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; font-size: 12.5px; color: var(--text-2); }
+  .legend i { display: inline-block; width: 14px; height: 2px; vertical-align: 4px; margin-right: 6px; border-radius: 2px; }
+  svg text { font-family: inherit; }
+  .tip { position: fixed; pointer-events: none; background: #0b0e13; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; color: var(--text); opacity: 0; transition: opacity .1s; z-index: 50; font-variant-numeric: tabular-nums; }
+  .tip.show { opacity: 1; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid2 .card { margin-top: 0; }
+  .gate { max-width: 360px; margin: 80px auto; text-align: center; }
+  .gate input { width: 100%; margin-top: 14px; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 15px; font-family: inherit; }
+  .gate button { width: 100%; margin-top: 10px; padding: 11px; border: 0; border-radius: 10px; background: var(--ace); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: inherit; }
+  .gate .err { color: #f3a3a3; font-size: 13px; min-height: 18px; margin-top: 8px; }
+  .note { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.55; }
+  .bar { display: inline-block; height: 8px; border-radius: 0 4px 4px 0; vertical-align: middle; }
+  @media (max-width: 760px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .grid2 { grid-template-columns: 1fr; }
+    .card { padding: 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+<div class="tip" id="tip"></div>
+<script>
+(function () {
+  "use strict";
+  // 화면 가림용 간단 잠금 (데이터 자체는 공개 저장소에 있음)
+  var PW_HASH = "267277b8c0223a02117297ab8386185c9317be2ee36447a2b579b21135acf6f3";
+  var root = document.getElementById("root"), tip = document.getElementById("tip");
+  var IDX = [], FLOW_MKT = "kospi", THEME_N = 20;
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function num(v) { var n = Number(v); return isFinite(n) ? n : null; }
+  function cls(v) { return v > 0 ? "up" : v < 0 ? "down" : "flat"; }
+  function pct(v) { return v == null ? "-" : (v > 0 ? "+" : "") + v.toFixed(2) + "%"; }
+  function eok(v) { if (v == null) return "-"; var a = Math.abs(v), s = v > 0 ? "+" : v < 0 ? "-" : ""; return a >= 10000 ? s + (a / 10000).toFixed(2) + "조" : s + Math.round(a).toLocaleString("ko-KR") + "억"; }
+  function fmt(v, d) { return v == null ? "-" : v.toLocaleString("ko-KR", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  async function sha(t) { var b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)); return Array.from(new Uint8Array(b)).map(function (x) { return x.toString(16).padStart(2, "0"); }).join(""); }
+
+  function gate() {
+    root.innerHTML = '<div class="gate"><h1><span class="ace">ACE</span> 이브닝콜 <span class="tag">관리자</span></h1>' +
+      '<input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password"><button id="go">들어가기</button><div class="err" id="err"></div></div>';
+    var go = async function () {
+      var h = await sha("evening-call:" + document.getElementById("pw").value.trim());
+      if (h === PW_HASH) { try { sessionStorage.setItem("ec_admin", h); } catch (e) {} load(); }
+      else document.getElementById("err").textContent = "비밀번호가 맞지 않습니다.";
+    };
+    document.getElementById("go").onclick = go;
+    document.getElementById("pw").onkeydown = function (e) { if (e.key === "Enter") go(); };
+    document.getElementById("pw").focus();
+  }
+
+  function load() {
+    root.innerHTML = '<div class="meta">불러오는 중…</div>';
+    fetch("./history/index.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (j) { IDX = (j || []).slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }); render(); })
+      .catch(function (e) { root.innerHTML = '<div class="card">기록을 불러오지 못했습니다 (' + esc(e.message) + ')</div>'; });
+  }
+
+  // ---------- 점검 규칙 ----------
+  function updHM(x) { var m = String(x.updated_at || "").match(/(\d{4}-\d{2}-\d{2}) (\d{2}):(\d{2})/); return m ? { d: m[1], hm: +m[2] * 100 + +m[3] } : null; }
+  function issues(x) {
+    var out = [];
+    if (x.final === false) out.push(["warn", "수급 미확정"]);
+    if (x.stale) out.push(["warn", "이전값 " + x.stale]);
+    if (x.brief_src && x.brief_src !== "gemini") out.push(["warn", "규칙 브리핑"]);
+    var u = updHM(x);
+    if (u && u.d !== x.date) out.push(["mute", "다음날 갱신"]);
+    if (x.news_n === 0) out.push(["warn", "기사 0건"]);
+    return out;
+  }
+
+  function render() {
+    var n = IDX.length;
+    if (!n) { root.innerHTML = '<div class="card">아직 누적 기록이 없습니다.</div>'; return; }
+    var first = IDX[0], last = IDX[n - 1];
+    var finals = IDX.filter(function (x) { return x.final === true; }).length;
+    var gem = IDX.filter(function (x) { return x.brief_src === "gemini"; }).length;
+    var kCum = (last.kospi && first.kospi && IDX.length > 1) ? (last.kospi / (first.kospi / (1 + (first.kospi_pct || 0) / 100)) - 1) * 100 : null;
+    var h = '<h1><span class="ace">ACE</span> 이브닝콜 <span class="tag">관리자</span></h1>' +
+      '<div class="meta">누적 ' + n + '거래일 · ' + esc(first.date) + ' ~ ' + esc(last.date) + ' · <a href="./">공개 대시보드</a> · 이 페이지는 메뉴에 링크되지 않음</div>';
+    h += '<div class="kpis">' +
+      kpi("누적 거래일", n + '<small> 일</small>') +
+      kpi("수급 확정률", Math.round(finals / n * 100) + '<small>% (' + finals + '/' + n + ')</small>') +
+      kpi("Gemini 브리핑", Math.round(gem / n * 100) + '<small>% (' + gem + '/' + n + ')</small>') +
+      kpi("코스피 기간 등락", '<span class="' + cls(kCum) + '">' + pct(kCum) + '</span><small> 첫 기록 전일 대비</small>') + '</div>';
+    h += alertsCard();
+    h += flowCard();
+    h += '<div class="grid2" style="margin-top:14px">' + themeCard() + idxCard() + '</div>';
+    h += dailyTable();
+    h += '<div class="note">· 일자별 보기는 그날 마지막 저장본(history/날짜.json)을 공개 대시보드 화면으로 보여줌 · 장중 리포트는 기록하지 않음<br>· 잠금은 화면 가림용이며 기록 파일 자체는 공개 저장소에 있음</div>';
+    root.innerHTML = h;
+    bind();
+  }
+  function kpi(l, v) { return '<div class="kpi"><div class="l">' + l + '</div><div class="v">' + v + '</div></div>'; }
+
+  function alertsCard() {
+    var rows = IDX.slice().reverse().map(function (x) {
+      var is = issues(x).filter(function (i) { return i[0] !== "mute"; });
+      return is.length ? '<li><b>' + esc(x.date) + '</b> · ' + is.map(function (i) { return '<span class="pill ' + i[0] + '">' + esc(i[1]) + '</span>'; }).join(" ") +
+        (x.stale_items && x.stale_items.length ? ' <span class="sub">(' + esc(x.stale_items.join(", ")) + ')</span>' : "") + '</li>' : "";
+    }).filter(Boolean);
+    var miss = IDX.filter(function (x) { return x.final === false; }).length;
+    var hint = miss ? '<div class="note">수급 미확정이 계속되면 cron-job.org의 \'EC 확정 18:05\' 작업 실행 기록(History)과 설정(POST·헤더·본문 저장 여부)을 확인</div>' : "";
+    return '<div class="card"><h2>운영 점검</h2><div class="sub">수집이 덜 된 날 · 최신 순</div>' +
+      (rows.length ? '<ul class="alerts">' + rows.join("") + '</ul>' + hint : '<div class="note">이상 없음</div>') + '</div>';
+  }
+
+  // ---------- 누적 수급 (라인) ----------
+  var SER = [["foreign", "외국인", "var(--s-foreign)"], ["inst", "기관", "var(--s-inst)"], ["retail", "개인", "var(--s-retail)"]];
+  function flowKey(k) { return FLOW_MKT === "kospi" ? k : "kq_" + k; }
+  function flowCard() {
+    var W = 1100, H = 260, P = { l: 56, r: 64, t: 14, b: 28 };
+    var dates = IDX.map(function (x) { return x.date; });
+    var series = SER.map(function (s) {
+      var c = 0;
+      return { key: s[0], name: s[1], color: s[2], vals: IDX.map(function (x) { var v = num(x[flowKey(s[0])]); if (v != null) c += v; return v == null ? null : c; }) };
+    });
+    var all = [0]; series.forEach(function (s) { s.vals.forEach(function (v) { if (v != null) all.push(v); }); });
+    var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all); if (mn === mx) { mn -= 1; mx += 1; }
+    var pad = (mx - mn) * 0.08; mn -= pad; mx += pad;
+    var x = function (i) { return P.l + (dates.length === 1 ? (W - P.l - P.r) / 2 : i * (W - P.l - P.r) / (dates.length - 1)); };
+    var y = function (v) { return P.t + (mx - v) / (mx - mn) * (H - P.t - P.b); };
+    var g = "";
+    nice(mn, mx, 4).forEach(function (t) {
+      g += '<line x1="' + P.l + '" x2="' + (W - P.r) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="' + (t === 0 ? "#3a4150" : "var(--grid)") + '" stroke-width="1"/>' +
+        '<text x="' + (P.l - 8) + '" y="' + (y(t) + 4) + '" fill="var(--muted)" font-size="11" text-anchor="end">' + eok(t).replace("+", "") + '</text>';
+    });
+    var step = Math.max(1, Math.ceil(dates.length / 8));
+    dates.forEach(function (d, i) { if (i % step === 0 || i === dates.length - 1) g += '<text x="' + x(i) + '" y="' + (H - 8) + '" fill="var(--muted)" font-size="11" text-anchor="middle">' + d.slice(5) + '</text>'; });
+    series.forEach(function (s) {
+      var pts = s.vals.map(function (v, i) { return v == null ? null : x(i) + "," + y(v); }).filter(Boolean);
+      g += '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + s.color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+      s.vals.forEach(function (v, i) { if (v != null) g += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3" fill="' + s.color + '" stroke="var(--panel)" stroke-width="2"/>'; });
+      var li = s.vals.length - 1; while (li >= 0 && s.vals[li] == null) li--;
+      if (li >= 0) g += '<text x="' + (x(li) + 8) + '" y="' + (y(s.vals[li]) + 4) + '" fill="var(--text-2)" font-size="11.5">' + s.name + '</text>';
+    });
+    // hover columns
+    dates.forEach(function (d, i) {
+      var half = dates.length > 1 ? (W - P.l - P.r) / (dates.length - 1) / 2 : 40;
+      var t = '<b>' + d + '</b> 누적' + series.map(function (s) { return '<br>' + s.name + ' ' + eok(s.vals[i]) + ' (당일 ' + eok(num(IDX[i][flowKey(s.key)])) + ')'; }).join("");
+      g += '<rect x="' + (x(i) - half) + '" y="' + P.t + '" width="' + half * 2 + '" height="' + (H - P.t - P.b) + '" fill="transparent" data-tip="' + esc(t) + '"/>';
+    });
+    return '<div class="card"><h2>누적 순매수</h2><div class="sub">기록 첫날부터 일별 순매수 합계 · 억 원 · 확정 전 기록은 잠정치 포함</div>' +
+      '<div class="seg" data-seg="flow"><button data-v="kospi" class="' + (FLOW_MKT === "kospi" ? "active" : "") + '">코스피</button><button data-v="kosdaq" class="' + (FLOW_MKT === "kosdaq" ? "active" : "") + '">코스닥</button></div>' +
+      '<div class="legend">' + SER.map(function (s) { return '<span><i style="background:' + s[2] + '"></i>' + s[1] + '</span>'; }).join("") + '</div>' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="margin-top:6px;display:block">' + g + '</svg></div>';
+  }
+  function nice(mn, mx, n) {
+    var raw = (mx - mn) / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), st = [1, 2, 2.5, 5, 10].map(function (m) { return m * mag; }).find(function (s) { return s >= raw; });
+    var out = []; for (var v = Math.ceil(mn / st) * st; v <= mx; v += st) out.push(Math.round(v)); return out;
+  }
+
+  // ---------- 테마 누적 ----------
+  function themeCard() {
+    var acc = {};
+    IDX.forEach(function (x) {
+      Object.keys(x.themes || {}).forEach(function (t) {
+        var v = num(x.themes[t]); if (v == null) return;
+        var a = acc[t] || (acc[t] = { c: 1, n: 0 });
+        a.c *= 1 + v / 100; a.n++;
+      });
+    });
+    var list = Object.keys(acc).map(function (t) { return { t: t, r: (acc[t].c - 1) * 100, n: acc[t].n }; }).sort(function (a, b) { return b.r - a.r; });
+    if (!list.length) return '<div class="card"><h2>테마 누적 수익률</h2><div class="note">데이터 없음</div></div>';
+    var mxa = Math.max.apply(null, list.map(function (x) { return Math.abs(x.r); })) || 1;
+    var shown = list.length > THEME_N ? list.slice(0, THEME_N / 2).concat(list.slice(-THEME_N / 2)) : list;
+    var rows = shown.map(function (x) {
+      var w = Math.max(2, Math.abs(x.r) / mxa * 90);
+      return '<tr><td class="l">' + esc(x.t) + '</td><td class="l" style="width:46%"><span class="bar" style="width:' + w + '%;background:' + (x.r >= 0 ? "rgba(239,79,79,.55)" : "rgba(61,139,253,.55)") + '"></span></td><td class="' + cls(x.r) + '">' + pct(x.r) + '</td><td class="flat">' + x.n + '일</td></tr>';
+    }).join("");
+    return '<div class="card"><h2>테마 누적 수익률</h2><div class="sub">테마 대표 수익률 일별 복리 누적 · ' + (list.length > THEME_N ? '상·하위 ' + THEME_N / 2 + '개씩' : '전체') + '<br>11/24부터 기준이 순자산 1위 ETF로 바뀜(이전은 기준지수·1위 ETF 혼재)</div>' +
+      '<div class="tbl-wrap"><table><tbody>' + rows + '</tbody></table></div></div>';
+  }
+
+  // ---------- 지수 ----------
+  function idxCard() {
+    var rows = IDX.slice().reverse().map(function (x) {
+      return '<tr><td class="l">' + esc(x.date.slice(5)) + '</td><td>' + fmt(num(x.kospi), 2) + '</td><td class="' + cls(x.kospi_pct) + '">' + pct(num(x.kospi_pct)) + '</td><td>' + fmt(num(x.kosdaq), 2) + '</td><td class="' + cls(x.kosdaq_pct) + '">' + pct(num(x.kosdaq_pct)) + '</td><td>' + fmt(num(x.usdkrw), 1) + '</td></tr>';
+    }).join("");
+    return '<div class="card"><h2>지수 기록</h2><div class="sub">그날 마지막 저장값 · 최신 순</div><div class="tbl-wrap"><table><thead><tr><th class="l">일자</th><th>코스피</th><th></th><th>코스닥</th><th></th><th>원/달러</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+  }
+
+  // ---------- 일자별 ----------
+  function dailyTable() {
+    var rows = IDX.slice().reverse().map(function (x) {
+      var is = issues(x);
+      var st = x.final === true ? '<span class="pill ok">확정</span>' : '<span class="pill warn">잠정</span>';
+      return '<tr><td class="l"><a href="./?d=' + esc(x.date) + '" target="_blank" rel="noopener"><b>' + esc(x.date) + '</b></a></td>' +
+        '<td class="' + cls(x.kospi_pct) + '">' + pct(num(x.kospi_pct)) + '</td>' +
+        '<td class="' + cls(x.foreign) + '">' + eok(num(x.foreign)) + '</td><td class="' + cls(x.inst) + '">' + eok(num(x.inst)) + '</td><td class="' + cls(x.retail) + '">' + eok(num(x.retail)) + '</td>' +
+        '<td>' + st + '</td><td class="l">' + (x.brief_src === "gemini" ? '<span class="pill mute">' + esc((x.brief_model || "gemini").replace("gemini-", "")) + '</span>' : '<span class="pill warn">규칙</span>') +
+        (x.verified ? ' <span class="pill ok" title="마감 기사로 지수 종가 교차검증">기사검증</span>' : "") + '</td>' +
+        '<td class="flat">' + esc(String(x.updated_at || "").replace(/^\d{4}-/, "").replace(" KST", "")) + '</td>' +
+        '<td class="l">' + is.map(function (i) { return '<span class="pill ' + i[0] + '">' + esc(i[1]) + '</span>'; }).join(" ") + '</td>' +
+        '<td class="hl">' + esc(x.headline || "") + '</td></tr>';
+    }).join("");
+    return '<div class="card"><h2>일자별 기록</h2><div class="sub">날짜를 누르면 그날 리포트를 새 창으로 · 수급은 코스피 기준</div>' +
+      '<div class="tbl-wrap"><table><thead><tr><th class="l">일자</th><th>코스피</th><th>외국인</th><th>기관</th><th>개인</th><th>수급</th><th class="l">브리핑</th><th>최종 갱신</th><th class="l">점검</th><th class="l">결론</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+  }
+
+  function bind() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-seg="flow"] button'), function (b) {
+      b.onclick = function () { FLOW_MKT = b.getAttribute("data-v"); render(); };
+    });
+  }
+  document.addEventListener("mousemove", function (e) {
+    var t = e.target.closest && e.target.closest("[data-tip]");
+    if (!t) { tip.classList.remove("show"); return; }
+    tip.innerHTML = t.getAttribute("data-tip");
+    var r = tip.getBoundingClientRect(), x = e.clientX + 14, y = e.clientY + 14;
+    if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+    if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+    tip.style.left = x + "px"; tip.style.top = y + "px"; tip.classList.add("show");
+  });
+  document.addEventListener("touchstart", function (e) {
+    var t = e.target.closest && e.target.closest("[data-tip]");
+    if (!t) { tip.classList.remove("show"); return; }
+    tip.innerHTML = t.getAttribute("data-tip");
+    var p = e.touches[0]; tip.style.left = Math.min(p.clientX, innerWidth - 220) + "px"; tip.style.top = (p.clientY - 110) + "px"; tip.classList.add("show");
+  }, { passive: true });
+
+  var ok = false; try { ok = sessionStorage.getItem("ec_admin") === PW_HASH; } catch (e) {}
+  ok ? load() : gate();
+})();
+</script>
+</body>
+</html>

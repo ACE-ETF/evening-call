@@ -137,10 +137,31 @@ def archive(payload: dict):
         "headline": ((payload.get("ai_briefing") or {}).get("daily") or {}).get("headline", ""),
         "final": payload["data_quality"].get("final"),
         "updated_at": payload["updated_at"],
+        **admin_summary(payload),
     })
     idx.sort(key=lambda x: x["date"], reverse=True)
     atomic_write_json(idx_path, idx)
     log(f"날짜별 보관: {HISTORY_DIR}/{d}.json (누적 {len(idx)}일)")
+
+
+def admin_summary(payload: dict) -> dict:
+    """관리자 페이지(admin.html) 누적 점검용 요약 필드."""
+    q = payload.get("data_quality") or {}
+    br = payload.get("ai_briefing") or {}
+    ind = payload.get("indices") or {}
+    flq = (payload.get("flow") or {}).get("kosdaq") or {}
+    th = (payload.get("themes") or {}).get("daily") or []
+    news = payload.get("news") or {}
+    return {
+        "stale": len(q.get("stale_items") or []),
+        "stale_items": q.get("stale_items") or [],
+        "brief_src": br.get("source"), "brief_model": br.get("model"),
+        "verified": any((v or {}).get("verified") == "news" for v in ind.values() if isinstance(v, dict)),
+        "news_n": len(news.get("items") or []),
+        "kq_foreign": flq.get("daily_foreign"), "kq_inst": flq.get("daily_inst"), "kq_retail": flq.get("daily_retail"),
+        "usdkrw": (ind.get("usdkrw") or {}).get("price"),
+        "themes": {t["theme"]: (t.get("bench") or {}).get("d1") for t in th if (t.get("bench") or {}).get("d1") is not None},
+    }
 
 
 def load_previous() -> dict:
