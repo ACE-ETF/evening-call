@@ -49,6 +49,16 @@
   .seg.view button.active { background: var(--ace); color: var(--ace-ink); }
   body.intra .seg.view button.active { background: #c9a24a; color: #1a1406; }
   body.intra #modeSeg, body.intra .close-only, body.hist #viewSeg { display: none; }
+  .mv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+  .mv-grid h4 { margin: 0 0 6px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  ol.mv { list-style: none; margin: 0; padding: 0; }
+  ol.mv li { display: flex; align-items: baseline; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--grid); font-size: 13.5px; }
+  ol.mv .rk { color: var(--muted); width: 14px; font-size: 12px; }
+  ol.mv .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  ol.mv .vv { color: var(--text-2); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+  ol.mv .pc { font-variant-numeric: tabular-nums; min-width: 58px; text-align: right; }
+  ol.mv .up { color: #f3a3a3; } ol.mv .down { color: #9cc0fb; }
+  @media (max-width: 640px) { .mv-grid { grid-template-columns: 1fr; } }
   .intra-banner { margin: 4px 0 14px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(201,162,74,.45); background: rgba(201,162,74,.08); color: var(--text-2); font-size: 13px; line-height: 1.55; }
   .intra-banner b { color: #e3c27a; }
   .seg.small button { padding: 4px 10px; font-size: 12.5px; }
@@ -448,6 +458,29 @@
 
 
   // ---------- 장중 리포트 ----------
+  var MV_MKT = "kospi";
+  function moversCard() {
+    var m = (DATA.movers || {})[MV_MKT] || {};
+    function li(x, i, showVal) {
+      return '<li><span class="rk">' + (i + 1) + '</span><span class="nm">' + esc(x.name) + '</span>' +
+        (showVal ? '<span class="vv">' + Number(x.value).toLocaleString("ko-KR") + '억</span>' : '') +
+        '<span class="' + (x.ret > 0 ? "up" : x.ret < 0 ? "down" : "") + ' pc">' + pct(x.ret) + '</span></li>';
+    }
+    var vl = limitRows("mv-v-" + MV_MKT, (m.value_top || []).map(function (x, i) { return li(x, i, true); }), 5);
+    var vt = vl.rows.join("") + '</ol>' + vl.btn + '<ol class="mv" style="display:none">';
+    return '<div class="card section"><div class="card-h"><h2>장중 종목<span class="sub">거래대금 상위 · 급등락은 거래대금 50억 원 이상</span></h2>' +
+      '<div class="seg small" data-mv>' + ["kospi", "kosdaq"].map(function (k) { return '<button data-v="' + k + '" class="' + (MV_MKT === k ? "active" : "") + '">' + (k === "kospi" ? "코스피" : "코스닥") + '</button>'; }).join("") + '</div></div>' +
+      '<div class="asof">기준 · ' + esc((DATA.as_of || {}).stock || "") + '</div>' +
+      '<div class="mv-grid"><div><h4>거래대금 상위</h4><ol class="mv">' + vt + '</ol></div>' +
+      '<div><h4>급등</h4><ol class="mv">' + (m.gainers || []).map(function (x, i) { return li(x, i, false); }).join("") + '</ol>' +
+      '<h4 style="margin-top:12px">급락</h4><ol class="mv">' + (m.losers || []).map(function (x, i) { return li(x, i, false); }).join("") + '</ol></div></div></div>';
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-mv] button");
+    if (!b) return;
+    MV_MKT = b.getAttribute("data-v"); render();
+  });
+
   function renderIntra() {
     renderMeta();
     function part(no, title, desc) { return '<div class="part" id="p' + (+no) + '"><span class="no">' + no + '</span><h2>' + title + '</h2><span class="desc">' + desc + '</span></div>'; }
@@ -464,10 +497,10 @@
     h += sectorIndexCard();
     var sfd = (DATA.sector_flow || {}).daily || {};
     if (Object.keys(sfd).some(function (k) { return (sfd[k] || []).length; })) h += '<div class="section">' + sectorFlowCard() + '</div>';
-    var tsd = (DATA.top_stocks || {}).daily || {};
-    var hasTs = Object.keys(tsd).some(function (k) { return ((tsd[k] || {}).buy || []).length; });
-    if (hasTs) { h += part("04", "종목", "주체별 장중 순매수·순매도 상위"); h += topStocksCard(); }
-    h += part(hasTs ? "05" : "04", "테마", "테마 대표 ETF 장중 등락");
+    var mv = DATA.movers || {};
+    var hasMv = Object.keys(mv).some(function (k) { return ((mv[k] || {}).value_top || []).length; });
+    if (hasMv) { h += part("04", "종목", "거래대금이 몰린 곳 · 급등락 (종목별 수급은 마감 후)"); h += moversCard(); }
+    h += part(hasMv ? "05" : "04", "테마", "테마 대표 ETF 장중 등락");
     h += themeHeatmap();
     document.getElementById("app").innerHTML = h;
     bindSegs();

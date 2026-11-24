@@ -2,7 +2,7 @@
 
 장 마감 리포트(data.json · history/)와 완전히 분리된 가벼운 장중 스냅샷.
 - 실행: 평일 09:30~15:20 사이에만 (그 외 시간은 아무것도 하지 않음)
-- KRX 호출 약 9회: 지수 2 + 시장 수급 2 + 업종(분류·업종지수, 일간만) 4 + ETF 시세 1
+- KRX 호출 약 11회: 지수 2 + 시장 수급 2 + 업종(분류·업종지수, 일간만) 4 + 종목 시세 2 + ETF 시세 1
   (업종별·종목별 투자자 순매수는 KRX가 장중에 제공하지 않아 생략)
 - 구글 뉴스 3회, Gemini 1회
 - 기록(history/)에는 저장하지 않음. 장중 값은 모두 잠정치.
@@ -47,13 +47,37 @@ def etf_rows(trade: str) -> list:
     return rows
 
 
+def movers(today: str) -> dict:
+    """거래대금 상위·급등락 상위 (시장별 KRX 1회). 종목명은 업종분류 수집 때 채운 STOCK_RET 사용."""
+    out = {}
+    for key, market in fm.MARKETS:
+        df = fm.krx_call(f"{market} 종목 시세", (lambda d, m: fm.stock.get_market_ohlcv(d, market=m)) if fm.stock else None, fm.ymd(today), market)
+        if df is None or "거래대금" not in df.columns:
+            continue
+        rows = []
+        for code, r in df.iterrows():
+            code = str(code)
+            val = fm._num(r["거래대금"])
+            ret = fm._num(r["등락률"]) if "등락률" in df.columns else float("nan")
+            if val != val or ret != ret or val <= 0:
+                continue
+            nm = (fm.STOCK_RET.get(code) or {}).get("name") or code
+            rows.append({"code": code, "name": nm, "ret": round(ret, 2), "value": fm.eok(val)})
+        liq = [x for x in rows if x["value"] >= 50]  # 급등락은 거래대금 50억 원 이상만 (소형 잡음 제외)
+        out[key] = {
+            "value_top": sorted(rows, key=lambda x: -x["value"])[:10],
+            "gainers": sorted(liq, key=lambda x: -x["ret"])[:5],
+            "losers": sorted(liq, key=lambda x: x["ret"])[:5],
+        }
+    return out
+
+
 def slim(p: dict) -> dict:
     """Gemini 입력용 요약."""
     def si(m):
         d = ((p.get("sector_indices") or {}).get(m) or {}).get("daily") or []
         return {"top": [{"n": x["name"], "p": x["pct"], "drv": [y["name"] for y in x.get("drivers", [])]} for x in d[:4]],
                 "bottom": [{"n": x["name"], "p": x["pct"], "drv": [y["name"] for y in x.get("drivers", [])]} for x in d[-4:]]}
-    ts = (p.get("top_stocks") or {}).get("daily") or {}
     th = p.get("themes_list") or []
     return {
         "time": p["as_of_time"],
@@ -61,8 +85,9 @@ def slim(p: dict) -> dict:
         "flow": {k: {i: v.get(f"daily_{i}") for i in ("foreign", "inst", "retail")} for k, v in (p.get("flow") or {}).items()},
         "breadth": p.get("breadth"),
         "sector": {"kospi": si("kospi"), "kosdaq": si("kosdaq")},
-        "stocks": {inv: {"buy": [x["name"] for x in (ts.get(inv) or {}).get("buy", [])[:4]],
-                         "sell": [x["name"] for x in (ts.get(inv) or {}).get("sell", [])[:4]]} for inv in ("foreign", "inst")},
+        "value_top": {k: [f"{x['name']} {x['ret']:+.1f}% ({x['value']:,}억)" for x in v.get("value_top", [])[:6]] for k, v in (p.get("movers") or {}).items()},
+        "gainers": {k: [f"{x['name']} {x['ret']:+.1f}%" for x in v.get("gainers", [])] for k, v in (p.get("movers") or {}).items()},
+        "losers": {k: [f"{x['name']} {x['ret']:+.1f}%" for x in v.get("losers", [])] for k, v in (p.get("movers") or {}).items()},
         "themes_top": [{"t": t["theme"], "p": t["bench"]["d1"]} for t in th[:5]],
         "themes_bottom": [{"t": t["theme"], "p": t["bench"]["d1"]} for t in th[-5:]],
     }
@@ -91,7 +116,8 @@ def gemini_brief(p: dict) -> dict:
     prompt = (
         "당신은 한국 증시 시니어 애널리스트입니다. 아래는 오늘 장중(마감 전) 잠정 데이터입니다. '장중 리포트'를 작성하세요.\n"
         "1) headline: 지금까지 시장의 결론 한 문장(35자 내외).\n"
-        "2) summary: 핵심 3개, 각 1문장. ①지수 방향과 원인 ②수급(누가 사고 파나) ③업종·테마 쏠림.\n"
+        "2) summary: 핵심 3개, 각 1문장. ①지수 방향과 원인 ②시장 전체 수급 ③업종·테마·거래대금 쏠림.\n"
+        "(종목별 투자자 수급은 장중 미제공: 종목은 거래대금·등락으로만 언급)\n"
         "3) sections: market/flow/sector/issue 각 {\"gist\":요지 20자, \"items\":[{\"k\":2~8자 항목명,\"v\":수치 포함 35자}]} 2~3개. issue는 기사 [번호] 인용.\n"
         "4) checkpoints: 오후장·마감까지 볼 것 2~3개.\n"
         "- 모든 문장은 명사로 끝맺음(예: '외국인 3,200억 원 순매도', '반도체 약세'). '~함/~됨/~다' 금지.\n"
@@ -160,6 +186,7 @@ def main() -> int:
 
     flow = guarded("시장 수급", lambda: {key: fm.get_market_flow(mk, today) for key, mk in fm.MARKETS}, {})
     si, sf, ts, br = guarded("업종", lambda: fm.fetch_sector_block(dates, {}, periods=("daily",), with_flows=False), ({}, {}, {}, {}))
+    mv = guarded("종목 시세", lambda: movers(today), {})
     rows = guarded("ETF", lambda: etf_rows(today), [])
     themes = guarded("테마", lambda: fm.build_themes(rows, "d1"), []) if rows else []
     fm.NEWS_QUERIES = INTRA_NEWS_QUERIES
@@ -179,6 +206,7 @@ def main() -> int:
         "sector_indices": si,
         "sector_flow": sf,
         "top_stocks": ts,
+        "movers": mv,
         "themes": {"daily": [{key: t[key] for key in ("theme", "bench", "bundle", "count", "ace_count", "ace", "others")} for t in themes]},
         "news": news,
         "data_quality": {"final": False, "is_today": True, "intraday": True, "stale_items": []},
@@ -188,7 +216,7 @@ def main() -> int:
             "flow": f"한국거래소 투자자별 매매 · {hm} 수집 · 장중 잠정치",
             "breadth": f"한국거래소 {hm} 기준 종목 등락",
             "sector": f"한국거래소 업종지수·업종 수급 {hm} 수집 · 장중 잠정",
-            "stock": f"한국거래소 투자자별 순매수 · {hm} 수집 · 장중 잠정",
+            "stock": f"한국거래소 종목 시세 · {hm} 수집 · 장중 잠정",
             "etf": f"한국거래소 ETF {hm} 시세 · 장중 잠정",
             "news": f"구글 뉴스 {today} 08:00 ~ {hm}",
         },
