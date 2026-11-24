@@ -1074,7 +1074,8 @@ def build_themes(rows: list, key: str, bench: dict = None, drivers: dict = None)
         out.append({
             "theme": t,
             "bench": b,
-            "bundle": t in BUNDLE_THEMES,  # 여러 섹터 묶음: 대표 ETF 하나로 대표하기 어려움
+            "bundle": t in BUNDLE_THEMES,
+            "aum_total": int(sum((x.get("aum") or 0) for x in g)),  # 여러 섹터 묶음: 대표 ETF 하나로 대표하기 어려움
             "median": b.get(key),  # (호환) 테마 대표 수익률 = 순자산 1위 ETF
             "count": len(g),
             "ace_count": len(ace),

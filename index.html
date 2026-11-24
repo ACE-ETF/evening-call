@@ -49,6 +49,33 @@
   .seg.view button.active { background: var(--ace); color: var(--ace-ink); }
   body.intra .seg.view button.active { background: #c9a24a; color: #1a1406; }
   body.intra #modeSeg, body.intra .close-only, body.hist #viewSeg { display: none; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); grid-auto-flow: row dense; gap: 3px; margin-top: 10px; }
+  .tile { border: 0; border-radius: 6px; padding: 9px 8px; min-height: 62px; text-align: left; color: #fff; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; font-family: inherit; outline: 2px solid transparent; }
+  .tile.big { grid-column: span 2; min-height: 78px; }
+  .tile.on { outline-color: var(--accent); }
+  .tile .tn { font-size: 12.5px; font-weight: 600; line-height: 1.3; color: rgba(255,255,255,.92); }
+  .tile .tn i { font-style: normal; font-size: 10px; opacity: .7; }
+  .tile .tv { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .tile .tb { font-size: 10.5px; color: rgba(255,255,255,.7); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .td-box { margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--panel-2); }
+  .td-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+  .td-h .td-x { margin-left: auto; border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 6px; padding: 2px 8px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .td-box h4 { margin: 10px 0 4px; font-size: 12px; color: var(--muted); font-weight: 600; }
+  ol.td { list-style: none; margin: 0; padding: 0; }
+  ol.td li { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--grid); font-size: 13px; }
+  ol.td li:last-child { border-bottom: 0; }
+  ol.td .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  ol.td .au { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  ol.td .pc { min-width: 58px; text-align: right; font-variant-numeric: tabular-nums; }
+  ol.td .up { color: #f3a3a3; } ol.td .down { color: #9cc0fb; }
+  .ace-tag { display: inline-block; background: var(--ace); color: #fff; font-size: 10px; font-weight: 700; border-radius: 4px; padding: 0 4px; margin-right: 5px; vertical-align: 1px; }
+  .th-list { margin-top: 8px; }
+  .th-row { display: flex; align-items: center; gap: 8px; padding: 8px 2px; border-bottom: 1px solid var(--grid); cursor: pointer; }
+  .th-row .tn { flex: 1; min-width: 0; }
+  .th-row .tn .hb { display: block; color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .th-row .tv { min-width: 70px; text-align: right; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .th-row .ar { color: var(--muted); font-size: 11px; width: 12px; }
+  .th-list .td-box { margin: 6px 0 10px; }
   .mv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
   .mv-grid h4 { margin: 0 0 6px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
   ol.mv { list-style: none; margin: 0; padding: 0; }
@@ -501,11 +528,69 @@
     var hasMv = Object.keys(mv).some(function (k) { return ((mv[k] || {}).value_top || []).length; });
     if (hasMv) { h += part("04", "종목", "거래대금이 몰린 곳 · 급등락 (종목별 수급은 마감 후)"); h += moversCard(); }
     h += part(hasMv ? "05" : "04", "테마", "테마 대표 ETF 장중 등락");
-    h += themeHeatmap();
+    h += intraThemes();
     document.getElementById("app").innerHTML = h;
     bindSegs();
     bindMore();
   }
+  var TH_VIEW = "tile", TH_OPEN = null;
+  function heatBg(v) {
+    if (v == null) return "var(--panel-2)";
+    var a = Math.min(Math.abs(v) / 5, 1) * 0.62 + 0.08;
+    return v > 0 ? "rgba(239,79,79," + a.toFixed(2) + ")" : v < 0 ? "rgba(61,139,253," + a.toFixed(2) + ")" : "var(--panel-2)";
+  }
+  function themeDetail(t) {
+    function row(x, ace) {
+      return '<li class="' + (ace ? "ace" : "") + '"><span class="nm">' + (ace ? '<span class="ace-tag">ACE</span>' : "") + esc(String(x.name).replace(/^ACE\s*/, ace ? "" : "ACE ")) + '</span>' +
+        '<span class="au">' + aumFmt(x.aum) + '</span><span class="pc ' + (x.d1 > 0 ? "up" : x.d1 < 0 ? "down" : "") + '">' + pct(x.d1) + '</span></li>';
+    }
+    var b = t.bench || {};
+    var ace = (t.ace || []).slice().sort(function (a, c) { return num(c.d1, -99) - num(a.d1, -99); });
+    var oth = (t.others || []).slice(0, 5);
+    return '<div class="td-box"><div class="td-h"><b>' + esc(t.theme) + '</b> ' + bundleTag(t) + ' <span class="sub">대표 ' + esc(b.name || "-") + ' ' + pct(b.d1) + ' · ETF ' + (t.count || 0) + '개</span>' +
+      '<button class="td-x" data-th-close>닫기 ✕</button></div>' +
+      (ace.length ? '<h4>ACE</h4><ol class="td">' + ace.map(function (x) { return row(x, true); }).join("") + '</ol>' : '<div class="sub" style="margin:6px 0">ACE 상품 없음</div>') +
+      (oth.length ? '<h4>비교 (타사, 순자산 100억·거래대금 1억 이상 중 장중 상위)</h4><ol class="td">' + oth.map(function (x) { return row(x, false); }).join("") + '</ol>' : "") + '</div>';
+  }
+  function intraThemes() {
+    var list = ((DATA.themes || {}).daily || []).slice().sort(function (a, b) { return num((b.bench || {}).d1, -99) - num((a.bench || {}).d1, -99); });
+    if (!list.length) return '<div class="card section"><div class="sub">테마 데이터 없음</div></div>';
+    var up = list.filter(function (t) { return (t.bench || {}).d1 > 0; }).length;
+    var head = '<div class="card-h"><h2>테마 흐름<span class="sub">대표 ETF 장중 등락 · 상승 ' + up + ' / 하락 ' + (list.length - up) + ' · 누르면 안의 ETF</span></h2>' +
+      '<div class="seg small" data-thv><button data-v="tile" class="' + (TH_VIEW === "tile" ? "active" : "") + '">타일</button><button data-v="list" class="' + (TH_VIEW === "list" ? "active" : "") + '">표</button></div></div>';
+    var openT = list.filter(function (t) { return t.theme === TH_OPEN; })[0];
+    var body = "";
+    if (TH_VIEW === "tile") {
+      var aums = list.map(function (t) { return t.aum_total || 0; }).sort(function (a, b) { return b - a; });
+      var big = aums[Math.min(5, aums.length - 1)] || 0;
+      body = '<div class="tiles">' + list.map(function (t) {
+        var b = t.bench || {}, isBig = (t.aum_total || 0) >= big && big > 0;
+        return '<button class="tile' + (isBig ? " big" : "") + (t.theme === TH_OPEN ? " on" : "") + '" data-th="' + esc(t.theme) + '" style="background:' + heatBg(b.d1) + '" title="' + esc(b.name || "") + '">' +
+          '<span class="tn">' + esc(t.theme) + (t.bundle ? ' <i>묶음</i>' : "") + '</span><span class="tv">' + pct(b.d1) + '</span>' + (isBig ? '<span class="tb">' + esc(b.name || "") + '</span>' : "") + '</button>';
+      }).join("") + '</div>' + (openT ? themeDetail(openT) : "");
+      body += '<div class="src">타일 색 = 대표 ETF 장중 등락(진할수록 크게 움직임) · 큰 타일 = 테마 전체 순자산 상위 6</div>';
+    } else {
+      body = '<div class="th-list">' + list.map(function (t) {
+        var b = t.bench || {};
+        return '<div class="th-row' + (t.theme === TH_OPEN ? " on" : "") + '" data-th="' + esc(t.theme) + '"><span class="tn"><b>' + esc(t.theme) + '</b>' + bundleTag(t) + '<span class="hb">' + esc(b.name || "") + '</span></span>' +
+          '<span class="tv" style="background:' + heatBg(b.d1) + '">' + pct(b.d1) + '</span><span class="ar">' + (t.theme === TH_OPEN ? "▴" : "▾") + '</span></div>' +
+          (t.theme === TH_OPEN ? themeDetail(t) : "");
+      }).join("") + '</div>';
+    }
+    return '<div class="card section th-card">' + head + '<div class="asof">기준 · ' + esc((DATA.as_of || {}).etf || "") + '</div>' + body + '</div>';
+  }
+  document.addEventListener("click", function (e) {
+    if (!isIntra() || !e.target.closest) return;
+    var v = e.target.closest("[data-thv] button");
+    if (v) { TH_VIEW = v.getAttribute("data-v"); render(); return; }
+    if (e.target.closest("[data-th-close]")) { TH_OPEN = null; render(); return; }
+    var t = e.target.closest("[data-th]");
+    if (t) {
+      var name = t.getAttribute("data-th"); TH_OPEN = TH_OPEN === name ? null : name;
+      var y = window.scrollY; render(); window.scrollTo(0, y);
+      var box = document.querySelector(".td-box"); if (box && TH_VIEW === "tile") box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  });
   document.getElementById("viewSeg").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b || b.disabled) return;
     VIEW = b.getAttribute("data-v"); MORE = {};
