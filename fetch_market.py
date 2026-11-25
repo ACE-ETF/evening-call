@@ -1087,6 +1087,43 @@ def build_themes(rows: list, key: str, bench: dict = None, drivers: dict = None)
     return sorted(out, key=lambda x: (x["median"] is None, -(x["median"] or 0)))
 
 
+LEV_UNDERLYING = [
+    ("채권·금리", r"국채|채권|국고채|금리"), ("달러·통화", r"달러|엔선물|엔화|통화"),
+    ("원자재", r"골드|금선물|금현물|은선물|원유|WTI|구리|천연가스|원자재"),
+    ("반도체", r"반도체|하이닉스|삼성전자"), ("2차전지", r"2차전지|배터리"),
+    ("코스닥150", r"코스닥|KOSDAQ|150"), ("코스피200", r"200|코스피|KOSPI"),
+    ("미국 나스닥", r"나스닥|NASDAQ|빅테크|테크"), ("미국 S&P500", r"S&P|미국"),
+    ("중국", r"차이나|중국|항셍|CSI"), ("일본", r"일본|TOPIX|닛케이"),
+]
+LEV_UNDERLYING_RE = [(n, re.compile(rx, re.I)) for n, rx in LEV_UNDERLYING]
+
+
+def build_leverage(rows: list, key: str = "d1") -> dict:
+    """레버리지·인버스 ETF 참고 집계 (테마 순위·히트맵에는 넣지 않음)."""
+    groups = {}
+    for x in rows:
+        nm = x["name"]
+        if not LEV_INV.search(nm):
+            continue
+        d = "인버스2X" if re.search(r"인버스\s*2X|곱버스|인버스2|-2X", nm, re.I) else "인버스" if re.search(r"인버스|-1X", nm, re.I) else "레버리지"
+        base = re.sub(r"레버리지|인버스|2X|선물|합성|\(H\)|\s", "", OTHER_BRANDS.sub("", re.sub(r"^ACE\s*", "", nm)), flags=re.I)
+        u = "코스피200" if not base else next((n for n, rx in LEV_UNDERLYING_RE if rx.search(base)), "기타")
+        groups.setdefault(u, []).append(dict(x, dir=d))
+    out = []
+    for u, g in groups.items():
+        val = {d: int(sum((y.get("value") or 0) for y in g if y["dir"] == d)) for d in ("레버리지", "인버스", "인버스2X")}
+        top = sorted(g, key=lambda y: -(y.get("aum") or 0))
+        pick = []
+        for d in ("레버리지", "인버스", "인버스2X"):  # 방향별 순자산 1위 + ACE
+            pick += [y for y in top if y["dir"] == d][:1]
+        pick += [y for y in top if y["name"].startswith(ACE_PREFIX) and y not in pick]
+        out.append({"underlying": u, "count": len(g), "aum": int(sum((y.get("aum") or 0) for y in g)), "value": val,
+                    "etfs": [{k: y.get(k) for k in ("code", "name", "dir", "d1", "w1", "m1", "aum", "value")} for y in pick]})
+    out.sort(key=lambda z: -sum(z["value"].values()))
+    tot = {d: sum(z["value"][d] for z in out) for d in ("레버리지", "인버스", "인버스2X")}
+    return {"groups": out, "value_total": tot, "count": sum(z["count"] for z in out)}
+
+
 def fetch_etf_block(dates: list, indices: dict = None, start_date: str = None, allow_pdf: bool = False):
     """ETF 데이터: 전종목 시세 1회 + 기간 등락률 2회(1주·1개월) = KRX 3회 (+이름표)."""
     names = etf_names()
@@ -1158,6 +1195,10 @@ def fetch_etf_block(dates: list, indices: dict = None, start_date: str = None, a
         }
     ace["aum_total"] = int(sum(x["aum"] for x in arows))
     ace["stale"] = False
+    try:
+        themes["leverage"] = build_leverage(rows)
+    except Exception as e:
+        log(f"레버리지·인버스 집계 실패(생략): {e}")
     themes["stale"] = False
     return ace, themes
 

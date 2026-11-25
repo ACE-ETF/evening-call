@@ -207,6 +207,7 @@ def main() -> int:
         "sector_flow": sf,
         "top_stocks": ts,
         "movers": mv,
+        "leverage": guarded("레버리지", lambda: fm.build_leverage(rows), {}) if rows else {},
         "themes": {"daily": [{key: t.get(key) for key in ("theme", "bench", "bundle", "count", "ace_count", "ace", "others", "aum_total")} for t in themes]},
         "news": news,
         "data_quality": {"final": False, "is_today": True, "intraday": True, "stale_items": []},
