@@ -66,6 +66,9 @@
   ol.td li:last-child { border-bottom: 0; }
   ol.td .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   ol.td .au { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  ol.td li.ace .nm { color: var(--ace-text); font-weight: 600; }
+  .tml { font-size: 10.5px; color: var(--muted); font-weight: 600; margin-right: 4px; }
+  .tbn b { color: var(--text); font-weight: 600; }
   ol.td .pc { min-width: 58px; text-align: right; font-variant-numeric: tabular-nums; }
   ol.td .up { color: #f3a3a3; } ol.td .down { color: #9cc0fb; }
   .ace-tag { display: inline-block; background: var(--ace); color: #fff; font-size: 10px; font-weight: 700; border-radius: 4px; padding: 0 4px; margin-right: 5px; vertical-align: 1px; }
@@ -254,7 +257,9 @@
   .theme .tname { font-weight: 800; font-size: 14px; }
   .theme .tcnt { color: var(--muted); font-size: 11px; font-weight: 600; margin-left: 6px; }
   .theme .tmed { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
-  .theme .tsub { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-top: 6px; }
+  .theme .tsub { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .theme .tsub .tbn { white-space: normal; line-height: 1.5; color: var(--text-2); font-size: 12px; flex: 1 1 220px; }
+  .amark { justify-self: center; width: 4px; height: 26px; border-radius: 2px; background: var(--ace); }
   .achip { font-size: 11px; font-weight: 700; color: var(--ace-text); background: rgba(85,126,170,.22); border: 1px solid rgba(85,126,170,.6); padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
   .achip.none { color: var(--muted); background: transparent; border-color: var(--line); }
   .tlist { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 4px; }
@@ -268,7 +273,7 @@
   .trow:last-child { border-bottom: 0; }
   .trow .tn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .trow .tp { font-variant-numeric: tabular-nums; font-weight: 600; }
-  .trow.ace .tn { font-weight: 700; color: var(--text); }
+  .trow.ace .tn { font-weight: 700; color: var(--ace-text); }
   .trow:not(.ace) .tn { color: var(--muted); }
   .atag { font-size: 10px; font-weight: 800; color: var(--ace-ink); background: var(--ace); border-radius: 4px; text-align: center; padding: 1px 0; }
   .otag { font-size: 10px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; text-align: center; padding: 0; }
@@ -541,13 +546,13 @@
   }
   function themeDetail(t) {
     function row(x, ace) {
-      return '<li class="' + (ace ? "ace" : "") + '"><span class="nm">' + (ace ? '<span class="ace-tag">ACE</span>' : "") + esc(String(x.name).replace(/^ACE\s*/, ace ? "" : "ACE ")) + '</span>' +
+      return '<li class="' + (ace ? "ace" : "") + '"><span class="nm">' + esc(x.name) + '</span>' +
         '<span class="au">' + aumFmt(x.aum) + '</span><span class="pc ' + (x.d1 > 0 ? "up" : x.d1 < 0 ? "down" : "") + '">' + pct(x.d1) + '</span></li>';
     }
     var b = t.bench || {};
     var ace = (t.ace || []).slice().sort(function (a, c) { return num(c.d1, -99) - num(a.d1, -99); });
     var oth = (t.others || []).slice(0, 5);
-    return '<div class="td-box"><div class="td-h"><b>' + esc(t.theme) + '</b> ' + bundleTag(t) + ' <span class="sub">대표 ' + esc(b.name || "-") + ' ' + pct(b.d1) + ' · ETF ' + (t.count || 0) + '개</span>' +
+    return '<div class="td-box"><div class="td-h"><b>' + esc(t.theme) + '</b> ' + bundleTag(t) + ' <span class="sub">테마 수익률 ' + pct(b.d1) + ' = ' + esc(b.name || "-") + (b.aum ? ' (순자산 ' + aumFmt(b.aum) + ', 테마 1위)' : "") + ' 기준 · ETF ' + (t.count || 0) + '개</span>' +
       '<button class="td-x" data-th-close>닫기 ✕</button></div>' +
       (ace.length ? '<h4>ACE</h4><ol class="td">' + ace.map(function (x) { return row(x, true); }).join("") + '</ol>' : '<div class="sub" style="margin:6px 0">ACE 상품 없음</div>') +
       (oth.length ? '<h4>비교 (타사, 순자산 100억·거래대금 1억 이상 중 장중 상위)</h4><ol class="td">' + oth.map(function (x) { return row(x, false); }).join("") + '</ol>' : "") + '</div>';
@@ -931,12 +936,12 @@
   function etfLine(x, tag) {
     var main = rv(x, S.mode === "daily" ? "d1" : "w1"); if (main == null) main = num(x.pct);
     var isAce = /^ACE\s/.test(x.name);
-    var nm = isAce ? x.name.replace(/^ACE\s+/, "") : x.name;
+    var nm = x.name;
     var meta = x.aum != null || x.d1 != null
       ? 'AUM ' + aumFmt(x.aum) + (S.mode === "daily" ? "" : ' · 1D ' + softPct(rv(x, "d1"))) + (S.mode === "weekly" ? "" : ' · 1W ' + softPct(rv(x, "w1"))) + ' · 1M ' + softPct(rv(x, "m1"))
       : '거래대금 ' + Math.round(num(x.value)).toLocaleString("ko-KR") + '억';
     var tip = "<b>" + esc(x.name) + "</b> (" + esc(x.code) + ")<br>순자산 " + aumFmt(x.aum) + " · 거래대금 " + Math.round(num(x.value)).toLocaleString("ko-KR") + "억<br>1D " + pct(rv(x, "d1")) + " · 1W " + pct(rv(x, "w1")) + " · 1M " + pct(rv(x, "m1"));
-    var tg = tag === "ace" ? '<span class="atag">ACE</span>' : tag === "cmp" ? '<span class="otag">비교</span>' : '<span class="rk">' + esc(tag || "") + '</span>';
+    var tg = tag === "ace" ? '<span class="amark" title="ACE 상품"></span>' : tag === "cmp" ? '<span class="otag">비교</span>' : '<span class="rk">' + esc(tag || "") + '</span>';
     return '<div class="trow' + (isAce ? " ace" : "") + '" data-tip="' + esc(tip) + '">' + tg +
       '<div class="tbody"><span class="tn">' + esc(nm) + '</span><span class="tm">' + meta + '</span></div>' +
       '<span class="tp ' + cls(main) + '"><small class="tpl">' + (S.mode === "daily" ? "1D" : "1W") + '</small>' + pct(main) + '</span></div>';
@@ -996,8 +1001,8 @@
       var rows = (t.ace || []).map(function (x) { return etfLine(x, "ace"); }).join("") +
         (t.others || []).map(function (x) { return etfLine(x, "cmp"); }).join("");
       return '<details class="theme" id="th-' + i + '" data-theme="' + esc(t.theme) + '"' + (isM() ? "" : " open") + '><summary>' +
-        '<div class="th"><span class="tname">' + esc(t.theme) + bundleTag(t) + '</span><span class="tmed ' + cls(v) + '">' + (v == null ? "-" : pct(v)) + '</span></div>' +
-        '<div class="tsub"><span class="tbn">대표 ' + esc(benchLabel(b)) + (b.aum ? ' (' + aumFmt(b.aum) + ')' : "") + refLine(b, k) + ' · 1W ' + softPct(b.w1 == null ? null : num(b.w1)) + ' · 1M ' + softPct(b.m1 == null ? null : num(b.m1)) + '</span>' + aceInfo + '</div></summary>' +
+        '<div class="th"><span class="tname">' + esc(t.theme) + bundleTag(t) + '</span><span class="tmed ' + cls(v) + '"><small class="tml">' + (S.mode === "daily" ? "1D" : "1W") + '</small>' + (v == null ? "-" : pct(v)) + '</span></div>' +
+        '<div class="tsub"><span class="tbn">↳ 테마 수익률 = <b>' + esc(benchLabel(b)) + '</b>' + (b.aum ? ' (순자산 ' + aumFmt(b.aum) + ', 테마 1위)' : "") + ' 기준 · 1W ' + softPct(b.w1 == null ? null : num(b.w1)) + ' · 1M ' + softPct(b.m1 == null ? null : num(b.m1)) + refLine(b, k) + '</span>' + aceInfo + '</div></summary>' +
         driversBlock(t.drivers) + '<div class="tlist">' + rows + '</div></details>';
     }).join("");
     return '<div class="card"><div class="card-h"><h2>테마별 상세<span class="sub">' + modeLabel() + ' · ACE 라인업 우선 · 타사 비교</span>' + staleBadge(T) + '</h2></div>' + asOf("etf") +
@@ -1013,7 +1018,7 @@
     var cards = picks.map(function (x) {
       var main = rv(x, themeKey()); if (main == null) main = rv(x, "d1");
       return '<div class="pick"><div class="ph"><span class="atag">ACE</span><span class="pt">' + esc(x.theme || "") + '</span><span class="pcode">' + esc(x.code) + '</span></div>' +
-        '<div class="pn">' + esc(x.name.replace(/^ACE\s+/, "")) + '</div>' +
+        '<div class="pn">' + esc(x.name) + '</div>' +
         '<div class="pr"><span class="tp ' + cls(main) + '"><small class="tpl">' + (S.mode === "daily" ? "1D" : "1W") + '</small>' + pct(main) + '</span>' +
         '<span class="tm">AUM ' + aumFmt(x.aum) + (S.mode === "daily" ? "" : ' · 1D ' + softPct(rv(x, "d1"))) + (S.mode === "weekly" ? "" : ' · 1W ' + softPct(rv(x, "w1"))) + ' · 1M ' + softPct(rv(x, "m1")) + '</span></div>' +
         (x.point ? '<div class="pp">' + esc(x.point) + '</div>' : "") + '</div>';
